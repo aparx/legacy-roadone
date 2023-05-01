@@ -1,0 +1,17 @@
+{
+  "name": "theme-generator",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "color-blend": "^4.0.0",
+    "colord": "^2.9.3",
+    "lodash": "^4.17.21",
+    "theme-core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsconfig": "workspace:*"
+  }
+}

@@ -1,5 +1,12 @@
 {
-  "extends": "tsconfig/nextjs.json",
+  "extends": "tsconfig/next.json",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "jsxImportSource": "@emotion/react",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }
