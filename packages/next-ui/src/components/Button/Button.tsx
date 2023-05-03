@@ -1,6 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { UIMagics } from '../../utils';
+import { WithStyleableProp } from '../../utils/styleable';
 import type { InferRtMultiplierNameMap } from '../../utils/types';
+import { MultiplierValueInput } from '../../utils/types';
 import { ButtonConfig as config } from './Button.config';
 import { createButtonRenderer } from './Button.renderer';
 import { mainButton } from './variations/mainButton';
@@ -23,14 +25,15 @@ export type ButtonType = (typeof buttonTypeArray)[number];
 
 // prettier-ignore
 export const buttonTypeArray = [
+  // TODO "danger" button (?)
   ...palettePrimaryArray, 'surface', 'text'
 ] as const;
 
 export interface ButtonOptions {
   font: TypescalePinpoint;
-  roundness?: MultiplierOperationInput<'roundness', InferRtMultiplierNameMap>;
-  hPadding: MultiplierOperationInput<'spacing', InferRtMultiplierNameMap>;
-  vPadding: MultiplierOperationInput<'spacing', InferRtMultiplierNameMap>;
+  hPadding: MultiplierValueInput<'spacing'>;
+  vPadding: MultiplierValueInput<'spacing'>;
+  roundness?: MultiplierValueInput<'roundness'>;
 }
 
 type ButtonAnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;
@@ -40,15 +43,15 @@ export type BiasedButtonProps =
   | ({ link: string } & ButtonAnchorProps)
   | ({ link?: undefined } & ButtonElementProps);
 
-export type InternalButtonProps = {
+export type InternalButtonProps = WithStyleableProp<{
   disabled?: boolean;
   /** @default 'sm' */
   size?: ButtonSize;
   evenPadding?: boolean;
   leading?: ReactNode;
   tailing?: ReactNode;
-  [UIMagics.customStyleProperty]?: Partial<ButtonOptions>;
-};
+  [UIMagics.customStylePropKey]?: Partial<ButtonOptions>;
+}>;
 
 export type ButtonProps = InternalButtonProps &
   Omit<BiasedButtonProps, keyof InternalButtonProps>;

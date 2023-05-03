@@ -3,9 +3,12 @@ import { useTypefaceStyleClass } from '../../context';
 import { HTMLTagRenderer, UIMagics } from '../../utils';
 import { propMerge } from '../../utils';
 import type { HTMLTag } from '../../utils';
+import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
 import { HTMLElementFromTag, WithTagRepresentation } from '../../utils/tag';
+import { WithCSSProp } from '../../utils/types';
 import { TextConfig as config } from './Text.config';
-import { jsx, useTheme } from '@emotion/react';
+import { css, jsx, useTheme } from '@emotion/react';
+import { WithConditionalCSSProp } from '@emotion/react/types/jsx-namespace';
 import { capitalize } from 'lodash';
 import React, {
   forwardRef,
@@ -14,7 +17,12 @@ import React, {
   HTMLAttributes,
 } from 'react';
 import { resolveSource, ValueSource } from 'shared-utils';
-import type { Theme, TypescaleRole } from 'theme-core';
+import type {
+  Theme,
+  TypefaceWeight,
+  TypescalePinpoint,
+  TypescaleRole,
+} from 'theme-core';
 import { TypescaleData, typescaleRoleArray, TypescaleSize } from 'theme-core';
 
 /** Props that is more thoroughly describing the style (not typography!) of the
@@ -26,14 +34,14 @@ export type TextStyleProps = {
   color?: ValueSource<string, [Theme]>;
 };
 
+// prettier-ignore
 /** Internal props for the Text-Component. */
-export type InternalTextProps = {
+export type InternalTextProps = WithStyleableProp<{
   children: NonNullable<ReactNode>[] | NonNullable<ReactNode>;
   size: TypescaleSize;
-  /** @default high */
   /** @default initial */
-  [UIMagics.customStyleProperty]?: Partial<TypescaleData>;
-} & TextStyleProps;
+  [UIMagics.customStylePropKey]?: Partial<TypescaleData>;
+} & TextStyleProps>;
 
 /** Text style data outside a React-Component, with given font data. */
 export type TextStyleData = { fontData: TypescaleData } & TextStyleProps;
@@ -64,9 +72,11 @@ function createTextRenderer(role: TypescaleRole) {
     ref: React.ForwardedRef<HTMLElementFromTag<TTag>>
   ) {
     const { as, children, size, take, color, emphasis, ...restProps } = props;
-    const fontData = { ...useTheme().sys.typescale[role][size], ...take };
-    const styleProps = useTextElementProps({ fontData, emphasis, color });
-    const propData = propMerge(styleProps, restProps);
+    const fontData = { ...useFontData({ role, size }), ...take };
+    const propData = propMerge(
+      useDataTextProps({ fontData, emphasis, color }),
+      useStyleableMerge(restProps)
+    );
     let defaultTag: HTMLTag | undefined;
     if (!as) defaultTag = config.tagMap[role]?.[size];
     defaultTag ??= config.Defaults.tag;
@@ -74,27 +84,34 @@ function createTextRenderer(role: TypescaleRole) {
   }) as HTMLTagRenderer<typeof config.Defaults.tag, InternalTextProps>;
 }
 
-export function createTextStyle(
-  theme: Theme,
-  {
-    fontData,
-    emphasis = config.Defaults.emphasis,
-    color = config.Defaults.color,
-  }: TextStyleData
-) {
-  return {
-    fontWeight: theme.ref.typeface.weights[fontData.fontWeight],
-    fontSize: `${fontData.fontSize / theme.ref.typeface.base.fontSize}rem`,
-    lineHeight: `${fontData.lineHeight}px` ?? 'initial',
-    letterSpacing: `${fontData.letterSpacing}px` ?? 'initial',
-    color: resolveSource<InternalTextProps['color']>(color, theme),
-    opacity: config.emphasisOpacityMap[emphasis],
-  } satisfies CSSProperties;
+function useFontData({ role, size }: TypescalePinpoint) {
+  return useTheme().sys.typescale[role][size];
 }
 
-export function useTextElementProps(data: TextStyleData) {
+export function useDataTextProps({ fontData, color, emphasis }: TextStyleData) {
+  const theme = useTheme();
   return {
-    style: createTextStyle(useTheme(), data),
-    className: useTypefaceStyleClass(data.fontData.fontFamily),
-  } satisfies HTMLAttributes<any>;
+    className: useTypefaceStyleClass(fontData.fontFamily),
+    style: {
+      fontSize: `${fontData.fontSize / theme.ref.typeface.base.fontSize}rem`,
+      color: resolveSource<InternalTextProps['color']>(color, theme),
+      opacity: config.emphasisOpacityMap[emphasis],
+    } satisfies CSSProperties,
+    css: css({
+      fontWeight: theme.ref.typeface.weights[fontData.fontWeight],
+      lineHeight: `${fontData.lineHeight}px` ?? 'initial',
+      letterSpacing: `${fontData.letterSpacing}px` ?? 'initial',
+    }),
+  } satisfies WithCSSProp<HTMLAttributes<any>>;
+}
+
+export function usePinpointTextProps({
+  role,
+  size,
+  ...restTypes
+}: TypescalePinpoint & TextStyleProps) {
+  return useDataTextProps({
+    fontData: useFontData({ role, size }),
+    ...restTypes,
+  });
 }

@@ -10,7 +10,7 @@ import { DeepPartial } from 'utility-types';
 /** Config module for the `Button` component(s) */
 export module ButtonConfig {
   export module Defaults {
-    export const size = 'sm' satisfies ButtonSize;
+    export const size = 'md' satisfies ButtonSize;
   }
 
   /** External button config utilities managed under the "config" */
@@ -53,7 +53,6 @@ export module ButtonConfig {
       const _tree = tree as ButtonAppearanceTree<any>;
       for (const type of types) {
         out[type] ??= {};
-        // TODO might have to change `merge` to something more performant (!)
         // premature optimization is evil, thus we'll keep this until issues
         const typeMerge = merge({}, tree._opts, _tree._type?.[type]?._opts);
         for (const size of buttonSizeArray) {

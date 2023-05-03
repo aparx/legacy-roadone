@@ -37,6 +37,7 @@ export class RuntimeMultipliers<TMap extends NamedMultiplierMap> {
     type: TType,
     input: MultiplierOperationInput<TType, TMap>
   ) {
+    if (type == null || input == null) return undefined;
     return this.getMultiplier(type, input) * this.themeMultipliers[type];
   }
 

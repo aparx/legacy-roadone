@@ -1,5 +1,5 @@
 import { propMerge } from '../../utils';
-import { useTextElementProps } from '../Text/Text';
+import { useDataTextProps } from '../Text/Text';
 import type {
   ButtonProps,
   ButtonOptions,
@@ -63,7 +63,7 @@ export function createButtonRenderer<TType extends ButtonType>(
         link={link}
         disabled={disabled}
         {...propMerge(
-          useTextElementProps({
+          useDataTextProps({
             fontData: typescalePinpoint(theme, opts.font),
             emphasis: disabled ? 'disabled' : 'high',
           }),

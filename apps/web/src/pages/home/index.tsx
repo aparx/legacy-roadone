@@ -1,92 +1,41 @@
+import { signIn, signOut, useSession } from 'next-auth/react';
 import { Button, PageAlign, Stack, Text } from 'next-ui';
-import { usePageAlignProps } from 'next-ui/src/components/PageAlign/PageAlign';
-import { useState } from 'react';
+import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 
 export default function Web() {
-  const [, setCount] = useState(0);
-  const refreshPage = () => setCount((p) => 1 + p);
-
+  const { status, data } = useSession();
   return (
-    <div>
-      <h1>Web</h1>
-      <Stack direction={'column'} spacing={5} {...usePageAlignProps()}>
-        <Text.Headline size={'lg'} take={{ fontWeight: 'heavy' }}>
-          Buttons
-        </Text.Headline>
-        <Stack direction={'column'}>
-          <Text.Headline size={'md'} emphasis={'medium'}>
-            Primary
-          </Text.Headline>
+    <PageAlign {...usePinpointTextProps({ role: 'body', size: 'md' })}>
+      <Text.Headline
+        size={'lg'}
+        sd={{
+          roundness: 'lg',
+          background: (t) => t.sys.color.scheme.primaryContainer,
+          color: (t) => t.sys.color.scheme.onPrimaryContainer,
+          marginV: 'xxl',
+          padding: 'xl',
+        }}
+      >
+        Homepage
+      </Text.Headline>
+      <Stack direction={'row'} spacing={'lg'} vCenter>
+        <Text.Title size={'md'}>
           <Stack direction={'row'}>
-            <Button.Primary
-              link={'https://google.com'}
-              size={'md'}
-              onClick={refreshPage}
-            >
-              Primary
-            </Button.Primary>
-            <Button.Primary size={'sm'} onClick={refreshPage}>
-              Primary (II)
-            </Button.Primary>
+            Welcome, {data?.user?.email ?? '[Please Sign In]'}
           </Stack>
-        </Stack>
-
-        <Stack direction={'column'}>
-          <Text.Headline size={'md'} emphasis={'medium'}>
-            Secondary
-          </Text.Headline>
-          <Stack direction={'row'}>
-            <Button.Secondary disabled size={'md'} onClick={refreshPage}>
-              Secondary (I)
-            </Button.Secondary>
-            <Button.Secondary size={'sm'} onClick={refreshPage}>
-              Secondary (II)
-            </Button.Secondary>
-          </Stack>
-        </Stack>
-
-        <Stack direction={'column'}>
-          <Text.Headline size={'md'} emphasis={'medium'}>
-            Tertiary
-          </Text.Headline>
-          <Stack direction={'row'}>
-            <Button.Tertiary size={'md'} onClick={refreshPage}>
-              Tertiary (I)
-            </Button.Tertiary>
-            <Button.Tertiary size={'sm'} onClick={refreshPage}>
-              Tertiary (II)
-            </Button.Tertiary>
-          </Stack>
-        </Stack>
-
-        <Stack direction={'column'}>
-          <Text.Headline size={'md'} emphasis={'medium'}>
-            Surface
-          </Text.Headline>
-          <Stack direction={'row'}>
-            <Button.Surface size={'md'} onClick={refreshPage}>
-              Surface (I)
-            </Button.Surface>
-            <Button.Surface size={'sm'} onClick={refreshPage}>
-              Surface (II)
-            </Button.Surface>
-          </Stack>
-        </Stack>
-
-        <Stack direction={'column'}>
-          <Text.Headline size={'md'} emphasis={'medium'}>
-            Text
-          </Text.Headline>
-          <Stack direction={'row'}>
-            <Button.Text size={'md'} onClick={refreshPage}>
-              Surface (I)
-            </Button.Text>
-            <Button.Text size={'sm'} onClick={refreshPage}>
-              Surface (II)
-            </Button.Text>
-          </Stack>
-        </Stack>
+        </Text.Title>
+        {status === 'authenticated' ? <SignOut /> : <SignIn />}
       </Stack>
-    </div>
+    </PageAlign>
   );
+}
+
+function SignIn() {
+  return (
+    <Button.Primary onClick={() => signIn('google')}>Sign in</Button.Primary>
+  );
+}
+
+function SignOut() {
+  return <Button.Tertiary onClick={() => signOut()}>Sign out</Button.Tertiary>;
 }

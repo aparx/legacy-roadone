@@ -6,6 +6,8 @@ import {
   propMerge,
   WithTagRepresentation,
 } from '../../utils';
+import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
+import { RequiredChildren } from '../../utils/types';
 import { PageAlignConfig as config } from './PageAlign.config';
 import * as style from './PageAlign.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
@@ -24,9 +26,9 @@ export type BasePageAlignData = {
   lowerBound?: number | 'auto';
 };
 
-export type InternalPageAlignProps = {
-  children: NonNullable<ReactNode> | NonNullable<ReactNode>[];
-} & BasePageAlignData;
+export type InternalPageAlignProps = WithStyleableProp<
+  BasePageAlignData & { children: RequiredChildren }
+>;
 
 // prettier-ignore
 export type PageProps<TTag extends HTMLTag> =
@@ -38,10 +40,14 @@ export const PageAlign = forwardRef(function PageAlignRenderer<
   { as, alignBy, lowerBound, children, ...restProps }: PageProps<TTag>,
   ref: ForwardedRef<HTMLElementFromTag<TTag>>
 ) {
-  const styleProps = createPageAlignProps(useTheme(), { alignBy, lowerBound });
+  const theme = useTheme();
   return jsx(
     as ?? config.Defaults.tag,
-    propMerge(styleProps, restProps, { ref }),
+    propMerge(
+      createPageAlignProps(theme, { alignBy, lowerBound }),
+      useStyleableMerge(restProps),
+      { ref }
+    ),
     children
   );
 }) as HTMLTagRenderer<

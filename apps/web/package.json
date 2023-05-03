@@ -10,6 +10,7 @@
     "theme": "theme-cli generate --output \"src/styles/theme/generated.json\""
   },
   "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.6",
     "@prisma/client": "^4.13.0",
     "@trpc/client": "^10.21.1",
     "@trpc/next": "^10.21.1",

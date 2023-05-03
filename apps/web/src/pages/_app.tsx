@@ -4,15 +4,18 @@ import { theme } from '@/styles/theme';
 import { api } from '@/utils/api';
 import { roboto } from '@/utils/font';
 import { Global, ThemeProvider } from '@emotion/react';
+import { SessionProvider } from 'next-auth/react';
 import { TypefaceStyleClassProvider } from 'next-ui';
 
-function App({ Component, pageProps }) {
+function App({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <div id={'app-root'} css={{}}>
       <ThemeProvider theme={theme}>
         <TypefaceStyleClassProvider value={{ roboto: roboto.className }}>
           <Global styles={style.global} />
-          <Component {...pageProps} />
+          <SessionProvider session={session}>
+            <Component {...pageProps} />
+          </SessionProvider>
         </TypefaceStyleClassProvider>
       </ThemeProvider>
     </div>
