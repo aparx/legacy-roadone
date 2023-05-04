@@ -1,5 +1,4 @@
-import type { HTMLTag } from '../../utils/tag';
-import { InternalTextProps } from './Text';
+import type { HTMLTag } from '../../utils';
 import type { TypescaleRole, TypescaleSize } from 'theme-core';
 import type { DeepPartial } from 'utility-types';
 
@@ -7,7 +6,6 @@ import type { DeepPartial } from 'utility-types';
 export module TextConfig {
   export module Defaults {
     export const emphasis = 'high' satisfies Emphasis;
-    export const color = 'inherit' satisfies InternalTextProps['color'];
     export const tag = 'div' satisfies HTMLTag;
   }
 

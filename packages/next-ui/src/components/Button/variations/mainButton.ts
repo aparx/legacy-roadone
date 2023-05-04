@@ -43,7 +43,7 @@ export const mainButton = memoize(() => {
       _type: {
         primary: {
           _opts: {
-            roundness: 100,
+            roundness: 1,
           },
         },
       },

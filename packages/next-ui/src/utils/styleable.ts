@@ -1,15 +1,13 @@
-import { UIMagics } from './magics';
+import { UI } from './magics';
 import { propMerge } from './merge';
 import type { MultiplierValueInput } from './types';
 import type { CSSObject, Theme } from '@emotion/react';
 import { useTheme } from '@emotion/react';
 import type { Property } from 'csstype';
 import { capitalize } from 'lodash';
-import { randomInt } from 'next/dist/shared/lib/bloom-filter/utils';
 import { CSSProperties } from 'react';
-import type { UnionOmit, UnionPick, ValueSource } from 'shared-utils';
+import type { ValueSource } from 'shared-utils';
 import { resolveSource } from 'shared-utils';
-import { DeepReadonly } from 'utility-types';
 
 import QuadSides = BoxSide.QuadSides;
 
@@ -122,7 +120,7 @@ export type StyleableData = StyleableColorProps &
   StyleableSpacingProps;
 
 /** Object with the `styleablePropKey` and `StyleableData` as value. */
-export type StyleableProp = { [UIMagics.styleablePropKey]?: StyleableData };
+export type StyleableProp = { [UI.styleablePropKey]?: StyleableData };
 
 // prettier-ignore
 /** Returns a new type of `TProps` with the styleable property. */

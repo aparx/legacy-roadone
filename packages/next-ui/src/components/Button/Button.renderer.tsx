@@ -1,4 +1,5 @@
 import { propMerge } from '../../utils';
+import { useStyleableMerge } from '../../utils/styleable';
 import { useDataTextProps } from '../Text/Text';
 import type {
   ButtonProps,
@@ -49,14 +50,15 @@ export function createButtonRenderer<TType extends ButtonType>(
       leading,
       size = config.Defaults.size,
       tailing,
-      evenPadding,
+      tight,
       ...restProps
     }: TProps,
     ref: ForwardedRef<HTMLElementFromButtonProps<TProps>>
   ) {
     const theme = useTheme();
-    const opts = merge({}, appearance[size], take);
-    if (evenPadding) opts.hPadding = opts.vPadding;
+    const visual = appearance[size];
+    const opts = merge({}, visual, take);
+    if (tight) opts.hPadding = opts.vPadding;
     return (
       <ButtonLink
         ref={ref}
@@ -68,7 +70,7 @@ export function createButtonRenderer<TType extends ButtonType>(
             emphasis: disabled ? 'disabled' : 'high',
           }),
           factory?.(theme, opts, type),
-          restProps
+          useStyleableMerge(restProps)
         )}
       >
         <div>

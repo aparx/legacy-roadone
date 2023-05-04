@@ -11,9 +11,9 @@ import type { MultiplierValueInput } from '../../utils/types';
 import { RequiredChildren } from '../../utils/types';
 import { StackConfig as config } from './Stack.config';
 import * as style from './Stack.style';
-import { jsx, useTheme } from '@emotion/react';
+import { jsx, Theme, useTheme } from '@emotion/react';
 import type { Globals, Property } from 'csstype';
-import React, { CSSProperties, ForwardedRef, forwardRef } from 'react';
+import React, { ForwardedRef, forwardRef } from 'react';
 import { UnionOmit } from 'shared-utils';
 
 export type StackDirection = UnionOmit<Property.FlexDirection, Globals>;
@@ -45,28 +45,43 @@ export const Stack = forwardRef(function StackRenderer<TTag extends HTMLTag>(
   {
     as,
     children,
-    direction = config.Defaults.direction,
-    spacing = config.Defaults.spacing,
+    direction,
+    spacing,
     vCenter,
     hCenter,
-    ...restProps
+    ...rest
   }: StackProps<TTag>,
   ref: ForwardedRef<HTMLElementFromTag<TTag>>
 ) {
-  const theme = useTheme();
   return jsx(
     as ?? config.Defaults.tag,
     propMerge(
-      {
-        css: style.stack(theme, { direction, vCenter, hCenter }),
-        // Since spacing is not bound to any limits, we ensure to not create
-        // unnecessary amounts of class merges, thus using inline style instead
-        style: { gap: theme.rt.multipliers.spacing(spacing) },
-        ref,
-      },
-      useStyleableMerge(restProps)
+      useStackProps({ direction, spacing, vCenter, hCenter }),
+      useStyleableMerge(rest),
+      { ref }
     ),
     children
   );
 }) as HTMLTagRenderer<typeof config.Defaults.tag, InternalStackProps>;
 export default Stack;
+
+export function useStackProps(data: Partial<StackData>) {
+  return createStackProps(useTheme(), data);
+}
+
+export function createStackProps(
+  theme: Theme,
+  {
+    direction = config.Defaults.direction,
+    spacing = config.Defaults.spacing,
+    vCenter,
+    hCenter,
+  }: Partial<StackData>
+) {
+  return {
+    css: style.stack(theme, { direction, vCenter, hCenter }),
+    // Since spacing is not bound to any limits, we ensure to not create
+    // unnecessary amounts of class merges, thus using inline style instead
+    style: { gap: theme.rt.multipliers.spacing(spacing) },
+  };
+}

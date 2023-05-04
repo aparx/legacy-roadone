@@ -31,8 +31,28 @@ model User {
   // Custom fields (additionally)
   createdAt     DateTime  @default(now())
   role          Role      @default(USER)
+  member        Member?
 
   @@index([id, email, role])
+}
+
+/// Members are people that are members to the music group, not normal users!
+model Member {
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  /// Role of the member within the music-group
+  role      String
+  image     String? // URL to the image in the S3 storage
+  biography String  @db.Text
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String? @unique
+
+  @@index([firstName, lastName, userId])
 }
 
 // <===> NextAuth models <===>

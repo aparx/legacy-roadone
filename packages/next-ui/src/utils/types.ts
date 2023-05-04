@@ -1,6 +1,6 @@
 import type { Theme } from '@emotion/react';
 import { WithConditionalCSSProp } from '@emotion/react/types/jsx-namespace';
-import { ReactNode } from 'react';
+import { PropsWithoutRef, ReactNode, RefAttributes } from 'react';
 import type {
   DynamicMultiplierName,
   MultiplierOperationInput,
@@ -16,4 +16,9 @@ export type RequiredChildren =
   | NonNullable<ReactNode>
   | NonNullable<ReactNode>[];
 
-export type WithCSSProp<TProps> = TProps & WithConditionalCSSProp<TProps>;
+export type PropsWithCSS<TProps> = TProps & WithConditionalCSSProp<TProps>;
+
+export type PropsWithRef<TProps, TElement> = PropsWithoutRef<TProps> &
+  RefAttributes<TElement>;
+
+export type PropsWithoutChildren<TProps> = Omit<TProps, 'children'>;

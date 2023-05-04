@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
-import { UIMagics } from '../../utils';
+import { UI } from '../../utils';
 import { WithStyleableProp } from '../../utils/styleable';
-import type { InferRtMultiplierNameMap } from '../../utils/types';
 import { MultiplierValueInput } from '../../utils/types';
 import { ButtonConfig as config } from './Button.config';
 import { createButtonRenderer } from './Button.renderer';
@@ -9,11 +8,7 @@ import { mainButton } from './variations/mainButton';
 import { textButton } from './variations/textButton';
 import { capitalize } from 'lodash';
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
-import {
-  MultiplierOperationInput,
-  palettePrimaryArray,
-  TypescalePinpoint,
-} from 'theme-core';
+import { palettePrimaryArray, TypescalePinpoint } from 'theme-core';
 
 /** Union of all button sizes */
 export type ButtonSize = (typeof buttonSizeArray)[number];
@@ -47,10 +42,10 @@ export type InternalButtonProps = WithStyleableProp<{
   disabled?: boolean;
   /** @default 'sm' */
   size?: ButtonSize;
-  evenPadding?: boolean;
+  tight?: boolean;
   leading?: ReactNode;
   tailing?: ReactNode;
-  [UIMagics.customStylePropKey]?: Partial<ButtonOptions>;
+  [UI.customStylePropKey]?: Partial<ButtonOptions>;
 }>;
 
 export type ButtonProps = InternalButtonProps &
