@@ -1,4 +1,5 @@
 export * from './Button';
+export * from './Divider';
 export * from './Scrim';
 export * from './Portal';
 export * from './Card';

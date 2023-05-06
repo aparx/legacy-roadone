@@ -11,12 +11,7 @@ import { RequiredChildren } from '../../utils/types';
 import { PageAlignConfig as config } from './PageAlign.config';
 import * as style from './PageAlign.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
-import React, {
-  ForwardedRef,
-  forwardRef,
-  ReactElement,
-  ReactNode,
-} from 'react';
+import React, { ForwardedRef, forwardRef, ReactElement } from 'react';
 
 export type BasePageAlignData = {
   /** @default maximum theme's breakpoint (px) */
@@ -65,12 +60,15 @@ export function usePageAlignProps(data?: BasePageAlignData) {
 
 /** Returns properties applied to an element to align it to the page flow. */
 export function createPageAlignProps(theme: Theme, data?: BasePageAlignData) {
-  return {
-    css: style.pageAlign(theme, {
-      alignBy: data?.alignBy ?? theme.rt.breakpoints.point('xl'),
-      lowerBound: data?.alignBy ?? 'auto',
-    }),
-  };
+  return { css: createPageAlignStyle(theme, data) };
+}
+
+/** Returns the emotion-css property used to apply page alignment. */
+export function createPageAlignStyle(theme: Theme, data?: BasePageAlignData) {
+  return style.pageAlign(theme, {
+    alignBy: data?.alignBy ?? theme.rt.breakpoints.point('xl'),
+    lowerBound: data?.alignBy ?? 'auto',
+  });
 }
 
 /** Returns the horizontal (!) CSS padding value for page alignment. */

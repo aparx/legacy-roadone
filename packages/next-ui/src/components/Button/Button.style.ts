@@ -1,3 +1,4 @@
+import { UI } from '../../utils';
 import type { ButtonOptions } from './Button';
 import { css, Theme } from '@emotion/react';
 import type { Property } from 'csstype';
@@ -18,11 +19,11 @@ export const button = (
   const { lineHeight } = sys.typescale[opts.font.role][opts.font.size];
   return css`
     // <==> UNIVERSAL STYLE <==>
+    display: block; // <- very important for anchor tags
     appearance: unset;
     border: none;
     padding: 0;
     cursor: default;
-    background: none;
     color: transparent;
     width: fit-content;
     height: fit-content;
@@ -55,7 +56,7 @@ export const button = (
 
       & > div {
         // state-layer
-        transition: background 200ms;
+        transition: background ${UI.baseTransitionMs}ms;
       }
 
       // :hover, :focus-visible
@@ -66,7 +67,7 @@ export const button = (
       }
 
       // :pressed
-      &[data-pressed='true'],
+      &[data-pressed='true'] > div,
       &:active > div {
         // state-layer
         background: ${t.sys.color.state[style.state].medium};

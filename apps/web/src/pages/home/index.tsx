@@ -32,7 +32,7 @@ export default function Web() {
             amet.
           </Card.Content>
           <Card.Footer>
-            <Button.Primary tight>
+            <Button.Primary tight aria-label={'search button'}>
               <FaSearch />
             </Button.Primary>
           </Card.Footer>

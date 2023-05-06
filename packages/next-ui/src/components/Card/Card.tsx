@@ -15,7 +15,7 @@ import {
   ReactNode,
 } from 'react';
 import { WithArray } from 'shared-utils';
-import type { DynamicBreakpointName } from 'theme-core';
+import type { BreakpointName } from 'theme-core';
 
 export type Card = {
   Header: {
@@ -35,7 +35,7 @@ export type CardProps = WithStyleableProp<{
   >;
   /** The width is oriented after the maxWidth a card might have
    * @default 'md' */
-  width?: DynamicBreakpointName
+  width?: BreakpointName
 } & PropsWithoutChildren<HTMLAttributes<HTMLElement>>>;
 
 export const Card = forwardRef<HTMLElement, CardProps>(function CardRenderer(

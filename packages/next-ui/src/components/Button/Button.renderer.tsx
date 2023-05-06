@@ -1,15 +1,15 @@
-import { propMerge } from '../../utils';
-import { useStyleableMerge } from '../../utils/styleable';
+import { useEvent } from '../../hooks';
+import { propMerge, useStyleableMerge } from '../../utils';
+import { multiRef } from '../../utils/mutliRef';
 import { useDataTextProps } from '../Text/Text';
 import type {
-  ButtonProps,
   ButtonOptions,
-  ButtonType,
+  ButtonProps,
   ButtonSize,
+  ButtonType,
 } from './Button';
 import { ButtonConfig as config } from './Button.config';
-import { useTheme } from '@emotion/react';
-import { Theme } from '@emotion/react';
+import { Theme, useTheme } from '@emotion/react';
 import { WithConditionalCSSProp } from '@emotion/react/types/jsx-namespace';
 import { merge } from 'lodash';
 import Link from 'next/link';
@@ -20,6 +20,7 @@ import {
   PropsWithoutRef,
   ReactElement,
   RefAttributes,
+  useRef,
 } from 'react';
 import { typescalePinpoint } from 'theme-core';
 
@@ -94,12 +95,24 @@ type ButtonLinkProps = {
 
 const ButtonLink = forwardRef<any, ButtonLinkProps>(
   ({ link, children, disabled, ...restProps }, ref) => {
+    const action = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
+    const onPress = () => action.current.setAttribute('data-pressed', 'true');
+    const onLoose = () => action.current.setAttribute('data-pressed', 'false');
+    useEvent('mousedown', onPress, action.current);
+    useEvent('touchstart', onPress, action.current);
+    useEvent('mouseup', onLoose, action.current);
+    useEvent('touchend', onLoose, action.current);
     return link ? (
-      <Link href={link} aria-disabled={disabled} {...restProps} ref={ref}>
+      <Link
+        href={link}
+        aria-disabled={disabled}
+        {...restProps}
+        ref={multiRef(action, ref)}
+      >
         {children}
       </Link>
     ) : (
-      <button disabled={disabled} {...restProps} ref={ref}>
+      <button disabled={disabled} {...restProps} ref={multiRef(action, ref)}>
         {children}
       </button>
     );

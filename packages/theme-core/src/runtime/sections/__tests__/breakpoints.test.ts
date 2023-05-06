@@ -1,5 +1,5 @@
 import type {
-  DynamicBreakpointName,
+  BreakpointName,
   DynamicBreakpointSection,
 } from '../../../reference';
 import { RuntimeBreakpoints } from '../breakpoints';
@@ -13,7 +13,7 @@ describe('runtime breakpoints', () => {
   };
   const rt = new RuntimeBreakpoints(bpMap);
   for (const _e in bpMap) {
-    const bp = _e as DynamicBreakpointName;
+    const bp = _e as BreakpointName;
     test(`'gte' and 'lte' and inverse - ${bp}`, () => {
       expect(rt.gte(bp)).toBe(`@media(min-width: ${bpMap[bp]}px)`);
       expect(rt.lte(bp)).toBe(`@media(max-width: ${bpMap[bp]}px)`);

@@ -1,7 +1,9 @@
+import { Navbar } from '@/components';
 import * as style from '@/styles/global';
 import '@/styles/reset.css';
 import { theme } from '@/styles/theme';
 import { api } from '@/utils/api';
+import { WindowBreakpointProvider } from '@/utils/context/windowBreakpoint';
 import { roboto } from '@/utils/font';
 import { Global, ThemeProvider } from '@emotion/react';
 import { SessionProvider } from 'next-auth/react';
@@ -14,7 +16,13 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
         <TypefaceStyleClassProvider value={{ roboto: roboto.className }}>
           <Global styles={style.global} />
           <SessionProvider session={session}>
-            <Component {...pageProps} />
+            <WindowBreakpointProvider>
+              <Navbar>
+                <Navbar.Page link={'/home'} name={'Home'} />
+                <Navbar.Page link={'/media'} name={'Media'} />
+              </Navbar>
+              <Component {...pageProps} />
+            </WindowBreakpointProvider>
           </SessionProvider>
         </TypefaceStyleClassProvider>
       </ThemeProvider>

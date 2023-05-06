@@ -1,9 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import { useTypefaceStyleClass } from '../../context';
-import { HTMLTagRenderer, UI } from '../../utils';
-import { propMerge } from '../../utils';
 import type { HTMLTag } from '../../utils';
-import { HTMLElementFromTag, WithTagRepresentation } from '../../utils';
+import {
+  HTMLElementFromTag,
+  HTMLTagRenderer,
+  propMerge,
+  UI,
+  WithTagRepresentation,
+} from '../../utils';
 import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
 import { PropsWithCSS } from '../../utils/types';
 import { TextConfig as config } from './Text.config';
@@ -11,10 +15,10 @@ import { css, jsx, useTheme } from '@emotion/react';
 import { colord } from 'colord';
 import { capitalize } from 'lodash';
 import React, {
-  forwardRef,
-  ReactNode,
   CSSProperties,
+  forwardRef,
   HTMLAttributes,
+  PropsWithChildren,
 } from 'react';
 import { resolveSource, ValueSource } from 'shared-utils';
 import type { Theme, TypescalePinpoint, TypescaleRole } from 'theme-core';
@@ -31,12 +35,11 @@ export type TextStyleProps = {
 
 // prettier-ignore
 /** Internal props for any nested Text component. */
-export type InternalTypeTextProps = WithStyleableProp<{
-  children: NonNullable<ReactNode>[] | NonNullable<ReactNode>;
+export type InternalTypeTextProps = PropsWithChildren<WithStyleableProp<{
   size: TypescaleSize;
   /** @default initial */
   [UI.customStylePropKey]?: Partial<TypescaleData>;
-} & TextStyleProps>;
+} & TextStyleProps>>;
 
 /** Text style data outside a React-Component, with given font data. */
 export type TextStyleData = { fontData: TypescaleData } & TextStyleProps;

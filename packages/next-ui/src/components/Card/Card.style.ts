@@ -1,8 +1,8 @@
 import { UI } from '../../utils';
 import { css, Theme } from '@emotion/react';
-import type { DynamicBreakpointName } from 'theme-core';
+import type { BreakpointName } from 'theme-core';
 
-export const card = (theme: Theme, width: DynamicBreakpointName) =>
+export const card = (theme: Theme, width: BreakpointName) =>
   css({
     borderRadius: theme.rt.multipliers.roundness(UI.generalRoundness),
     background: theme.sys.color.surface[1],

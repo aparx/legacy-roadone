@@ -1,7 +1,7 @@
-import type { DynamicBreakpointName } from 'theme-core';
+import type { BreakpointName } from 'theme-core';
 
 export module CardConfig {
   export module Defaults {
-    export const width = 'md' satisfies DynamicBreakpointName;
+    export const width = 'md' satisfies BreakpointName;
   }
 }

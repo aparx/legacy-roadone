@@ -7,11 +7,11 @@ export interface DynamicSection {
 //      Breakpoints
 // <===================>
 
-export type DynamicBreakpointSection = Record<DynamicBreakpointName, number>;
+export type DynamicBreakpointSection = Record<BreakpointName, number>;
 
-export type DynamicBreakpointName = (typeof dynamicBreakpoints)[number];
+export type BreakpointName = (typeof dynamicBreakpoints)[number];
 
-// order matters (!)
+// ORDER MATTERS !! (from lowest to highest!)
 export const dynamicBreakpoints = ['sm', 'md', 'lg', 'xl'] as const;
 
 // <===================>
