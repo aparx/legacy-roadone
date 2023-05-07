@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 export type UseEventListener<TType extends keyof GlobalEventHandlersEventMap> =
   (ev: GlobalEventHandlersEventMap[TType]) => any;
 
-export function useEvent<
+export function useOnEvent<
   TType extends keyof GlobalEventHandlersEventMap,
   TTarget extends EventTarget
 >(

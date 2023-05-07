@@ -6,14 +6,13 @@ import {
   propMerge,
   WithTagRepresentation,
 } from '../../utils';
-import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
+import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import type { MultiplierValueInput } from '../../utils/types';
-import { RequiredChildren } from '../../utils/types';
 import { StackConfig as config } from './Stack.config';
 import * as style from './Stack.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
 import type { Globals, Property } from 'csstype';
-import React, { ForwardedRef, forwardRef } from 'react';
+import React, { ForwardedRef, forwardRef, PropsWithChildren } from 'react';
 import { UnionOmit } from 'shared-utils';
 
 export type StackDirection = UnionOmit<Property.FlexDirection, Globals>;
@@ -33,8 +32,8 @@ export type StackData = {
   hCenter?: StackCenter;
 };
 
-export type InternalStackProps = WithStyleableProp<
-  Partial<StackData> & { children: RequiredChildren }
+export type InternalStackProps = PropsWithStyleable<
+  PropsWithChildren<Partial<StackData>>
 >;
 
 // prettier-ignore

@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { useStyleableMerge, WithStyleableProp } from '../../utils';
+import { PropsWithStyleable, useStyleableMerge } from '../../utils';
 import * as style from './Divider.style';
 import { useTheme } from '@emotion/react';
 
@@ -12,7 +12,7 @@ export type DividerData = {
   orientation?: 'horizontal' | 'vertical';
 };
 
-export type DividerProps = WithStyleableProp<DividerData>;
+export type DividerProps = PropsWithStyleable<DividerData>;
 
 export default function Divider({
   length,

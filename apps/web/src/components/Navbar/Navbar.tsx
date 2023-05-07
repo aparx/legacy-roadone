@@ -1,10 +1,11 @@
 /** @jsxImportSource @emotion/react */
 import { NavbarConfig as config } from './Navbar.config';
 import * as style from './Navbar.style';
-import { Hamburger } from '@/components';
+import { Avatar, Hamburger } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
 import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
-import { useClickOutside } from '@/utils/hooks/useClickOutside';
+import { useOnClickOutside } from '@/utils/hooks/useOnClickOutside';
+import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import { useLocalToggle } from '@/utils/localState';
 import { getMessage } from '@/utils/message';
 import { useTheme } from '@emotion/react';
@@ -15,14 +16,13 @@ import {
   Divider,
   PageAlign,
   propMerge,
+  PropsWithStyleable,
   Scrim,
   Text,
   useStyleableMerge,
-  WithStyleableProp,
 } from 'next-ui';
 import { usePageAlignProps } from 'next-ui/src/components/PageAlign/PageAlign';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -31,7 +31,6 @@ import {
   ForwardRefExoticComponent,
   HTMLAttributes,
   ReactElement,
-  useEffect,
   useId,
   useRef,
 } from 'react';
@@ -42,7 +41,7 @@ export type Navbar = {
 } & ForwardRefExoticComponent<NavbarProps>;
 
 // prettier-ignore
-export type NavbarProps = WithStyleableProp<{
+export type NavbarProps = PropsWithStyleable<{
   children: WithArray<ReactElement<NavbarPageProps>>;
 } & PropsWithoutChildren<HTMLAttributes<HTMLDivElement>>>;
 
@@ -57,7 +56,6 @@ const NavLogo = () => (
 
 export const Navbar = forwardRef<HTMLDivElement, NavbarProps>(
   function NavbarRenderer({ children, ...restProps }, ref) {
-    console.log(useWindowBreakpoint());
     return (
       <>
         <div ref={ref} css={style.navbar} {...useStyleableMerge(restProps)}>
@@ -78,24 +76,19 @@ export default Navbar;
 /** The actual navigation items that can collapse into a drawer (expandable). */
 function NavItems({ pages }: { pages: NavbarProps['children'] }) {
   const navId = useId();
-  const bp = useWindowBreakpoint();
+  const breakpoint = useWindowBreakpoint();
   const hamburger = useRef<HamburgerRef>(null);
   const expand = useLocalToggle();
-  const asDrawer = bp?.to?.lte?.(config.drawerBreakpoint);
+  const asDrawer = breakpoint?.to?.lte?.(config.drawerBreakpoint);
   const pageAlign = usePageAlignProps();
   const drawerRef = useRef<HTMLDivElement>(null);
-  const pathName = usePathname();
-  const lastPathName = useRef<string>();
-  useClickOutside(
+  useOnClickOutside(
     () => expand.set(false),
     drawerRef.current,
     hamburger.current?.button?.current
   );
-  useEffect(() => {
-    // automatically closing the drawer when changing sites
-    if (asDrawer && lastPathName.current !== pathName) expand.set(false);
-    lastPathName.current = pathName;
-  }, [asDrawer, expand, pathName]);
+  // automatically close the drawer on navigation
+  useOnNavigation(() => expand.set(false));
   return (
     <>
       <div
@@ -140,25 +133,21 @@ function NavPages({ pages }: { pages: NavbarProps['children'] }) {
 function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
   const session = useSession();
   const stackProps = useStackProps({ direction: 'row', vCenter: true });
-  return session.data?.user?.image ? (
+  return session.status === 'authenticated' ? (
     <>
       {asDrawer && <Divider />}
       <Text.Body size={'md'} take={{ fontWeight: 'medium' }} {...stackProps}>
-        <Image
-          src={session.data.user.image}
-          alt={'profile picture'}
-          width={30}
-          height={30}
-          style={{ borderRadius: '50px' }}
-        />
-        {asDrawer && (session.data.user.name ?? '')}
+        {session.data?.user?.image && (
+          <Avatar user={session.data.user} size={30} name={'profile picture'} />
+        )}
+        {asDrawer && session.data?.user?.name}
       </Text.Body>
     </>
   ) : null;
 }
 
 // prettier-ignore
-export type NavbarPageProps = WithStyleableProp<{
+export type NavbarPageProps = PropsWithStyleable<{
   link: string;
   name: string;
 }>;

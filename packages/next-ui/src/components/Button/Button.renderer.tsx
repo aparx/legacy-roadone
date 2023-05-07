@@ -1,4 +1,4 @@
-import { useEvent } from '../../hooks';
+import { useOnEvent } from '../../hooks';
 import { propMerge, useStyleableMerge } from '../../utils';
 import { multiRef } from '../../utils/mutliRef';
 import { useDataTextProps } from '../Text/Text';
@@ -98,10 +98,10 @@ const ButtonLink = forwardRef<any, ButtonLinkProps>(
     const action = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     const onPress = () => action.current.setAttribute('data-pressed', 'true');
     const onLoose = () => action.current.setAttribute('data-pressed', 'false');
-    useEvent('mousedown', onPress, action.current);
-    useEvent('touchstart', onPress, action.current);
-    useEvent('mouseup', onLoose, action.current);
-    useEvent('touchend', onLoose, action.current);
+    useOnEvent('mousedown', onPress, action.current);
+    useOnEvent('touchstart', onPress, action.current);
+    useOnEvent('mouseup', onLoose, action.current);
+    useOnEvent('touchend', onLoose, action.current);
     return link ? (
       <Link
         href={link}

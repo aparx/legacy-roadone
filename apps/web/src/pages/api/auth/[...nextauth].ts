@@ -1,3 +1,4 @@
+import { defaultRole } from '@/modules/schemas/role';
 import { prisma } from '@/server/prisma';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import NextAuth, { NextAuthOptions } from 'next-auth';
@@ -11,6 +12,22 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  callbacks: {
+    session: async ({ session, user }) => {
+      const data = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { role: true },
+      });
+      return {
+        user: {
+          ...session.user,
+          role: data?.role ?? defaultRole,
+          id: user.id,
+        },
+        expires: session.expires,
+      };
+    },
+  },
   pages: {
     error: '/',
     signIn: '/',

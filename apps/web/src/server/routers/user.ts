@@ -1,16 +1,12 @@
-import {
-  publicUserSchema,
-  UserSchema,
-  userSchema,
-} from '@/modules/schemas/user';
+import { publicUserSchema } from '@/modules/schemas/user';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { z } from 'zod';
 
 const userGetInput = z.union([
-  userSchema.pick({ id: true }).required(),
-  userSchema.pick({ email: true }).required(),
+  z.object({ id: z.string() }),
+  z.object({ email: z.string() }),
 ]);
 
 export const userRouter = router({
@@ -19,10 +15,8 @@ export const userRouter = router({
     .output(publicUserSchema)
     .query(({ input }) => {
       // This requires `input` to have EXACTLY one key (!)
-      const inputKey = Object.keys(input)[0];
       return prisma.user
-        .findUnique({ where: { [inputKey]: input[inputKey] } })
-        .then((data) => data as UserSchema)
+        .findUniqueOrThrow({ where: input })
         .catch((e) => handleAsTRPCError(e, 'NOT_FOUND'));
     }),
 });

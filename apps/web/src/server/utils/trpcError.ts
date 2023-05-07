@@ -12,6 +12,7 @@ export function createTRPCError(
   error: any,
   codeMapper?: ForeignErrorCodeMapper
 ): TRPCError {
+  if (error instanceof TRPCError) return error;
   if (error instanceof Prisma.PrismaClientKnownRequestError)
     return new TRPCError({
       code: resolveSource(codeMapper, error.code) ?? 'INTERNAL_SERVER_ERROR',

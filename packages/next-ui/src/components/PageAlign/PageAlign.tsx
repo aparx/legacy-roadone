@@ -6,7 +6,7 @@ import {
   propMerge,
   WithTagRepresentation,
 } from '../../utils';
-import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
+import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import { RequiredChildren } from '../../utils/types';
 import { PageAlignConfig as config } from './PageAlign.config';
 import * as style from './PageAlign.style';
@@ -21,7 +21,7 @@ export type BasePageAlignData = {
   lowerBound?: number | 'auto';
 };
 
-export type InternalPageAlignProps = WithStyleableProp<
+export type InternalPageAlignProps = PropsWithStyleable<
   BasePageAlignData & { children: RequiredChildren }
 >;
 

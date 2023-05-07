@@ -1,4 +1,4 @@
-import { userRouter } from '@/server/routers/_user';
+import { userRouter } from '@/server/routers/user';
 import { procedure, router } from '@/server/trpc';
 
 export const apiRouter = router({

@@ -1,4 +1,4 @@
-import { useEvent, UseEventListener } from './useEvent';
+import { UseEventListener, useOnEvent } from './useOnEvent';
 
 type IsomorphicTarget<T extends EventTarget> = {
   type: () => 'undefined' | string;
@@ -33,7 +33,7 @@ const isomorphicTargets = {
 
 export type IsomorphicTargetName = keyof typeof isomorphicTargets;
 
-export function useIsomorphicEvent<
+export function useOnIsomorphicEvent<
   TType extends keyof GlobalEventHandlersEventMap
 >(
   type: TType,
@@ -46,5 +46,5 @@ export function useIsomorphicEvent<
     const isoTarget = isomorphicTargets[finalTarget as IsomorphicTargetName];
     finalTarget = isoTarget.type() !== 'undefined' ? isoTarget.get() : null;
   }
-  return useEvent(type, listener, finalTarget, opts);
+  return useOnEvent(type, listener, finalTarget, opts);
 }

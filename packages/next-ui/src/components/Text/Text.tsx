@@ -8,7 +8,7 @@ import {
   UI,
   WithTagRepresentation,
 } from '../../utils';
-import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
+import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import { PropsWithCSS } from '../../utils/types';
 import { TextConfig as config } from './Text.config';
 import { css, jsx, useTheme } from '@emotion/react';
@@ -35,7 +35,7 @@ export type TextStyleProps = {
 
 // prettier-ignore
 /** Internal props for any nested Text component. */
-export type InternalTypeTextProps = PropsWithChildren<WithStyleableProp<{
+export type InternalTypeTextProps = PropsWithChildren<PropsWithStyleable<{
   size: TypescaleSize;
   /** @default initial */
   [UI.customStylePropKey]?: Partial<TypescaleData>;

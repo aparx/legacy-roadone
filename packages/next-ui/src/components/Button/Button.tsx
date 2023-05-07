@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { UI } from '../../utils';
-import { WithStyleableProp } from '../../utils/styleable';
+import { PropsWithStyleable } from '../../utils/styleable';
 import { MultiplierValueInput } from '../../utils/types';
 import { ButtonConfig as config } from './Button.config';
 import { createButtonRenderer } from './Button.renderer';
@@ -38,7 +38,7 @@ export type BiasedButtonProps =
   | ({ link: string } & ButtonAnchorProps)
   | ({ link?: undefined } & ButtonElementProps);
 
-export type InternalButtonProps = WithStyleableProp<{
+export type InternalButtonProps = PropsWithStyleable<{
   disabled?: boolean;
   /** @default 'sm' */
   size?: ButtonSize;

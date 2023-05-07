@@ -4,7 +4,7 @@ import {
   WindowDimension,
 } from '@/utils/hooks/useWindowDimension';
 import { useTheme } from '@emotion/react';
-import { useIsomorphicEvent } from 'next-ui';
+import { useOnIsomorphicEvent } from 'next-ui';
 import { useCallback, useEffect, useRef } from 'react';
 import type { BreakpointName } from 'theme-core';
 import { dynamicBreakpoints, RuntimeBreakpoints } from 'theme-core';
@@ -65,7 +65,7 @@ export function useBreakpointEvent(
     }
   }, [breakpoints]);
   useInitialEffect(onUpdate); // immediate update on initial on-mount
-  useIsomorphicEvent('resize', onUpdate, 'window');
+  useOnIsomorphicEvent('resize', onUpdate, 'window');
 }
 
 function index(breakpoint: BreakpointName) {

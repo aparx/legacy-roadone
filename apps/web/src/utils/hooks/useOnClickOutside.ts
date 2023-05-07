@@ -1,7 +1,7 @@
-import { useIsomorphicEvent } from 'next-ui';
+import { useOnIsomorphicEvent } from 'next-ui';
 import { useEffect, useRef } from 'react';
 
-export function useClickOutside(
+export function useOnClickOutside(
   listener: (event: MouseEvent) => any,
   target: EventTarget | undefined | null,
   ...include: (EventTarget | undefined | null)[]
@@ -18,5 +18,5 @@ export function useClickOutside(
       return e === event.target || e?.contains?.(event.target)
     }) === -1) callback.current(event);
   }
-  useIsomorphicEvent('click', onClick, 'window', { capture: true });
+  useOnIsomorphicEvent('click', onClick, 'window', { capture: true });
 }

@@ -124,7 +124,7 @@ export type StyleableProp = { [UI.styleablePropKey]?: StyleableData };
 
 // prettier-ignore
 /** Returns a new type of `TProps` with the styleable property. */
-export type WithStyleableProp<TProps> =
+export type PropsWithStyleable<TProps> =
   Omit<TProps, keyof StyleableProp> & StyleableProp;
 
 type OptionalData = StyleableData | undefined | null;

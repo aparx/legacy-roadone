@@ -1,2 +1,2 @@
-export * from './useEvent';
-export * from './useIsomorphicEvent';
+export * from './useOnEvent';
+export * from './useOnIsomorphicEvent';

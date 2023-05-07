@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { propMerge } from '../../utils';
-import { useStyleableMerge, WithStyleableProp } from '../../utils/styleable';
+import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import type { PropsWithoutChildren } from '../../utils/types';
 import { useStackProps } from '../Stack/Stack';
 import { Text } from '../Text';
@@ -27,7 +27,7 @@ export type Card = {
 } & ForwardRefExoticComponent<CardProps>;
 
 // prettier-ignore
-export type CardProps = WithStyleableProp<{
+export type CardProps = PropsWithStyleable<{
   children?: WithArray<
     | ReactElement<CardHeaderProps>
     | ReactElement<CardTitleProps>
@@ -60,7 +60,7 @@ export default Card;
 // <====================>
 
 // prettier-ignore
-export type CardHeaderProps = WithStyleableProp<{
+export type CardHeaderProps = PropsWithStyleable<{
   children?: ReactNode;
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -83,7 +83,7 @@ Card.Header = forwardRef<HTMLDivElement, CardHeaderProps>(
 // <====================>
 
 // prettier-ignore
-export type CardTitleProps = WithStyleableProp<{
+export type CardTitleProps = PropsWithStyleable<{
   children: NonNullable<ReactNode>;
 } & PropsWithoutChildren<HTMLAttributes<HTMLDivElement>>>;
 
@@ -120,7 +120,7 @@ Card.Header.Subtitle = forwardRef<HTMLDivElement, CardTitleProps>(
 //      CARD CONTENT
 // <====================>
 
-export type CardContentProps = WithStyleableProp<
+export type CardContentProps = PropsWithStyleable<
   HTMLAttributes<HTMLDivElement>
 >;
 
@@ -145,7 +145,7 @@ Card.Content = forwardRef<HTMLDivElement, CardContentProps>(
 // <====================>
 
 // prettier-ignore
-export type CardFooterProps = WithStyleableProp<{
+export type CardFooterProps = PropsWithStyleable<{
   children?: ReactNode;
 } & PropsWithoutChildren<HTMLAttributes<HTMLElement>>>;
 
