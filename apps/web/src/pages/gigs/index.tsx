@@ -1,8 +1,9 @@
 import { Page } from '@/components';
+import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
-import { Gig } from '@/modules/schemas/gig';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
+import { Globals } from '@/utils/globals';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack } from 'next-ui';
 import { ReactNode, useMemo } from 'react';
@@ -18,22 +19,30 @@ export default function GigsPage() {
     });
   const gigMap = useMemo(() => {
     // Gig to year map
-    const map = new Map<number, Gig[]>();
+    const map = new Map<number, RenderableGig[]>();
+    const now = Date.now();
+    let _next: RenderableGig | undefined;
     data?.pages
-      .flatMap(({ data }) => data.flat())
+      .flatMap(({ data }) => data.flat() as RenderableGig[])
       // we sort descending (newest [top] -> oldest [bottom])
       .sort((a, b) => (a.start.getTime() < b.start.getTime() ? 1 : -1))
       .forEach((gig) => {
         const year = gig.start.getFullYear();
         if (!map.has(year)) map.set(year, []);
         map.get(year)!.push(gig);
+        if (now - Globals.gigLength >= gig.start.getTime()) {
+          gig.state = 'done'; // `gig` is already finished ("done")
+        } else if (!_next || gig.start.getTime() < _next?.start?.getTime()) {
+          _next = gig; // `gig` is closer to now than previous gigs (time-wise)
+        } else gig.state = 'upcoming'; // must be set for re-renders (!)
       });
+    if (_next) _next.state = 'next';
     return map;
   }, [data]);
   const gigGroupArray = useMemo(() => {
     const groups: ReactNode[] = [];
     for (const year of gigMap.keys()) {
-      groups.push(<GigGroup year={year} gigs={gigMap.get(year)!} />);
+      groups.push(<GigGroup key={year} year={year} gigs={gigMap.get(year)!} />);
     }
     return groups;
   }, [gigMap]);

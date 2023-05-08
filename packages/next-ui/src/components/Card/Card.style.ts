@@ -11,7 +11,7 @@ export const card = (theme: Theme, width: BreakpointName) =>
     width: '100%',
     boxSizing: 'border-box',
     [theme.rt.breakpoints.lte('md')]: {
-      padding: theme.rt.multipliers.spacing(2),
+      padding: theme.rt.multipliers.spacing(1.75),
     },
   });
 

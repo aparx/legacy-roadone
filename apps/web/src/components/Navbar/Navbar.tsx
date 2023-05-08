@@ -4,10 +4,11 @@ import * as style from './Navbar.style';
 import { Avatar, Hamburger } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
 import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
+import { useMessage } from '@/utils/hooks/useMessage';
 import { useOnClickOutside } from '@/utils/hooks/useOnClickOutside';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import { useLocalToggle } from '@/utils/localState';
-import { getMessage } from '@/utils/message';
+import { getGlobalMessage } from '@/utils/message';
 import { useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
 import type { PropsWithoutChildren } from 'next-ui';
@@ -49,7 +50,7 @@ export type NavbarProps = PropsWithStyleable<{
 const NavLogo = () => (
   <Link href={'/'} css={{ all: 'unset', cursor: 'pointer' }}>
     <Text.Title as={'div'} size={'md'} take={{ fontWeight: 'strong' }}>
-      {getMessage('baseName')}
+      {useMessage('app.name')}
     </Text.Title>
   </Link>
 );
@@ -109,6 +110,11 @@ function NavItems({ pages }: { pages: NavbarProps['children'] }) {
           label={'expand'}
           controls={navId}
           stateOpen={expand}
+          aria-label={
+            expand.state
+              ? getGlobalMessage('aria.navigation.close')
+              : getGlobalMessage('aria.navigation.open')
+          }
           {...propMerge({ css: style.hamburger }, pageAlign)}
         />
       )}

@@ -22,4 +22,4 @@ export const gigSchema = z
 
 export type InputGig = z.infer<typeof inputGigSchema>;
 
-export type Gig = z.infer<typeof gigSchema>;
+export type GigEvent = z.infer<typeof gigSchema>;

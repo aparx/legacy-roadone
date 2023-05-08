@@ -8,12 +8,13 @@ export const gigRouter = router({
     .input(
       z.object({
         cursor: z.number().int().default(0),
-        limit: z.number().max(100).default(50),
+        limit: z.number().max(50).default(25),
       })
     )
     .query(async ({ input: { cursor: skip, limit: take } }) => {
       const gigData = await prisma.gig
         .findMany({ orderBy: { start: 'desc' }, skip, take: 1 + take })
+        .then((data) => data ?? [])
         .catch(handleAsTRPCError);
       let nextCursor;
       if (gigData.length > take) {
