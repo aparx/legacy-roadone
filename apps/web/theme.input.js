@@ -16,7 +16,7 @@ module.exports = {
     },
     breakpoints: {
       sm: 400,
-      md: 550,
+      md: 600,
       lg: 800,
       xl: 1200,
     },

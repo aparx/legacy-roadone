@@ -4,14 +4,19 @@ import {
   HTMLTag,
   HTMLTagRenderer,
   propMerge,
+  PropsWithStyleable,
+  useStyleableMerge,
   WithTagRepresentation,
 } from '../../utils';
-import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
-import { RequiredChildren } from '../../utils/types';
 import { PageAlignConfig as config } from './PageAlign.config';
 import * as style from './PageAlign.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
-import React, { ForwardedRef, forwardRef, ReactElement } from 'react';
+import React, {
+  ForwardedRef,
+  forwardRef,
+  PropsWithChildren,
+  ReactElement,
+} from 'react';
 
 export type BasePageAlignData = {
   /** @default maximum theme's breakpoint (px) */
@@ -22,7 +27,7 @@ export type BasePageAlignData = {
 };
 
 export type InternalPageAlignProps = PropsWithStyleable<
-  BasePageAlignData & { children: RequiredChildren }
+  PropsWithChildren<BasePageAlignData>
 >;
 
 // prettier-ignore

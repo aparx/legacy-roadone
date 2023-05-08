@@ -1,18 +1,19 @@
 /** @jsxImportSource @emotion/react */
+import type { MultiplierValueInput } from '../../utils';
 import {
   HTMLElementFromTag,
   HTMLTag,
   HTMLTagRenderer,
   propMerge,
+  PropsWithStyleable,
+  useStyleableMerge,
   WithTagRepresentation,
 } from '../../utils';
-import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
-import type { MultiplierValueInput } from '../../utils/types';
 import { StackConfig as config } from './Stack.config';
 import * as style from './Stack.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
 import type { Globals, Property } from 'csstype';
-import React, { ForwardedRef, forwardRef, PropsWithChildren } from 'react';
+import React, { ForwardedRef, forwardRef, ReactNode } from 'react';
 import { UnionOmit } from 'shared-utils';
 
 export type StackDirection = UnionOmit<Property.FlexDirection, Globals>;
@@ -33,7 +34,7 @@ export type StackData = {
 };
 
 export type InternalStackProps = PropsWithStyleable<
-  PropsWithChildren<Partial<StackData>>
+  Partial<StackData> & { children?: ReactNode | ReactNode[] }
 >;
 
 // prettier-ignore

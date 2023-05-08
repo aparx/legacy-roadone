@@ -55,6 +55,23 @@ model Member {
   @@index([firstName, lastName, userId])
 }
 
+model Gig {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  description String?
+  country     String?
+  city        String
+  postcode    String
+  street      String
+  /// `start` includes date AND time of the gig
+  start       DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@index([id, title])
+}
+
 // <===> NextAuth models <===>
 
 model Account {

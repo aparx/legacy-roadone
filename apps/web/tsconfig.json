@@ -5,6 +5,7 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "jsxImportSource": "@emotion/react",
+    "target": "ES2015",
     "paths": {
       "@/*": ["./src/*"]
     }

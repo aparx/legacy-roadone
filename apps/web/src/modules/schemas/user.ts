@@ -21,8 +21,8 @@ export const userSchema = publicUserSchema.extend(
   privateUserSchema.partial().shape
 );
 
-export type PublicUserSchema = z.infer<typeof publicUserSchema>;
+export type PublicUserData = z.infer<typeof publicUserSchema>;
 
-export type PrivateUserSchema = z.infer<typeof privateUserSchema>;
+export type PrivateUserData = z.infer<typeof privateUserSchema>;
 
-export type UserSchema = z.infer<typeof userSchema>;
+export type User = z.infer<typeof userSchema>;

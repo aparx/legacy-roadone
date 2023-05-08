@@ -8,6 +8,11 @@ export const card = (theme: Theme, width: BreakpointName) =>
     background: theme.sys.color.surface[1],
     padding: theme.rt.multipliers.spacing(3),
     maxWidth: theme.rt.breakpoints.point(width),
+    width: '100%',
+    boxSizing: 'border-box',
+    [theme.rt.breakpoints.lte('md')]: {
+      padding: theme.rt.multipliers.spacing(2),
+    },
   });
 
 export const header = (theme: Theme) =>

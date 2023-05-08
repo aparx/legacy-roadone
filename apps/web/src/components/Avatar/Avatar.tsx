@@ -2,13 +2,13 @@
 import { AvatarConfig as config } from './Avatar.config';
 import * as style from './Avatar.style';
 import { useTheme } from '@emotion/react';
-import { DefaultSession } from 'next-auth';
+import { Session } from 'next-auth';
 import { propMerge, PropsWithStyleable, useStyleableMerge } from 'next-ui';
 import Image from 'next/image';
 import { forwardRef, HTMLAttributes } from 'react';
 
 export type InternalAvatarProps = {
-  user: DefaultSession['user'];
+  user: Session['user'];
   name: string;
   /** @default 30 */
   size?: number;
