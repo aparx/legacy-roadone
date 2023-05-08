@@ -49,7 +49,10 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
         as={'article'}
         direction={'row'}
         spacing={0}
-        aria-label={useMessage('aria.gig.cardLabel', 'f')}
+        aria-label={useMessage(
+          'aria.gig.card',
+          gig.start.toLocaleString('de-DE', { timeZoneName: 'short' })
+        )}
         tabIndex={isDone ? -1 : undefined}
         aria-hidden={isDone}
         sd={{
@@ -71,6 +74,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
           direction={'column'}
           spacing={0}
           vCenter
+          aria-hidden={true /* replaced by top aria-label */}
           sd={{
             padding: 'xl',
             background: ({ sys: { color } }) =>
@@ -96,13 +100,11 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
           <div>{month}</div>
         </Stack>
         <Stack direction={'column'} spacing={0} sd={{ padding: 'xl' }}>
-          <Text.Title
-            as={'header'}
-            size={'md'}
-            emphasis={isDone ? 'disabled' : 'high'}
-          >
-            {gig.title}
-          </Text.Title>
+          <header>
+            <Text.Title size={'md'} emphasis={isDone ? 'disabled' : 'high'}>
+              {gig.title}
+            </Text.Title>
+          </header>
           <Text.Body
             size={'md'}
             emphasis={isDone ? 'disabled' : 'high'}
@@ -127,8 +129,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
               {addressInfo.map((info, i) => {
                 let del = i !== 0 ? addressSeparator : undefined;
                 return [
-                  del && <div key={i}>{del}</div>,
-                  <div key={i}>{info}</div>,
+                  del && <div key={`${info}_sep`}>{del}</div>,
+                  <div key={info}>{info}</div>,
                 ];
               })}
             </address>

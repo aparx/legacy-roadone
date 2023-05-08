@@ -9,6 +9,6 @@ export function useMessage(
   return useMemo(() => {
     const global = getGlobalMessage(key);
     if (!args.length) return global;
-    return formatMessage(global);
+    return formatMessage(global, ...args);
   }, [key, args]);
 }

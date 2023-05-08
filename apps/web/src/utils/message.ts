@@ -81,7 +81,8 @@ export const globalMessageProvider = {
         open: 'Navigation öffnen',
       },
       gig: {
-        cardLabel: 'Gig Event %s',
+        card: 'Auftritt am %s',
+        group: 'Auftritte in %s',
       },
     },
   },

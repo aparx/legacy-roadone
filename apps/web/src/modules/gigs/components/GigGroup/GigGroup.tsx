@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { GigCard } from '@/modules/gigs/components/GigCard';
 import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
+import { useMessage } from '@/utils/hooks/useMessage';
 import {
   Card,
   PropsWithoutChildren,
@@ -22,6 +23,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
         ref={ref}
         width={'md'}
         id={`${year}`}
+        aria-label={useMessage('aria.gig.group', String(year))}
         {...useStyleableMerge(restProps)}
       >
         <Card.Header
@@ -30,7 +32,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
         />
         <Card.Content {...useStackProps({ spacing: 'md' })}>
           {gigs.map((gig) => (
-            <GigCard key={gig.id} gig={gig} isNext={true} />
+            <GigCard key={gig.id} gig={gig} />
           ))}
         </Card.Content>
       </Card>
