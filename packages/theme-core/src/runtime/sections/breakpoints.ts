@@ -29,6 +29,15 @@ export class RuntimeBreakpoints {
     return `@media${this._gte(name, op)} and ${this._lte(next, op)}`;
   }
 
+  // name and the next highest or gte or lte `name`
+  between(
+    min: BreakpointName,
+    max: BreakpointName,
+    op?: MediaLogicOperator
+  ): string {
+    return `@media${this._gte(min, op)} and ${this._lte(max, op)}`;
+  }
+
   protected _gte(name: BreakpointName, op?: MediaLogicOperator) {
     return `${this._operator(op)}(min-width: ${this.point(name)}px)`;
   }

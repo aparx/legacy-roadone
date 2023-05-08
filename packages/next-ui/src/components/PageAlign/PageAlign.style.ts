@@ -15,7 +15,7 @@ export const pageAlign = (
     },
     /** Less lower-bound on mobile(s) */
     [breakpoints.lte('sm')]: {
-      padding: `0 ${createPageAlignPadding(alignBy, multipliers.spacing(1.5))}`,
+      padding: `0 ${createPageAlignPadding(alignBy, multipliers.spacing(1))}`,
     },
   });
 };

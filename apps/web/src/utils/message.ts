@@ -1,7 +1,7 @@
 type PlainMessageMap = Record<string, string | object>;
 
-const pathDelimiter = '.';
-type PathDelimiter = typeof pathDelimiter;
+const del = '.';
+type PathDelimiter = typeof del;
 
 type _PathConcatenate<
   TLeading extends string | undefined,
@@ -47,15 +47,15 @@ export function resolveMessage<TProvider extends MessageProvider>(
   source: TProvider,
   path: MessagePathUnion<_MappingFromProvider<TProvider>>
 ): string {
-  if (pathDelimiter.length === 0) return source.error('EMPTY', []);
-  const segArray = (path as string).split(pathDelimiter);
+  if (del.length === 0) return source.error('EMPTY', []);
+  const segArray = (path as string).split(del);
   let tail: string | object = source.messages;
   for (let i = 0; i < segArray.length; ++i) {
     const seg = segArray[i];
     if (typeof tail !== 'object')
-      return source.error('END_OF_ROAD', segArray.splice(0, i));
+      return source.error('END_OF_ROAD', segArray.splice(0, 1 + i).join(del));
     else if (!(seg in tail))
-      return source.error('NOT_FOUND', segArray.splice(0, i));
+      return source.error('NOT_FOUND', segArray.splice(0, 1 + i).join(del));
     tail = tail[seg];
   }
   if (typeof tail === 'string') return tail;
@@ -67,10 +67,13 @@ export function resolveMessage<TProvider extends MessageProvider>(
 // <===============================>
 
 export const globalMessageProvider = {
-  error: (c, t) => `${c}: ${t}`,
+  error: (c, t) => `[MESSAGE_${c}: ${t}]`,
   messages: {
     app: {
       name: 'roadone',
+    },
+    general: {
+      load_more: 'Mehr laden',
     },
     auth: {
       signIn: 'Einloggen',

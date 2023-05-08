@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <Page name={'Startseite'} pageURL={'/home'}>
       <Text.Headline size={'lg'}>Homepage</Text.Headline>
-      <Stack direction={'row'} spacing={'lg'} vCenter>
+      <Stack direction={'row'} spacing={'lg'} vAlign>
         <Text.Title size={'md'}>
           <Stack direction={'row'}>
             Welcome, {data?.user?.email ?? '[Please Sign In]'}

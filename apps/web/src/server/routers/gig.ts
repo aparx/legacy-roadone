@@ -12,15 +12,15 @@ export const gigRouter = router({
       })
     )
     .query(async ({ input: { cursor: skip, limit: take } }) => {
-      const gigData = await prisma.gig
+      const data = await prisma.gig
         .findMany({ orderBy: { start: 'desc' }, skip, take: 1 + take })
         .then((data) => data ?? [])
         .catch(handleAsTRPCError);
       let nextCursor;
-      if (gigData.length > take) {
-        gigData.pop();
-        nextCursor = take;
+      if (data.length > take) {
+        data.pop();
+        nextCursor = skip + take;
       }
-      return { data: gigData, nextCursor };
+      return { data, nextCursor };
     }),
 });

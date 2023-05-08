@@ -73,7 +73,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
         <Stack
           direction={'column'}
           spacing={0}
-          vCenter
+          vAlign
           aria-hidden={true /* replaced by top aria-label */}
           sd={{
             padding: 'xl',

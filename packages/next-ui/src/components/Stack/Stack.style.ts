@@ -17,7 +17,7 @@ const hCenterPropertyMap = {
 
 export const stack = (theme: Theme, data: Omit<StackData, 'spacing'>) => {
   const [hProp, vProp] = getCenterProps(data.direction);
-  const [hCenter, vCenter] = getCenterValue(data.hCenter, data.vCenter);
+  const [hCenter, vCenter] = getCenterValue(data.hAlign, data.vAlign);
   return css({
     display: 'flex',
     flexDirection: data.direction,

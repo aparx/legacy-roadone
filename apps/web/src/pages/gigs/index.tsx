@@ -4,6 +4,7 @@ import { GigGroup } from '@/modules/gigs/components/GigGroup';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/globals';
+import { getGlobalMessage } from '@/utils/message';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack } from 'next-ui';
 import { ReactNode, useMemo } from 'react';
@@ -12,7 +13,7 @@ import superjson from 'superjson';
 export default function GigsPage() {
   // prettier-ignore
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    api.gig.getGigs.useInfiniteQuery({}, {
+    api.gig.getGigs.useInfiniteQuery({ limit: 1 }, {
       trpc: { abortOnUnmount: true },
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
@@ -22,6 +23,7 @@ export default function GigsPage() {
     const map = new Map<number, RenderableGig[]>();
     const now = Date.now();
     let _next: RenderableGig | undefined;
+    let _nextConsiderations: RenderableGig[] = [];
     data?.pages
       .flatMap(({ data }) => data.flat() as RenderableGig[])
       // we sort descending (newest [top] -> oldest [bottom])
@@ -33,10 +35,16 @@ export default function GigsPage() {
         if (now - Globals.gigLength >= gig.start.getTime()) {
           gig.state = 'done'; // `gig` is already finished ("done")
         } else if (!_next || gig.start.getTime() < _next?.start?.getTime()) {
+          _nextConsiderations.push(gig);
           _next = gig; // `gig` is closer to now than previous gigs (time-wise)
-        } else gig.state = 'upcoming'; // must be set for re-renders (!)
+        }
       });
-    if (_next) _next.state = 'next';
+    if (_next) {
+      _next.state = 'next';
+      _nextConsiderations
+        .filter((g) => g !== _next)
+        .forEach((g) => (g.state = 'upcoming'));
+    }
     return map;
   }, [data]);
   const gigGroupArray = useMemo(() => {
@@ -48,17 +56,17 @@ export default function GigsPage() {
   }, [gigMap]);
   return (
     <Page name={'Auftritte'} pageURL={'gigs'}>
-      <Stack direction={'column'} spacing={'md'} hCenter>
+      <Stack direction={'column'} spacing={'md'} hAlign>
         {gigGroupArray as any /* <- why not assignable? */}
+        {hasNextPage && (
+          <Button.Text
+            disabled={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {getGlobalMessage('general.load_more')}
+          </Button.Text>
+        )}
       </Stack>
-      {hasNextPage && (
-        <Button.Text
-          disabled={isFetchingNextPage}
-          onClick={() => fetchNextPage()}
-        >
-          Load more
-        </Button.Text>
-      )}
     </Page>
   );
 }

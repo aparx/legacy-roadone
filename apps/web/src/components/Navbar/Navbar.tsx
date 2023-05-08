@@ -138,7 +138,7 @@ function NavPages({ pages }: { pages: NavbarProps['children'] }) {
 
 function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
   const session = useSession();
-  const stackProps = useStackProps({ direction: 'row', vCenter: true });
+  const stackProps = useStackProps({ direction: 'row', vAlign: true });
   return session.status === 'authenticated' ? (
     <>
       {asDrawer && <Divider />}

@@ -4,6 +4,7 @@ import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import type { PropsWithoutChildren } from '../../utils/types';
 import { useStackProps } from '../Stack/Stack';
 import { Text } from '../Text';
+import { TextTypeProps } from '../Text/Text';
 import { CardConfig as config } from './Card.config';
 import * as style from './Card.style';
 import { useTheme } from '@emotion/react';
@@ -85,7 +86,7 @@ Card.Header = forwardRef<HTMLDivElement, CardHeaderProps>(
 // prettier-ignore
 export type CardTitleProps = PropsWithStyleable<{
   children: NonNullable<ReactNode>;
-} & PropsWithoutChildren<HTMLAttributes<HTMLDivElement>>>;
+} & Partial<Omit<TextTypeProps<'div'>, 'size' | 'children'>>>;
 
 // eslint-disable-next-line react/display-name
 Card.Header.Title = forwardRef<HTMLDivElement, CardTitleProps>(
@@ -94,7 +95,7 @@ Card.Header.Title = forwardRef<HTMLDivElement, CardTitleProps>(
       size={'md'}
       ref={ref}
       {...propMerge(
-        useStackProps({ direction: 'row', vCenter: true }),
+        useStackProps({ direction: 'row', vAlign: true }),
         useStyleableMerge(rest)
       )}
     >

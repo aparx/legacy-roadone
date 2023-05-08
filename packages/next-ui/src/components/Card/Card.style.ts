@@ -13,6 +13,9 @@ export const card = (theme: Theme, width: BreakpointName) =>
     [theme.rt.breakpoints.lte('md')]: {
       padding: theme.rt.multipliers.spacing(1.75),
     },
+    [theme.rt.breakpoints.lte('sm')]: {
+      padding: theme.rt.multipliers.spacing(1),
+    },
   });
 
 export const header = (theme: Theme) =>
