@@ -1,9 +1,9 @@
 import type { StackCenter, StackData } from './Stack';
 import { css, Theme } from '@emotion/react';
 import type { CSSProperties } from 'react';
-import type { UnionPick } from 'shared-utils';
+import type { UnionExtract } from 'shared-utils';
 
-type CenterProperty = UnionPick<
+type CenterProperty = UnionExtract<
   keyof CSSProperties,
   'alignItems' | 'justifyContent'
 >;

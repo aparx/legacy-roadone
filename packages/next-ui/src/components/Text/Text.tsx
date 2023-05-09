@@ -82,7 +82,7 @@ function createTextRenderer(role: TypescaleRole) {
   }) as HTMLTagRenderer<typeof config.Defaults.tag, InternalTypeTextProps>;
 }
 
-function useFontData({ role, size }: TypescalePinpoint) {
+export function useFontData({ role, size }: TypescalePinpoint) {
   return useTheme().sys.typescale[role][size];
 }
 

@@ -1,5 +1,4 @@
 import type {
-  ColorKeyAsElevation,
   ColorKeyWithContainer,
   ColorKeyWithElevation,
   ColorKeyWithInverse,
@@ -9,14 +8,14 @@ import type {
   PalettePrimaryColor,
   PaletteSemanticColor,
 } from '../../reference';
-import type { UnionOmit, UnionPick } from 'shared-utils/src';
+import type { UnionExclude, UnionExtract } from 'shared-utils/src';
 
 export type SchemeColorSection = Record<
-  | ColorKeyWithElevation<SchemeElevationGenerationInput>
-  | SchemeApplyKeyContainer<SchemeContainerGenerationInput>
-  | SchemeApplyKeyVariant<SchemeVariantsGenerationInput>
-  | SchemeApplyKeyInverse<SchemeInverseGenerationInput>
-  | SchemeSinglesGenerationInput,
+  | ColorKeyWithElevation<SchemeElevationColorInput>
+  | SchemeApplyKeyContainer<SchemeContainerColorInput>
+  | SchemeApplyKeyVariant<SchemeVariantsColorInput>
+  | SchemeApplyKeyInverse<SchemeInverseColorInput>
+  | SchemeSinglesColorInput,
   string
 >;
 
@@ -36,17 +35,17 @@ export type SchemeSpecificKeyUnion =
   | 'surfaceTint';
 
 export type SchemeApplyKeyContainer<TKey extends SchemeColorKeyUnion> =
-  TKey extends SchemeElevationGenerationInput
+  TKey extends SchemeElevationColorInput
     ? ColorKeyWithElevation<ColorKeyWithContainer<TKey>>
     : ColorKeyWithContainer<TKey>;
 
 export type SchemeApplyKeyVariant<TKey extends SchemeColorKeyUnion> =
-  TKey extends SchemeElevationGenerationInput
+  TKey extends SchemeElevationColorInput
     ? ColorKeyWithElevation<ColorKeyWithVariant<TKey>>
     : ColorKeyWithVariant<TKey>;
 
 export type SchemeApplyKeyInverse<TKey extends SchemeColorKeyUnion> =
-  TKey extends SchemeElevationGenerationInput
+  TKey extends SchemeElevationColorInput
     ? ColorKeyWithElevation<ColorKeyWithInverse<TKey>>
     : ColorKeyWithInverse<TKey>;
 
@@ -63,33 +62,33 @@ type _SchemeKeyPossibilityUnion<TKey extends SchemeColorKeyUnion> =
   | TKey;
 
 /** Union of keys that have a container in the scheme section */
-export type SchemeContainerGenerationInput =
+export type SchemeContainerColorInput =
   | PalettePrimaryColor
   | PaletteSemanticColor;
 
 /** Union of keys that have elevation in the scheme section */
-export type SchemeElevationGenerationInput =
-  | SchemeContainerGenerationInput
-  | UnionPick<SchemeSpecificKeyUnion, 'background' | 'surface'>;
+export type SchemeElevationColorInput =
+  | SchemeContainerColorInput
+  | UnionExtract<SchemeSpecificKeyUnion, 'background' | 'surface'>;
 
 /** Union of keys that have inverses in the scheme section */
 /* prettier-ignore */
-export type SchemeInverseGenerationInput = UnionPick<
+export type SchemeInverseColorInput = UnionExtract<
   SchemeColorKeyUnion,
   PalettePrimaryColor | 'surface'
 >;
 
 /** Union of keys that have explicit variants in the scheme section */
 /* prettier-ignore */
-export type SchemeVariantsGenerationInput = UnionPick<
+export type SchemeVariantsColorInput = UnionExtract<
   SchemeSpecificKeyUnion,
   'surface' | 'outline'
 >;
 
-export type SchemeSinglesGenerationInput = UnionOmit<
+export type SchemeSinglesColorInput = UnionExclude<
   SchemeColorKeyUnion,
-  | SchemeContainerGenerationInput
-  | SchemeElevationGenerationInput
-  | SchemeInverseGenerationInput
-  | SchemeVariantsGenerationInput
+  | SchemeContainerColorInput
+  | SchemeElevationColorInput
+  | SchemeInverseColorInput
+  | SchemeVariantsColorInput
 >;

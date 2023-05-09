@@ -34,10 +34,6 @@ export const api = createTRPCNext<ApiRouter>({
         httpBatchLink({
           // The server needs to know your app's full url
           url: `${getBaseUrl()}/api/trpc`,
-          /**
-           * Set custom request headers on every request from tRPC
-           * @link https://trpc.io/docs/v10/header
-           */
           headers() {
             return ctx?.req?.headers ?? {};
           },

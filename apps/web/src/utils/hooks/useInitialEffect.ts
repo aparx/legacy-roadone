@@ -12,6 +12,6 @@ export function useInitialEffect(
   useEffect(() => {
     if (!executed.current || !ensureOnce) callbackRef.current();
     executed.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-group/exhaustive-deps
   }, []);
 }

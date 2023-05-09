@@ -69,16 +69,25 @@ export function resolveMessage<TProvider extends MessageProvider>(
 export const globalMessageProvider = {
   error: (c, t) => `[MESSAGE_${c}: ${t}]`,
   messages: {
+    translation: {
+      warning: 'Warnung',
+      success: 'Erfolg',
+      info: 'Info',
+      error: 'Fehler',
+    },
     app: {
       name: 'roadone',
     },
     general: {
       load_more: 'Mehr laden',
+      profile_picture: 'Profilbild',
+      add: '%s hinzufügen',
     },
     auth: {
       signIn: 'Einloggen',
     },
     aria: {
+      snackbar: 'Nachricht: %s',
       navigation: {
         close: 'Navigation schließen',
         open: 'Navigation öffnen',

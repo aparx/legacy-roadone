@@ -2,6 +2,7 @@
 import { UI } from '../../utils';
 import { PropsWithStyleable } from '../../utils/styleable';
 import { MultiplierValueInput } from '../../utils/types';
+import { StackProps } from '../Stack/Stack';
 import { ButtonConfig as config } from './Button.config';
 import { createButtonRenderer } from './Button.renderer';
 import { mainButton } from './variations/mainButton';
@@ -39,6 +40,8 @@ export type BiasedButtonProps =
   | ({ link?: undefined } & ButtonElementProps);
 
 export type InternalButtonProps = PropsWithStyleable<{
+  /** @default true */
+  alignContent?: StackProps<any>['hAlign'];
   disabled?: boolean;
   /** @default 'sm' */
   size?: ButtonSize;

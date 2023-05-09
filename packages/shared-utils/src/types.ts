@@ -1,12 +1,12 @@
 // prettier-config-ignore
 /** Typesafe alternative to Typescript's "Extract" type-utility */
-export type UnionPick<TUnion, TKeys extends TUnion> = TUnion extends TKeys
+export type UnionExtract<TUnion, TKeys extends TUnion> = TUnion extends TKeys
   ? TUnion
   : never;
 
 // prettier-config-ignore
 /** Typesafe alternative to Typescript's "Exclude" type-utility */
-export type UnionOmit<TUnion, TKeys extends TUnion> = TUnion extends TKeys
+export type UnionExclude<TUnion, TKeys extends TUnion> = TUnion extends TKeys
   ? never
   : TUnion;
 
@@ -31,3 +31,14 @@ type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
   : _TupleOf<T, N, [T, ...R]>;
 
 export type WithArray<TElement> = TElement | TElement[];
+
+export type ExtractOptionals<TObject extends object> = Exclude<
+  {
+    [K in keyof TObject]: TObject extends Record<K, TObject[K]> ? never : K;
+  }[keyof TObject],
+  undefined
+>;
+
+export type PickOptionals<TObject extends object> = {
+  [P in ExtractOptionals<TObject>]: TObject[P];
+};

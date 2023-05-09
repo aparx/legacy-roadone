@@ -1,3 +1,4 @@
+import { createPermissiveProcedure } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
@@ -22,5 +23,11 @@ export const gigRouter = router({
         nextCursor = skip + take;
       }
       return { data, nextCursor };
+    }),
+  addGig: procedure
+    .use(createPermissiveProcedure('postEvents'))
+    // .input(inputGigSchema)
+    .mutation(({ input }) => {
+      console.log('successfully mutated!', input);
     }),
 });

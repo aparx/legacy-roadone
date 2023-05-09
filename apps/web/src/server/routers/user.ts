@@ -9,14 +9,16 @@ const userGetInput = z.union([
   z.object({ email: z.string() }),
 ]);
 
+export function userGet(input: z.infer<typeof userGetInput>) {
+  // This requires `input` to have EXACTLY one key (!)
+  return prisma.user
+    .findUniqueOrThrow({ where: input })
+    .catch((e) => handleAsTRPCError(e, 'NOT_FOUND'));
+}
+
 export const userRouter = router({
   getUser: procedure
     .input(userGetInput)
     .output(publicUserSchema)
-    .query(({ input }) => {
-      // This requires `input` to have EXACTLY one key (!)
-      return prisma.user
-        .findUniqueOrThrow({ where: input })
-        .catch((e) => handleAsTRPCError(e, 'NOT_FOUND'));
-    }),
+    .query(({ input }) => userGet(input)),
 });

@@ -1,14 +1,22 @@
 /** @jsxImportSource @emotion/react */
-import { propMerge } from '../../utils';
-import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
-import type { PropsWithoutChildren } from '../../utils/types';
+import {
+  HTMLElementFromTag,
+  HTMLTag,
+  HTMLTagRenderer,
+  propMerge,
+  PropsWithoutChildren,
+  PropsWithStyleable,
+  useStyleableMerge,
+  WithTagRepresentation,
+} from '../../utils';
 import { useStackProps } from '../Stack/Stack';
 import { Text } from '../Text';
 import { TextTypeProps } from '../Text/Text';
 import { CardConfig as config } from './Card.config';
 import * as style from './Card.style';
-import { useTheme } from '@emotion/react';
+import { jsx, useTheme } from '@emotion/react';
 import {
+  ForwardedRef,
   forwardRef,
   ForwardRefExoticComponent,
   HTMLAttributes,
@@ -25,10 +33,13 @@ export type Card = {
   } & ForwardRefExoticComponent<CardHeaderProps>;
   Content: ForwardRefExoticComponent<CardContentProps>;
   Footer: ForwardRefExoticComponent<CardFooterProps>;
-} & ForwardRefExoticComponent<CardProps>;
+} & HTMLTagRenderer<
+  typeof config.Defaults.tag,
+  InternalCardProps,
+  ReactElement
+>;
 
-// prettier-ignore
-export type CardProps = PropsWithStyleable<{
+export type InternalCardProps = PropsWithStyleable<{
   children?: WithArray<
     | ReactElement<CardHeaderProps>
     | ReactElement<CardTitleProps>
@@ -36,23 +47,27 @@ export type CardProps = PropsWithStyleable<{
   >;
   /** The width is oriented after the maxWidth a card might have
    * @default 'md' */
-  width?: BreakpointName
-} & PropsWithoutChildren<HTMLAttributes<HTMLElement>>>;
+  width?: BreakpointName;
+}>;
 
-export const Card = forwardRef<HTMLElement, CardProps>(function CardRenderer(
-  { children, width = config.Defaults.width, ...rest },
-  ref
+// prettier-ignore
+export type CardProps<TTag extends HTMLTag> =
+  WithTagRepresentation<TTag, InternalCardProps>;
+
+export const Card = forwardRef(function CardRenderer<TTag extends HTMLTag>(
+  { as, children, width = config.Defaults.width, ...rest }: CardProps<TTag>,
+  ref: ForwardedRef<HTMLElementFromTag<TTag>>
 ) {
-  return (
-    <div
-      css={style.card(useTheme(), width)}
-      ref={ref}
-      {...useStyleableMerge(rest)}
-    >
-      {children}
-    </div>
+  return jsx(
+    as ?? config.Defaults.tag,
+    { css: style.card(useTheme(), width), ref, ...useStyleableMerge(rest) },
+    children
   );
-}) as Card;
+}) as HTMLTagRenderer<
+  typeof config.Defaults.tag,
+  InternalCardProps,
+  ReactElement
+> as Card;
 
 export default Card;
 

@@ -1,7 +1,8 @@
+import type { ApiContext } from '@/server/context';
 import { initTRPC } from '@trpc/server';
 import superjson from 'superjson';
 
-const t = initTRPC.create({
+const t = initTRPC.context<ApiContext>().create({
   transformer: superjson,
 });
 

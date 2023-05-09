@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { NavbarConfig as config } from './Navbar.config';
+import { NavbarConfig } from './Navbar.config';
 import * as style from './Navbar.style';
 import { Avatar, Hamburger } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
@@ -36,6 +36,8 @@ import {
   useRef,
 } from 'react';
 import type { WithArray } from 'shared-utils';
+
+import drawerBreakpoint = NavbarConfig.drawerBreakpoint;
 
 export type Navbar = {
   Page: ForwardRefExoticComponent<NavbarPageProps>;
@@ -77,10 +79,9 @@ export default Navbar;
 /** The actual navigation items that can collapse into a drawer (expandable). */
 function NavItems({ pages }: { pages: NavbarProps['children'] }) {
   const navId = useId();
-  const breakpoint = useWindowBreakpoint();
   const hamburger = useRef<HamburgerRef>(null);
   const expand = useLocalToggle();
-  const asDrawer = breakpoint?.to?.lte?.(config.drawerBreakpoint);
+  const asDrawer = useIsDrawer();
   const pageAlign = usePageAlignProps();
   const drawerRef = useRef<HTMLDivElement>(null);
   useOnClickOutside(
@@ -144,7 +145,11 @@ function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
       {asDrawer && <Divider />}
       <Text.Body size={'md'} take={{ fontWeight: 'medium' }} {...stackProps}>
         {session.data?.user?.image && (
-          <Avatar user={session.data.user} size={30} name={'profile picture'} />
+          <Avatar
+            user={session.data.user}
+            size={30}
+            name={getGlobalMessage('general.profile_picture')}
+          />
         )}
         {asDrawer && session.data?.user?.name}
       </Text.Body>
@@ -160,10 +165,12 @@ export type NavbarPageProps = PropsWithStyleable<{
 
 Navbar.Page = forwardRef<HTMLAnchorElement, NavbarPageProps>(
   function NavbarPageRenderer({ link, name, ...restProps }, ref) {
+    const isDrawerItem = useIsDrawer();
     return (
       <Button.Primary
         link={link}
         ref={ref}
+        alignContent={isDrawerItem ? 'left' : 'center'}
         {...propMerge(
           { css: style.pageButton(useTheme(), usePathname() === link) },
           restProps
@@ -175,3 +182,7 @@ Navbar.Page = forwardRef<HTMLAnchorElement, NavbarPageProps>(
     );
   }
 );
+
+function useIsDrawer(): boolean {
+  return !!useWindowBreakpoint()?.to?.lte(drawerBreakpoint);
+}

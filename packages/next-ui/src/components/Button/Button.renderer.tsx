@@ -1,6 +1,7 @@
 import { useOnEvent } from '../../hooks';
 import { propMerge, useStyleableMerge } from '../../utils';
 import { multiRef } from '../../utils/mutliRef';
+import { Stack } from '../Stack';
 import { useDataTextProps } from '../Text/Text';
 import type {
   ButtonOptions,
@@ -50,6 +51,7 @@ export function createButtonRenderer<TType extends ButtonType>(
       children,
       leading,
       size = config.Defaults.size,
+      alignContent = config.Defaults.alignContent,
       tailing,
       tight,
       ...restProps
@@ -74,11 +76,11 @@ export function createButtonRenderer<TType extends ButtonType>(
           useStyleableMerge(restProps)
         )}
       >
-        <div>
+        <Stack direction={'row'} hAlign={alignContent} spacing={0.5}>
           {leading && <div>{leading}</div>}
           <div>{children}</div>
           {tailing && <div>{tailing}</div>}
-        </div>
+        </Stack>
       </ButtonLink>
     );
   }) as <TProps extends ButtonProps>(

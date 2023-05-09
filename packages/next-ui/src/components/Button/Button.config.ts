@@ -1,3 +1,4 @@
+import { StackProps } from '../Stack/Stack';
 import type { ButtonOptions, ButtonType } from './Button';
 import { ButtonSize, buttonSizeArray } from './Button';
 import type {
@@ -11,6 +12,7 @@ import { DeepPartial } from 'utility-types';
 export module ButtonConfig {
   export module Defaults {
     export const size = 'md' satisfies ButtonSize;
+    export const alignContent = true satisfies StackProps<any>['hAlign'];
   }
 
   /** External button config utilities managed under the "config" */

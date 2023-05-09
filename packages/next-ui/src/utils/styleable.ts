@@ -1,13 +1,14 @@
 import { UI } from './magics';
 import { propMerge } from './merge';
 import type { MultiplierValueInput } from './types';
-import type { CSSObject, Theme } from '@emotion/react';
+import type { Theme } from '@emotion/react';
 import { useTheme } from '@emotion/react';
 import type { Property } from 'csstype';
 import { capitalize } from 'lodash';
 import { CSSProperties } from 'react';
 import type { ValueSource } from 'shared-utils';
 import { resolveSource } from 'shared-utils';
+import { BreakpointName } from 'theme-core';
 
 import QuadSides = BoxSide.QuadSides;
 
@@ -20,12 +21,14 @@ export type StyleableColorProps = {
 };
 
 export type StyleableDimensionProps = {
+  /** when applied, lengthens <strong>every</strong> child up to given width. */
+  childLength?: BreakpointName;
   width?: ValueSource<Property.Width, [Theme]>;
   height?: ValueSource<Property.Height, [Theme]>;
   fit?: ValueSource<boolean, [Theme]>;
 };
 
-module BoxSide {
+export module BoxSide {
   export const quadHorizontals = ['left', 'right'] as const;
   export const quadVerticals = ['top', 'bottom'] as const;
   export type QuadHorizontals = (typeof quadHorizontals)[number];
@@ -134,7 +137,12 @@ export function useStyleableProps(data: OptionalData) {
 }
 
 export function createStyleableProps(theme: Theme, data: OptionalData) {
-  return data ? { style: createStyle(theme, data) } : {};
+  return data
+    ? {
+        style: createInlineStyle(theme, data),
+        css: createEmotionStyle(theme, data),
+      }
+    : {};
 }
 
 /** Merges the props resulting from given styleable and the leftover props. */
@@ -143,7 +151,7 @@ export function useStyleableMerge({ sd, ...rest }: StyleableProp & object) {
   return rest ? propMerge(styleable, rest) : styleable;
 }
 
-function createStyle(theme: Theme, data: StyleableData) {
+function createInlineStyle(theme: Theme, data: StyleableData) {
   const { multipliers } = theme.rt;
   const mapper = (v: MultiplierValueInput<'spacing'>) => multipliers.spacing(v);
   return {
@@ -156,7 +164,19 @@ function createStyle(theme: Theme, data: StyleableData) {
     ...toPartialPrefixedQuadSides('padding', data, mapper),
     width: data.fit ? 'fit-content' : resolveSource(data.width, theme),
     height: data.fit ? 'fit-content' : resolveSource(data.height, theme),
-  } satisfies CSSProperties & CSSObject;
+  } satisfies CSSProperties;
+}
+
+function createEmotionStyle(theme: Theme, { childLength }: StyleableData) {
+  const { breakpoints } = theme.rt;
+  return childLength
+    ? {
+        '& > *': {
+          width: '100%',
+          maxWidth: breakpoints.point(childLength),
+        },
+      }
+    : undefined;
 }
 
 function toPartialPrefixedQuadSides<

@@ -14,9 +14,9 @@ import * as style from './Stack.style';
 import { jsx, Theme, useTheme } from '@emotion/react';
 import type { Globals, Property } from 'csstype';
 import React, { ForwardedRef, forwardRef, ReactNode } from 'react';
-import { UnionOmit } from 'shared-utils';
+import { UnionExclude } from 'shared-utils';
 
-export type StackDirection = UnionOmit<Property.FlexDirection, Globals>;
+export type StackDirection = UnionExclude<Property.FlexDirection, Globals>;
 
 export type StackCenter =
   | undefined
