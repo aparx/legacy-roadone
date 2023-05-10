@@ -1,9 +1,9 @@
 /** @jsxImportSource @emotion/react */
-import { NavbarConfig } from '@/components';
+import * as style from './GigCard.style';
+import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
 import { GigEvent } from '@/modules/schemas/gig';
-import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
+import { useIsMobile } from '@/utils/device';
 import { useMessage } from '@/utils/hooks/useMessage';
-import { css, Theme } from '@emotion/react';
 import {
   propMerge,
   PropsWithoutChildren,
@@ -16,8 +16,6 @@ import {
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
-
-import drawerBreakpoint = NavbarConfig.drawerBreakpoint;
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
 export type RenderableGig = GigEvent & {
@@ -40,8 +38,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
     ], [gig.start]);
     // Renderable address information being displayed with a possible separator
     const address: string[] = [`${gig.postcode} ${gig.city}`, `${gig.street}`];
-    const renderTight = !!useWindowBreakpoint()?.to?.lte(drawerBreakpoint);
-    const infoSeparator = !renderTight ? '-' : undefined;
+    const isMobile = useIsMobile();
+    // TODO completely switch from Javascript to CSS only for that separator!
     return (
       <Stack
         ref={ref}
@@ -111,35 +109,25 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
               style: { flexWrap: 'wrap' },
             })}
           >
-            <address
-              {...propMerge(
-                useStackProps({
-                  direction: renderTight ? 'column' : 'row',
-                  spacing: renderTight ? 0 : 'md',
-                }),
-                {
-                  css: renderTight
-                    ? (t: Theme) =>
-                        css({ paddingRight: t.rt.multipliers.spacing('xl') })
-                    : undefined,
-                }
-              )}
-            >
+            <address css={style.address}>
               {address.map((info, i) => {
-                let del = i !== 0 ? infoSeparator : undefined;
                 return [
-                  del && <div key={`${info}_sep`}>{del}</div>,
-                  <div key={info}>{info}</div>,
+                  i !== 0 ? (
+                    <span key={`${info}_separator`} css={style.separator} />
+                  ) : undefined,
+                  <span key={info}>{info}</span>,
                 ];
               })}
             </address>
-            {infoSeparator && <div>{infoSeparator}</div>}
-            <time dateTime={gig.start.toISOString()}>
-              {`${gig.start.toLocaleString('de-DE', {
-                hour: 'numeric',
-                minute: 'numeric',
-              })} Uhr`}
-            </time>
+            <div css={style.time}>
+              <span css={style.separator} />
+              <time dateTime={gig.start.toISOString()}>
+                {`${gig.start.toLocaleString('de-DE', {
+                  hour: 'numeric',
+                  minute: 'numeric',
+                })} Uhr`}
+              </time>
+            </div>
           </Text.Body>
           {gig.description?.length && (
             <Text.Body

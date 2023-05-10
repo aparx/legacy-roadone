@@ -76,7 +76,11 @@ export default function GigsPage() {
     return groups;
   }, [gigMap]);
   return (
-    <Page name={'Auftritte'} pageURL={'gigs'}>
+    <Page
+      name={'Auftritte'}
+      meta={{ description: 'Alle Auftritte von roadone' }}
+      pageURL={'gigs'}
+    >
       {Permission.isGreaterOrEqual(
         Permission.useRole(),
         Globals.permissionMap.postEvents

@@ -25,7 +25,7 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
                   <Navbar.Page link={'/media'} name={'Media'} />
                 </Navbar>
                 <Component {...pageProps} />
-                {/* dialog component, that can be opened and closed through
+                {/* TODO dialog component, that can be opened and closed through
                     custom ref (passing down the necessary dialog data) */}
               </WindowBreakpointProvider>
             </SessionProvider>

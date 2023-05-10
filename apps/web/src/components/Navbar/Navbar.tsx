@@ -3,7 +3,8 @@ import { NavbarConfig } from './Navbar.config';
 import * as style from './Navbar.style';
 import { Avatar, Hamburger } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
-import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
+import { hiddenIfDesktop, hiddenIfMobile } from '@/utils/css';
+import { useIsMobile } from '@/utils/device';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { useOnClickOutside } from '@/utils/hooks/useOnClickOutside';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
@@ -36,8 +37,6 @@ import {
   useRef,
 } from 'react';
 import type { WithArray } from 'shared-utils';
-
-import drawerBreakpoint = NavbarConfig.drawerBreakpoint;
 
 export type Navbar = {
   Page: ForwardRefExoticComponent<NavbarPageProps>;
@@ -78,12 +77,18 @@ export default Navbar;
 
 /** The actual navigation items that can collapse into a drawer (expandable). */
 function NavItems({ pages }: { pages: NavbarProps['children'] }) {
+  const theme = useTheme();
   const navId = useId();
   const hamburger = useRef<HamburgerRef>(null);
   const expand = useLocalToggle();
-  const asDrawer = useIsDrawer();
+  const isDrawer = useIsMobile();
+  // This check ensures no layout shifts with slow devices, since media-queries
+  // are executed immediately, before the actual JS logic
+  const isDrawerOrInitial = isDrawer === undefined || isDrawer;
   const pageAlign = usePageAlignProps();
   const drawerRef = useRef<HTMLDivElement>(null);
+  // Must only be true, if the drawer-state is loading or the drawer collapsed
+  const isCollapsed = isDrawer === undefined || (isDrawer && !expand.state);
   useOnClickOutside(
     () => expand.set(false),
     drawerRef.current,
@@ -96,21 +101,18 @@ function NavItems({ pages }: { pages: NavbarProps['children'] }) {
       <div
         ref={drawerRef}
         id={navId}
-        css={style.items(
-          useTheme(),
-          asDrawer === undefined || (asDrawer && !expand.state)
-        )}
+        css={[style.items, isCollapsed && hiddenIfMobile(theme)]}
       >
         <NavPages pages={pages} />
-        <NavProfile asDrawer={asDrawer} />
+        <NavProfile asDrawer={isDrawer} />
       </div>
-      {/* TODO TAB INDEX NOT WORKING ( TAB-FOCUSING THE HAMBURGER ) */}
-      {asDrawer && (
+      {isDrawerOrInitial && (
         <Hamburger
           ref={hamburger}
           label={'expand'}
           controls={navId}
           stateOpen={expand}
+          css={hiddenIfDesktop(theme)}
           aria-label={
             expand.state
               ? getGlobalMessage('aria.navigation.close')
@@ -119,7 +121,9 @@ function NavItems({ pages }: { pages: NavbarProps['children'] }) {
           {...propMerge({ css: style.hamburger }, pageAlign)}
         />
       )}
-      {asDrawer && expand.state && <Scrim />}
+      {isDrawerOrInitial && expand.state && (
+        <Scrim css={hiddenIfDesktop(theme)} />
+      )}
     </>
   );
 }
@@ -165,7 +169,7 @@ export type NavbarPageProps = PropsWithStyleable<{
 
 Navbar.Page = forwardRef<HTMLAnchorElement, NavbarPageProps>(
   function NavbarPageRenderer({ link, name, ...restProps }, ref) {
-    const isDrawerItem = useIsDrawer();
+    const isDrawerItem = useIsMobile();
     return (
       <Button.Primary
         link={link}
@@ -182,7 +186,3 @@ Navbar.Page = forwardRef<HTMLAnchorElement, NavbarPageProps>(
     );
   }
 );
-
-function useIsDrawer(): boolean {
-  return !!useWindowBreakpoint()?.to?.lte(drawerBreakpoint);
-}

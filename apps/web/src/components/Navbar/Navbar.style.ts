@@ -1,4 +1,5 @@
 import { NavbarConfig as config } from './Navbar.config';
+import { mobileMediaQuery } from '@/utils/device';
 import { css, Theme } from '@emotion/react';
 import { UI } from 'next-ui';
 
@@ -31,13 +32,13 @@ export const wrapper = (theme: Theme) =>
   });
 
 /** NavBar's actual items, containing the list and other items (e.g. profile) */
-export const items = (theme: Theme, hidden: boolean) =>
+export const items = (theme: Theme) =>
   css({
     display: 'flex',
     alignItems: 'center',
     gap: theme.rt.multipliers.spacing('xl'),
     /* Drawer */
-    [theme.rt.breakpoints.lte(config.drawerBreakpoint)]: {
+    [mobileMediaQuery(theme)]: {
       position: 'fixed',
       inset: 0,
       left: 'unset',
@@ -46,10 +47,6 @@ export const items = (theme: Theme, hidden: boolean) =>
       paddingTop: config.height,
       flexDirection: 'column',
       background: theme.sys.color.surface[2],
-      // IF `hidden` initially used on server side rendering (flash avoidance)
-      visibility: hidden ? 'hidden' : undefined,
-      display: hidden ? 'none !important' : undefined,
-      opacity: hidden ? 0 : undefined,
     },
   });
 
@@ -64,7 +61,7 @@ export const list = (theme: Theme) =>
     display: 'flex',
     gap: theme.rt.multipliers.spacing('md'),
     /* Within Drawer */
-    [theme.rt.breakpoints.lte(config.drawerBreakpoint)]: {
+    [mobileMediaQuery(theme)]: {
       flexDirection: 'column',
       alignItems: 'center',
     },
@@ -74,7 +71,7 @@ export const list = (theme: Theme) =>
 export const listItem = (theme: Theme) =>
   css({
     /* Within Drawer */
-    [theme.rt.breakpoints.lte(config.drawerBreakpoint)]: {
+    [mobileMediaQuery(theme)]: {
       // This decides about the length of the encapsulated item
       minWidth: '100%',
     },
@@ -88,7 +85,7 @@ export const pageButton = (theme: Theme, active: boolean) =>
       : undefined,
     transition: `background ${UI.baseTransitionMs}ms`,
     /* Within Drawer */
-    [theme.rt.breakpoints.lte(config.drawerBreakpoint)]: {
+    [mobileMediaQuery(theme)]: {
       width: '100% !important',
     },
   });

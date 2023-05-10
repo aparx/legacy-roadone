@@ -41,7 +41,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
           </Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <ol {...useStackProps({ spacing: 'md' })}>
+          <ul {...useStackProps({ spacing: 'md' })}>
             {gigs.map((gig) => (
               <li
                 role={gig.state === 'done' ? 'group' : undefined}
@@ -51,7 +51,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
                 <GigCard gig={gig} />
               </li>
             ))}
-          </ol>
+          </ul>
         </Card.Content>
       </Card>
     );
