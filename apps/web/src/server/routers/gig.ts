@@ -1,3 +1,4 @@
+import { inputGigSchema } from '@/modules/schemas/gig';
 import { createPermissiveProcedure } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
@@ -26,7 +27,7 @@ export const gigRouter = router({
     }),
   addGig: procedure
     .use(createPermissiveProcedure('postEvents'))
-    // .input(inputGigSchema)
+    .input(inputGigSchema)
     .mutation(({ input }) => {
       console.log('successfully mutated!', input);
     }),

@@ -2,21 +2,21 @@ import { DialogConfig, Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
+import { InputGig, inputGigSchema } from '@/modules/schemas/gig';
 import { apiRouter } from '@/server/routers/_api';
 import { useDialogHandle } from '@/stores/components/dialogHandle';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { createServerSideHelpers } from '@trpc/react-query/server';
+import { UseTRPCMutationResult } from '@trpc/react-query/shared';
 import { Button, Stack } from 'next-ui';
 import { ReactNode, useMemo } from 'react';
-import { useForm, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
-import { z } from 'zod';
 
 export async function getStaticProps() {
   const helpers = createServerSideHelpers({
@@ -108,13 +108,9 @@ export default function GigsPage() {
 //   RESTRICTED (ADMIN) COMPONENTS
 // <================================>
 
-const testSchema = z.object({ message: z.string() });
-
 function AddEventPanel() {
   const showDialog = useDialogHandle((s) => s.show);
-  useForm({
-    resolver: zodResolver(z.object({})),
-  });
+  const mutation = api.gig.addGig.useMutation();
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
       <div>
@@ -125,9 +121,12 @@ function AddEventPanel() {
               title: 'Test',
               type: 'form',
               actions: DialogConfig.dialogSaveCancelSource,
-              schema: testSchema,
-              content: <AddGigForm />,
-              handleSubmit: (e) => console.log(e),
+              schema: inputGigSchema,
+              content: <AddGigForm mutation={mutation} />,
+              handleSubmit: (e) => {
+                console.log('mutate');
+                mutation.mutate(e);
+              },
             })
           }
         >
@@ -138,13 +137,63 @@ function AddEventPanel() {
   );
 }
 
-function AddGigForm() {
-  const ctx = useFormContext<z.infer<typeof testSchema>>();
+function AddGigForm({
+  mutation,
+}: {
+  mutation: UseTRPCMutationResult<void, any, InputGig, any>;
+}) {
+  const { isLoading } = mutation;
+  const ctx = useFormContext<InputGig>();
   return (
     <>
+      {isLoading && <div>LOADING...</div>}
       <label>
-        <p>Sample Form</p>
-        <input type={'text'} {...ctx.register('message')} />
+        <p>Start</p>
+        <input
+          disabled={isLoading}
+          type={'datetime-local'}
+          {...ctx.register('start', { required: true, valueAsDate: true })}
+        />
+      </label>
+      <label>
+        <p>Title</p>
+        <input
+          disabled={isLoading}
+          type={'text'}
+          {...ctx.register('title', { required: true })}
+        />
+      </label>
+      <label>
+        <p>City</p>
+        <input
+          disabled={isLoading}
+          type={'text'}
+          {...ctx.register('city', { required: true })}
+        />
+      </label>
+      <label>
+        <p>Street</p>
+        <input
+          disabled={isLoading}
+          type={'text'}
+          {...ctx.register('street', { required: true })}
+        />
+      </label>
+      <label>
+        <p>Postcode</p>
+        <input
+          disabled={isLoading}
+          type={'text'}
+          {...ctx.register('postcode', { required: true })}
+        />
+      </label>
+      <label>
+        <p>Description</p>
+        <input
+          disabled={isLoading}
+          type={'text'}
+          {...ctx.register('description', { required: true })}
+        />
       </label>
     </>
   );

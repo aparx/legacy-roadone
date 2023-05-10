@@ -4,6 +4,7 @@ import * as style from '@/styles/app';
 import '@/styles/reset.css';
 import { theme } from '@/styles/theme';
 import { api, queryClient } from '@/utils/api';
+import '@/utils/clientInit';
 import { WindowBreakpointProvider } from '@/utils/context/windowBreakpoint';
 import { roboto } from '@/utils/font';
 import { Global, ThemeProvider } from '@emotion/react';

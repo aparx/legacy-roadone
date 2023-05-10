@@ -233,7 +233,7 @@ function DialogHeader<
   TFormSchema extends ZodSchema
 >({ data, dialogRef }: DialogInnerProps<TType, TActions, TFormSchema>) {
   const labeledBy = useId();
-  useAttributes({ 'aria-labeledby': labeledBy }, dialogRef);
+  useAttributes({ 'aria-labelledby': labeledBy }, dialogRef);
   return <Card.Header title={data.title} id={labeledBy} />;
 }
 
@@ -265,8 +265,8 @@ function DialogFooter<
           onClick: () => performAction(action),
           children: action.name,
         } satisfies ButtonProps & { key: string };
-        return action.doClose ? (
-          <Button.Tertiary {...props} />
+        return action.role === 'close' ? (
+          <Button.Secondary {...props} />
         ) : (
           <Button.Primary {...props} />
         );
@@ -286,7 +286,7 @@ function DialogForm<
   const { handleSubmit } = methods;
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(props.data.handleSubmit)}>
+      <form onSubmit={handleSubmit(props.data.handleSubmit, console.error)}>
         {props.children}
       </form>
     </FormProvider>
