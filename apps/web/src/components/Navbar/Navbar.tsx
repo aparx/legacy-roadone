@@ -58,16 +58,12 @@ const NavLogo = () => (
 export const Navbar = forwardRef<HTMLDivElement, NavbarProps>(
   function NavbarRenderer({ children, ...restProps }, ref) {
     return (
-      <>
-        <div ref={ref} css={style.navbar} {...useStyleableMerge(restProps)}>
-          <PageAlign css={style.wrapper}>
-            <NavLogo />
-            <NavItems pages={children} />
-          </PageAlign>
-        </div>
-        {/* Placeholder to create margin between the navbar and outsiders */}
-        <div css={style.shadow} />
-      </>
+      <div ref={ref} css={style.navbar} {...useStyleableMerge(restProps)}>
+        <PageAlign ref={ref} css={style.wrapper}>
+          <NavLogo />
+          <NavItems pages={children} />
+        </PageAlign>
+      </div>
     );
   }
 ) as Navbar;

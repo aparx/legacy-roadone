@@ -1,4 +1,4 @@
-import { Page } from '@/components';
+import { DialogConfig, Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
@@ -113,7 +113,11 @@ function AddEventPanel() {
         <Button.Primary
           leading={<MdAdd />}
           onClick={() =>
-            showDialog({ title: 'Test', content: <div>Test</div> })
+            showDialog({
+              title: 'Test',
+              type: 'form',
+              actions: DialogConfig.dialogAcceptDenySource,
+            })
           }
         >
           {useMessage('general.add', 'Gig')}

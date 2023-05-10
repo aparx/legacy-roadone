@@ -3,20 +3,14 @@ import { mobileMediaQuery } from '@/utils/device';
 import { css, Theme } from '@emotion/react';
 import { UI } from 'next-ui';
 
-/** Shadow style for the "shadow" navbar (background in-flow navbar) */
-export const shadow = (theme: Theme) =>
-  css({
-    height: config.height,
-    marginBottom: theme.rt.multipliers.spacing('xl'),
-  });
-
 /** Style for the main navbar container, containing all the navbar items */
 export const navbar = (theme: Theme) =>
   css({
     top: 0,
     width: '100%',
     display: 'flex',
-    position: 'fixed',
+    position: 'sticky',
+    marginBottom: theme.rt.multipliers.spacing('xl'),
     background: theme.sys.color.surface[1],
     zIndex: config.zBaseIndex,
     height: config.height,
@@ -26,14 +20,12 @@ export const navbar = (theme: Theme) =>
     },
   });
 
-export const wrapper = (theme: Theme) =>
-  css({
-    position: 'relative',
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  });
+export const wrapper = css({
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+});
 
 /** NavBar's actual items, containing the list and other items (e.g. profile) */
 export const items = (theme: Theme) =>
@@ -94,9 +86,8 @@ export const pageButton = (theme: Theme, active: boolean) =>
     },
   });
 
-export const hamburger = (theme: Theme) =>
-  css({
-    position: 'fixed',
-    zIndex: config.zBaseIndex + 1,
-    right: 0,
-  });
+export const hamburger = css({
+  position: 'fixed',
+  zIndex: config.zBaseIndex + 1,
+  right: 0,
+});

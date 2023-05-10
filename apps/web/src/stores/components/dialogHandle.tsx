@@ -1,17 +1,24 @@
 import { Dialog } from '@/components';
-import { DialogData } from '@/components/Dialog/Dialog';
+import {
+  dialogCancelSource,
+  DialogData,
+  DialogResponseSource,
+} from '@/components/Dialog/Dialog';
 import { create } from 'zustand';
 
 export type DialogHandle = {
-  dialog: DialogData | undefined;
+  dialog: DialogData<any> | undefined;
   close: () => void;
-  show: (dialog: DialogData) => void;
+  show: <T extends DialogResponseSource = typeof dialogCancelSource>(
+    dialog: DialogData<T>
+  ) => void;
 };
 
 export const useDialogHandle = create<DialogHandle>((set) => ({
   dialog: undefined,
   close: () => set({ dialog: undefined }),
-  show: (dialog: DialogData) => set({ dialog: dialog }),
+  show: <T extends DialogResponseSource>(dialog: DialogData<T>) =>
+    set({ dialog: dialog }),
 }));
 
 export function DialogHandleRenderer() {

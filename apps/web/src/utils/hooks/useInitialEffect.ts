@@ -4,14 +4,15 @@ export function useInitialEffect(
   callback: EffectCallback,
   ensureOnce: boolean = true
 ) {
+  const onceRef = useRef(ensureOnce);
   const callbackRef = useRef(callback);
   const executed = useRef(false);
   useEffect(() => {
     callbackRef.current = callback;
+    onceRef.current = ensureOnce;
   });
   useEffect(() => {
-    if (!executed.current || !ensureOnce) callbackRef.current();
+    if (!executed.current || !onceRef.current) callbackRef.current();
     executed.current = true;
-    // eslint-disable-next-line react-group/exhaustive-deps
   }, []);
 }

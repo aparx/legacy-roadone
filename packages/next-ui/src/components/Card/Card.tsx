@@ -20,10 +20,10 @@ import {
   forwardRef,
   ForwardRefExoticComponent,
   HTMLAttributes,
+  PropsWithChildren,
   ReactElement,
   ReactNode,
 } from 'react';
-import { WithArray } from 'shared-utils';
 import type { BreakpointName } from 'theme-core';
 
 export type Card = {
@@ -40,13 +40,7 @@ export type Card = {
 >;
 
 export type InternalCardProps = PropsWithStyleable<
-  {
-    children?: WithArray<
-      | ReactElement<CardHeaderProps>
-      | ReactElement<CardTitleProps>
-      | ReactElement<CardContentProps>
-    >;
-  } & { width?: BreakpointName | false }
+  PropsWithChildren<{ width?: BreakpointName | false }>
 >;
 
 // prettier-ignore
