@@ -1,5 +1,6 @@
 import { Navbar } from '@/components';
-import * as style from '@/styles/global';
+import { DialogHandleRenderer } from '@/stores/components/dialogHandle';
+import * as style from '@/styles/app';
 import '@/styles/reset.css';
 import { theme } from '@/styles/theme';
 import { api, queryClient } from '@/utils/api';
@@ -8,31 +9,40 @@ import { roboto } from '@/utils/font';
 import { Global, ThemeProvider } from '@emotion/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
-import { TypefaceStyleClassProvider } from 'next-ui';
+import {
+  AppRootProvider,
+  ScrimRoot,
+  TypefaceStyleClassProvider,
+} from 'next-ui';
+import { useRef } from 'react';
 
 function App({ Component, pageProps: { session, ...pageProps } }) {
+  const appRootRef = useRef<HTMLDivElement>(null);
   return (
-    <ThemeProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
-        <TypefaceStyleClassProvider value={{ roboto: roboto.className }}>
-          <div id={'app-root'} css={{}}>
-            <Global styles={style.global} />
-            <SessionProvider session={session}>
-              <WindowBreakpointProvider>
-                <Navbar>
-                  <Navbar.Page link={'/home'} name={'Home'} />
-                  <Navbar.Page link={'/gigs'} name={'Auftritte'} />
-                  <Navbar.Page link={'/media'} name={'Media'} />
-                </Navbar>
-                <Component {...pageProps} />
-                {/* TODO dialog component, that can be opened and closed through
-                    custom ref (passing down the necessary dialog data) */}
-              </WindowBreakpointProvider>
-            </SessionProvider>
-          </div>
-        </TypefaceStyleClassProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <AppRootProvider value={appRootRef}>
+      <ThemeProvider theme={theme}>
+        <QueryClientProvider client={queryClient}>
+          <TypefaceStyleClassProvider value={{ roboto: roboto.className }}>
+            <div id={'app-root'} css={style.appRoot} ref={appRootRef}>
+              <Global styles={style.appGlobal} />
+              <SessionProvider session={session}>
+                <WindowBreakpointProvider>
+                  <Navbar>
+                    <Navbar.Page link={'/home'} name={'Home'} />
+                    <Navbar.Page link={'/gigs'} name={'Auftritte'} />
+                    <Navbar.Page link={'/media'} name={'Media'} />
+                  </Navbar>
+                  <ScrimRoot>
+                    <Component {...pageProps} />
+                    <DialogHandleRenderer />
+                  </ScrimRoot>
+                </WindowBreakpointProvider>
+              </SessionProvider>
+            </div>
+          </TypefaceStyleClassProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </AppRootProvider>
   );
 }
 

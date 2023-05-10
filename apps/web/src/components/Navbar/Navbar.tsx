@@ -1,12 +1,10 @@
 /** @jsxImportSource @emotion/react */
-import { NavbarConfig } from './Navbar.config';
 import * as style from './Navbar.style';
 import { Avatar, Hamburger } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
 import { hiddenIfDesktop, hiddenIfMobile } from '@/utils/css';
 import { useIsMobile } from '@/utils/device';
 import { useMessage } from '@/utils/hooks/useMessage';
-import { useOnClickOutside } from '@/utils/hooks/useOnClickOutside';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import { useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
@@ -21,6 +19,7 @@ import {
   PropsWithStyleable,
   Scrim,
   Text,
+  useOnClickOutside,
   useStyleableMerge,
 } from 'next-ui';
 import { usePageAlignProps } from 'next-ui/src/components/PageAlign/PageAlign';
@@ -91,8 +90,8 @@ function NavItems({ pages }: { pages: NavbarProps['children'] }) {
   const isCollapsed = isDrawer === undefined || (isDrawer && !expand.state);
   useOnClickOutside(
     () => expand.set(false),
-    drawerRef.current,
-    hamburger.current?.button?.current
+    drawerRef,
+    hamburger.current?.button
   );
   // automatically close the drawer on navigation
   useOnNavigation(() => expand.set(false));

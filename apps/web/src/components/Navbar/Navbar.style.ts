@@ -18,8 +18,12 @@ export const navbar = (theme: Theme) =>
     display: 'flex',
     position: 'fixed',
     background: theme.sys.color.surface[1],
-    zIndex: config.zIndex,
+    zIndex: config.zBaseIndex,
     height: config.height,
+    /* Drawer */
+    [mobileMediaQuery(theme)]: {
+      zIndex: config.zDrawerIndex,
+    },
   });
 
 export const wrapper = (theme: Theme) =>
@@ -93,6 +97,6 @@ export const pageButton = (theme: Theme, active: boolean) =>
 export const hamburger = (theme: Theme) =>
   css({
     position: 'fixed',
-    zIndex: config.zIndex + 99,
+    zIndex: config.zBaseIndex + 1,
     right: 0,
   });

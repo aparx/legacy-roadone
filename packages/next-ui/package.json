@@ -8,7 +8,9 @@
   "dependencies": {
     "colord": "^2.9.3",
     "eslint": "^8.38.0",
-    "theme-core": "workspace:*"
+    "react-icons": "^4.8.0",
+    "theme-core": "workspace:*",
+    "zustand": "^4.3.8"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",

@@ -6,5 +6,7 @@ export module NavbarConfig {
 
   export const drawerBreakpoint = 'md' satisfies BreakpointName;
 
-  export const zIndex = ScrimConfig.zIndex + 1;
+  export const zBaseIndex = ScrimConfig.zIndex - 1;
+
+  export const zDrawerIndex = ScrimConfig.zIndex + 99;
 }

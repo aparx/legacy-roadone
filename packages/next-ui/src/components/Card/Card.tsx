@@ -39,16 +39,15 @@ export type Card = {
   ReactElement
 >;
 
-export type InternalCardProps = PropsWithStyleable<{
-  children?: WithArray<
-    | ReactElement<CardHeaderProps>
-    | ReactElement<CardTitleProps>
-    | ReactElement<CardContentProps>
-  >;
-  /** The width is oriented after the maxWidth a card might have
-   * @default 'md' */
-  width?: BreakpointName;
-}>;
+export type InternalCardProps = PropsWithStyleable<
+  {
+    children?: WithArray<
+      | ReactElement<CardHeaderProps>
+      | ReactElement<CardTitleProps>
+      | ReactElement<CardContentProps>
+    >;
+  } & { width?: BreakpointName | false }
+>;
 
 // prettier-ignore
 export type CardProps<TTag extends HTMLTag> =
@@ -100,7 +99,7 @@ Card.Header = forwardRef<HTMLDivElement, CardHeaderProps>(
 
 // prettier-ignore
 export type CardTitleProps = PropsWithStyleable<{
-  children: NonNullable<ReactNode>;
+  children: ReactNode;
 } & Partial<Omit<TextTypeProps<'div'>, 'size' | 'children'>>>;
 
 // eslint-disable-next-line react/display-name

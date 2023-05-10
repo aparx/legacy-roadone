@@ -2,7 +2,6 @@
 import * as style from './GigCard.style';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
 import { GigEvent } from '@/modules/schemas/gig';
-import { useIsMobile } from '@/utils/device';
 import { useMessage } from '@/utils/hooks/useMessage';
 import {
   propMerge,
@@ -32,14 +31,13 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
     const isNext = gig.state === 'next';
     // prettier-ignore
     const [day, month, zone] = useMemo(() => [
-      gig.start.toLocaleString(undefined, { day: '2-digit' }),
-      gig.start.toLocaleString(undefined, { month: 'short' }),
-      gig.start.toLocaleString(undefined, { timeZoneName: 'short' }),
+      // cannot use automatic locale detection, because of SSR (server locale)
+      gig.start.toLocaleString('de-DE', { day: '2-digit' }),
+      gig.start.toLocaleString('de-DE', { month: 'short' }),
+      gig.start.toLocaleString('de-DE', { timeZoneName: 'short' }),
     ], [gig.start]);
     // Renderable address information being displayed with a possible separator
     const address: string[] = [`${gig.postcode} ${gig.city}`, `${gig.street}`];
-    const isMobile = useIsMobile();
-    // TODO completely switch from Javascript to CSS only for that separator!
     return (
       <Stack
         ref={ref}

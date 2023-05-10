@@ -3,6 +3,7 @@ import { Permission } from '@/modules/auth/utils/permission';
 import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
 import { apiRouter } from '@/server/routers/_api';
+import { useDialogHandle } from '@/stores/components/dialogHandle';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
@@ -85,7 +86,7 @@ export default function GigsPage() {
         Permission.useRole(),
         Globals.permissionMap.postEvents
       ) && <AddEventPanel />}
-      <Stack direction={'column'} spacing={'md'} hAlign>
+      <Stack as={'main'} direction={'column'} spacing={'md'} hAlign>
         {gigGroupArray as any /* <- why not assignable? */}
         {hasNextPage && (
           <Button.Text
@@ -105,10 +106,16 @@ export default function GigsPage() {
 // <================================>
 
 function AddEventPanel() {
+  const showDialog = useDialogHandle((s) => s.show);
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
       <div>
-        <Button.Primary leading={<MdAdd />}>
+        <Button.Primary
+          leading={<MdAdd />}
+          onClick={() =>
+            showDialog({ title: 'Test', content: <div>Test</div> })
+          }
+        >
           {useMessage('general.add', 'Gig')}
         </Button.Primary>
       </div>
