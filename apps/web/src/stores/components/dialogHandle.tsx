@@ -1,24 +1,34 @@
-import { Dialog } from '@/components';
+import { Dialog, DialogConfig as config } from '@/components';
 import {
-  dialogCancelSource,
   DialogData,
   DialogResponseSource,
+  DialogType,
 } from '@/components/Dialog/Dialog';
+import { ZodSchema } from 'zod';
 import { create } from 'zustand';
 
 export type DialogHandle = {
-  dialog: DialogData<any> | undefined;
+  dialog: DialogData<any, any, any> | undefined;
   close: () => void;
-  show: <T extends DialogResponseSource = typeof dialogCancelSource>(
-    dialog: DialogData<T>
+  show: <
+    TType extends DialogType,
+    TFormSchema extends ZodSchema,
+    TActions extends DialogResponseSource = typeof config.Defaults.actions
+  >(
+    dialog: DialogData<TType, TActions, TFormSchema>
   ) => void;
 };
 
 export const useDialogHandle = create<DialogHandle>((set) => ({
   dialog: undefined,
   close: () => set({ dialog: undefined }),
-  show: <T extends DialogResponseSource>(dialog: DialogData<T>) =>
-    set({ dialog: dialog }),
+  show: <
+    TType extends DialogType,
+    TFormSchema extends ZodSchema,
+    TActions extends DialogResponseSource = typeof config.Defaults.actions
+  >(
+    dialog: DialogData<TType, TActions, TFormSchema>
+  ) => set({ dialog: dialog }),
 }));
 
 export function DialogHandleRenderer() {

@@ -9,7 +9,7 @@ export module DialogConfig {
   export const dialogCancelAction = {
     id: 'cancel',
     name: getGlobalMessage('general.cancel'),
-    doClose: true,
+    role: 'close',
   } as const satisfies DialogAction;
 
   export const dialogCancelSource = [dialogCancelAction];
@@ -18,7 +18,7 @@ export module DialogConfig {
   export const dialogDenyAction = {
     id: 'deny',
     name: getGlobalMessage('general.deny'),
-    doClose: true,
+    role: 'close',
   } as const satisfies DialogAction;
 
   /** Dialog responses with `accept` and `deny` (deny is closing the dialog) */
@@ -34,7 +34,7 @@ export module DialogConfig {
   ] as const satisfies DialogResponseSource;
 
   export const dialogSaveCancelSource = [
-    { id: 'save', name: getGlobalMessage('general.save') },
+    { id: 'save', name: getGlobalMessage('general.save'), role: 'submit' },
     dialogCancelAction,
   ] as const satisfies DialogResponseSource;
 

@@ -8,12 +8,15 @@ import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack } from 'next-ui';
 import { ReactNode, useMemo } from 'react';
+import { useForm, useFormContext } from 'react-hook-form';
 import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
+import { z } from 'zod';
 
 export async function getStaticProps() {
   const helpers = createServerSideHelpers({
@@ -105,8 +108,13 @@ export default function GigsPage() {
 //   RESTRICTED (ADMIN) COMPONENTS
 // <================================>
 
+const testSchema = z.object({ message: z.string() });
+
 function AddEventPanel() {
   const showDialog = useDialogHandle((s) => s.show);
+  useForm({
+    resolver: zodResolver(z.object({})),
+  });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
       <div>
@@ -116,8 +124,10 @@ function AddEventPanel() {
             showDialog({
               title: 'Test',
               type: 'form',
-              actions: DialogConfig.dialogAcceptDenySource,
-              onHandleAccept: () => console.log('ACCEPT!'),
+              actions: DialogConfig.dialogSaveCancelSource,
+              schema: testSchema,
+              content: <AddGigForm />,
+              handleSubmit: (e) => console.log(e),
             })
           }
         >
@@ -125,5 +135,17 @@ function AddEventPanel() {
         </Button.Primary>
       </div>
     </Stack>
+  );
+}
+
+function AddGigForm() {
+  const ctx = useFormContext<z.infer<typeof testSchema>>();
+  return (
+    <>
+      <label>
+        <p>Sample Form</p>
+        <input type={'text'} {...ctx.register('message')} />
+      </label>
+    </>
   );
 }
