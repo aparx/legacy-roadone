@@ -117,6 +117,7 @@ function AddEventPanel() {
               title: 'Test',
               type: 'form',
               actions: DialogConfig.dialogAcceptDenySource,
+              onHandleAccept: () => console.log('ACCEPT!'),
             })
           }
         >

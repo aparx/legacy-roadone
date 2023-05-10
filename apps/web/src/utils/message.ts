@@ -82,9 +82,10 @@ export const globalMessageProvider = {
       load_more: 'Mehr laden',
       profile_picture: 'Profilbild',
       add: '%s hinzufügen',
-      accept: 'Akzeptieren',
+      accept: 'Annehmen',
       deny: 'Ablehnen',
       ok: 'Ok',
+      save: 'Speichern',
       cancel: 'Abbrechen',
     },
     auth: {

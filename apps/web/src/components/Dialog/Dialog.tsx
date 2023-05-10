@@ -2,7 +2,9 @@
 import { DialogConfig as config } from './Dialog.config';
 import * as style from './Dialog.style';
 import { useIsMobile } from '@/utils/device';
+import { capitalize } from 'lodash';
 import { Button, Card, Portal, Scrim, Stack, useOnClickOutside } from 'next-ui';
+import { ButtonProps } from 'next-ui/src/components/Button/Button';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useAttributes } from 'next-ui/src/hooks/useAttributes';
 import {
@@ -63,11 +65,17 @@ export type DialogResponseSource =
   | Readonly<DialogAction>[];
 
 // prettier-ignore
-type _CreateActionHandlerName<TAction extends DialogAction> =
-  `on${Capitalize<TAction['id']>}Perform`;
+export type ActionHandlerName<TAction extends DialogAction> =
+  ReturnType<typeof createHandlerName<TAction>>;
+
+function createHandlerName<TAction extends DialogAction>(
+  action: TAction
+): `onHandle${Capitalize<TAction['id']>}` {
+  return `onHandle${capitalize(action.id) as Capitalize<typeof action.id>}`;
+}
 
 type DialogExplicitActionHandlers<TSource extends DialogResponseSource> = {
-  [A in TSource[number] as _CreateActionHandlerName<A>]?: (
+  [A in TSource[number] as ActionHandlerName<A>]?: (
     action: A extends DialogAction ? A : DialogAction
   ) => any;
 };
@@ -157,29 +165,33 @@ function DialogInner<T extends DialogResponseSource>({
   const performAction = useCallback(
     (action: (typeof actions)[number]) => {
       data.onPerformAction?.(action as T[number]);
-      if (action.id in data) data[action.id](action);
+      const handlerName = createHandlerName(action);
+      if (handlerName in data) (data[handlerName] as Function)(action);
       if (action.doClose) close.current?.();
     },
     [close, data]
   );
   const labeledBy = useId();
   const describedBy = useId();
-  useAttributes(
-    { 'aria-labeledby': labeledBy, 'aria-describedby': describedBy },
-    dialogRef
-  );
+  // prettier-ignore
+  useAttributes({
+    'aria-labeledby': labeledBy,
+    'aria-describedby': data.type === 'form' ? describedBy : undefined,
+  }, dialogRef);
   return (
     <>
       <Card.Header title={data.title} id={labeledBy} />
       <Card.Footer {...useStackProps({ direction: 'row' })}>
         {actions.map((action) => {
-          return (
-            <Button.Primary
-              key={action.id}
-              onClick={() => performAction(action)}
-            >
-              {action.name}
-            </Button.Primary>
+          const props = {
+            key: action.id,
+            onClick: () => performAction(action),
+            children: action.name,
+          } satisfies ButtonProps & { key: string };
+          return action.doClose ? (
+            <Button.Tertiary {...props} />
+          ) : (
+            <Button.Primary {...props} />
           );
         })}
       </Card.Footer>
