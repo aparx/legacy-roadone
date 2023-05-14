@@ -12,7 +12,6 @@ import { PropsWithStyleable, useStyleableMerge } from '../../utils/styleable';
 import { PropsWithCSS } from '../../utils/types';
 import { TextConfig as config } from './Text.config';
 import { css, jsx, useTheme } from '@emotion/react';
-import { colord } from 'colord';
 import { capitalize } from 'lodash';
 import React, {
   CSSProperties,
@@ -22,13 +21,18 @@ import React, {
 } from 'react';
 import { resolveSource, ValueSource } from 'shared-utils';
 import type { Theme, TypescalePinpoint, TypescaleRole } from 'theme-core';
-import { TypescaleData, typescaleRoleArray, TypescaleSize } from 'theme-core';
+import {
+  OpacityEmphasis,
+  TypescaleData,
+  typescaleRoleArray,
+  TypescaleSize,
+} from 'theme-core';
 
 /** Props that is more thoroughly describing the style (not typography!) of the
  * text without requiring any information to what font (family) is used. */
 export type TextStyleProps = {
   /** @default config.Defaults.emphasis */
-  emphasis?: config.Emphasis;
+  emphasis?: OpacityEmphasis;
   /** @default config.Defaults.color */
   color?: ValueSource<string, [Theme]>;
 };
@@ -90,19 +94,16 @@ export function useFontData({ role, size }: TypescalePinpoint) {
  *  style. If `color` is not given, the entire Text section will have an opacity set
  *  to given emphasis! TL;DR: set a color to avoid every child to have given emphasis! */
 export function useDataTextProps({ fontData, color, emphasis }: TextStyleData) {
+  emphasis ??= config.Defaults.emphasis;
   const theme = useTheme();
-  const newColor = resolveSource<InternalTypeTextProps['color']>(color, theme);
-  const alpha = config.emphasisOpacityMap[emphasis ?? config.Defaults.emphasis];
-  const alphaColor =
-    newColor != null && newColor !== 'initial' && newColor !== 'inherit'
-      ? colord(colord(newColor).alpha(alpha)).toHex()
-      : undefined;
+  color = resolveSource<InternalTypeTextProps['color']>(color, theme);
+  const emphasized = color && theme.rt.emphasis.emphasize(color, emphasis);
   return {
     className: useTypefaceStyleClass(fontData.fontFamily),
     style: {
       fontSize: `${fontData.fontSize / theme.ref.typeface.base.fontSize}rem`,
-      color: alphaColor ?? newColor,
-      opacity: !alphaColor ? alpha : 'initial',
+      color: emphasized ?? color,
+      opacity: !emphasized ? theme.rt.emphasis.emphasis(emphasis) : 'initial',
     } satisfies CSSProperties,
     css: css({
       fontWeight: theme.ref.typeface.weights[fontData.fontWeight],

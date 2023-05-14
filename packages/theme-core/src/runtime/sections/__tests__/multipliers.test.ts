@@ -1,4 +1,4 @@
-import type { DynamicMultiplierName } from '../../../reference';
+import type { MultiplierName } from '../../../reference';
 import { RuntimeMultipliers } from '../multipliers';
 
 describe('multipliers', () => {
@@ -22,7 +22,7 @@ describe('multipliers', () => {
     }
   );
   for (const type in multipliers.nameInputMap) {
-    const _type = type as DynamicMultiplierName;
+    const _type = type as MultiplierName;
     test(`testing for type ${type}`, () => {
       for (const unit in multipliers.nameInputMap[_type]) {
         expect(multipliers.getMultiplier(_type, unit as any)).toBe(

@@ -2,6 +2,7 @@
 import { DialogConfig as config } from './Dialog.config';
 import * as style from './Dialog.style';
 import { useIsMobile } from '@/utils/device';
+import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { capitalize } from 'lodash';
 import { Button, Card, Portal, Scrim, Stack, useOnClickOutside } from 'next-ui';
@@ -159,6 +160,7 @@ export const Dialog = forwardRef(function DialogRenderer<
     form: type === 'form' ? formRef : undefined,
   } as DialogRef<TType, TActions, TFormSchema, TProps>), [type]);
   useOnClickOutside(useIsMobile() ? close : () => {}, dialogRef);
+  useOnNavigation(() => close());
   return (
     <>
       <Scrim />
@@ -257,7 +259,7 @@ function DialogFooter<
     [close, data]
   );
   return (
-    <Card.Footer {...useStackProps({ direction: 'row' })}>
+    <Card.Footer {...useStackProps({ direction: 'row', hAlign: true })}>
       {actions.map((action) => {
         const props = {
           key: action.id,

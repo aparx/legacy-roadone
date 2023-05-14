@@ -1,27 +1,21 @@
-import {
-  DynamicMultiplierName,
-  DynamicMultiplierSection,
-} from '../../reference';
+import { MultiplierName, MultiplierSection } from '../../reference';
 
 export type RuntimeNamedMultiplierMap = Record<
-  DynamicMultiplierName,
+  MultiplierName,
   Record<string, number>
 >;
 
 /** Every number of one type is multiplied by whatever factor is given. */
-export type NamedMultiplierMap = Record<
-  DynamicMultiplierName,
-  Record<string, number>
->;
+export type NamedMultiplierMap = Record<MultiplierName, Record<string, number>>;
 
 export type MultiplierOperationInput<
-  TType extends DynamicMultiplierName,
+  TType extends MultiplierName,
   TMap extends NamedMultiplierMap
 > = keyof TMap[TType] | number;
 
 export class RuntimeMultipliers<TMap extends NamedMultiplierMap> {
   constructor(
-    readonly themeMultipliers: DynamicMultiplierSection,
+    readonly themeMultipliers: MultiplierSection,
     readonly nameInputMap: TMap
   ) {}
 
@@ -33,7 +27,7 @@ export class RuntimeMultipliers<TMap extends NamedMultiplierMap> {
     return this.multiply('roundness', input);
   }
 
-  multiply<TType extends DynamicMultiplierName>(
+  multiply<TType extends MultiplierName>(
     type: TType,
     input: MultiplierOperationInput<TType, TMap>
   ) {
@@ -41,7 +35,7 @@ export class RuntimeMultipliers<TMap extends NamedMultiplierMap> {
     return this.getMultiplier(type, input) * this.themeMultipliers[type];
   }
 
-  getMultiplier<TType extends DynamicMultiplierName>(
+  getMultiplier<TType extends MultiplierName>(
     type: TType,
     input: MultiplierOperationInput<TType, TMap>
   ): number {

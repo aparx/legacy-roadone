@@ -1,13 +1,15 @@
-import { RuntimeTheme, Theme } from '../theme';
+import type { RuntimeTheme, Theme } from '../theme';
 import {
   NamedMultiplierMap,
   RuntimeBreakpoints,
+  RuntimeEmphasis,
   RuntimeMultipliers,
 } from './sections';
 
 export * from './sections';
 
 export interface RuntimeSection<TMultiplierNameMap extends NamedMultiplierMap> {
+  emphasis: RuntimeEmphasis;
   breakpoints: RuntimeBreakpoints;
   multipliers: RuntimeMultipliers<TMultiplierNameMap>;
 }
@@ -25,6 +27,7 @@ export function createRuntimeSection<
   dependencies: RuntimeSectionDependencies<TMultiplierNameMap>
 ): RuntimeSection<TMultiplierNameMap> {
   return {
+    emphasis: new RuntimeEmphasis(theme.ref),
     breakpoints: new RuntimeBreakpoints(theme.ref.breakpoints),
     multipliers: new RuntimeMultipliers<TMultiplierNameMap>(
       theme.ref.multipliers,

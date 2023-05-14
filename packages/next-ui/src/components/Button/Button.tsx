@@ -9,6 +9,7 @@ import { mainButton } from './variations/mainButton';
 import { textButton } from './variations/textButton';
 import { capitalize } from 'lodash';
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
+import { MultiObjectConjunction } from 'shared-utils';
 import { palettePrimaryArray, TypescalePinpoint } from 'theme-core';
 
 /** Union of all button sizes */
@@ -51,8 +52,9 @@ export type InternalButtonProps = PropsWithStyleable<{
   [UI.customStylePropKey]?: Partial<ButtonOptions>;
 }>;
 
-export type ButtonProps = InternalButtonProps &
-  Omit<BiasedButtonProps, keyof InternalButtonProps>;
+export type ButtonProps = MultiObjectConjunction<
+  [InternalButtonProps, BiasedButtonProps, InternalButtonProps]
+>;
 
 // In order for LSP to recognize the Text type, we have to export it.
 export type Button = Record<

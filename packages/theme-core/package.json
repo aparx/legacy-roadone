@@ -7,6 +7,7 @@
     "test": "pnpm exec jest"
   },
   "dependencies": {
+    "colord": "^2.9.3",
     "shared-utils": "workspace:*"
   },
   "devDependencies": {

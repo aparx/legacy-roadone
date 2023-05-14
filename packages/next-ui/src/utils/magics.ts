@@ -9,5 +9,5 @@ export module UI {
   /** General roundness of all cards and objects in px before theme transformation. */
   export const generalRoundness = 1;
 
-  export const baseTransitionMs = 200;
+  export const baseTransitionMs = 150;
 }

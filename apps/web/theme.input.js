@@ -24,6 +24,12 @@ module.exports = {
       spacing: 8,
       roundness: 8,
     },
+    emphasis: {
+      disabled: 0.38,
+      low: 0.6,
+      medium: 0.87,
+      high: 1.0,
+    },
     palette: {
       primary: {
         0: '#000000',

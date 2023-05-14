@@ -1,23 +1,13 @@
 import type { HTMLTag } from '../../utils';
-import type { TypescaleRole, TypescaleSize } from 'theme-core';
+import type { OpacityEmphasis, TypescaleRole, TypescaleSize } from 'theme-core';
 import type { DeepPartial } from 'utility-types';
 
 /** Config module for the `Text` component(s) */
 export module TextConfig {
   export module Defaults {
-    export const emphasis = 'high' satisfies Emphasis;
+    export const emphasis = 'high' satisfies OpacityEmphasis;
     export const tag = 'div' satisfies HTMLTag;
   }
-
-  export type Emphasis = keyof typeof emphasisOpacityMap;
-
-  /** Map of emphasis and the respective (text-)opacity */
-  export const emphasisOpacityMap = {
-    disabled: 0.38,
-    low: 0.6,
-    medium: 0.87,
-    high: 1.0,
-  };
 
   export type TagMap = DeepPartial<
     Record<TypescaleRole, Record<TypescaleSize, HTMLTag>>

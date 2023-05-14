@@ -1,7 +1,8 @@
 import { Page } from '@/components';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import { Button, Card, Stack, Text } from 'next-ui';
+import { Button, Card, Stack, Text, TextField } from 'next-ui';
 import { FaSearch } from 'react-icons/fa';
+import { MdArrowRight, MdPassword, MdTextFields } from 'react-icons/md';
 
 export default function HomePage() {
   const { status, data } = useSession();
@@ -31,6 +32,34 @@ export default function HomePage() {
           </Button.Primary>
         </Card.Footer>
       </Card>
+      <TextField
+        name={'username'}
+        placeholder={'Benutzername'}
+        leading={<MdTextFields />}
+        tailing={<MdArrowRight />}
+        error={'Lorem ipsum dolor sit amet'}
+      />
+      <TextField
+        tight
+        name={'username'}
+        type={'text'}
+        placeholder={'Passwort'}
+        leading={<MdPassword />}
+      />
+      <TextField
+        name={'username'}
+        disabled
+        placeholder={'Benutzername'}
+        leading
+        tailing={<MdArrowRight />}
+      />
+      <TextField
+        tight
+        name={'username'}
+        placeholder={'Benutzername'}
+        type={'tel'}
+        leading
+      />
     </Page>
   );
 }

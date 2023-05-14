@@ -17,8 +17,8 @@ export type TypescaleData = {
   fontFamily: TypefaceRole;
   fontWeight: TypefaceWeight;
   fontSize: number;
-  lineHeight?: number | string;
-  letterSpacing?: number | string;
+  lineHeight?: number;
+  letterSpacing?: number;
 };
 
 /** Type that can pinpoint specific `TypescaleData` using given properties */

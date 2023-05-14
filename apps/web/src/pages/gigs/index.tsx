@@ -111,6 +111,7 @@ export default function GigsPage() {
 function AddEventPanel() {
   const showDialog = useDialogHandle((s) => s.show);
   const mutation = api.gig.addGig.useMutation();
+  const addName = useMessage('general.add', getGlobalMessage('aria.gig.name'));
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
       <div>
@@ -118,7 +119,7 @@ function AddEventPanel() {
           leading={<MdAdd />}
           onClick={() =>
             showDialog({
-              title: 'Test',
+              title: addName,
               type: 'form',
               actions: DialogConfig.dialogSaveCancelSource,
               schema: inputGigSchema,
@@ -130,7 +131,7 @@ function AddEventPanel() {
             })
           }
         >
-          {useMessage('general.add', 'Gig')}
+          {addName}
         </Button.Primary>
       </div>
     </Stack>

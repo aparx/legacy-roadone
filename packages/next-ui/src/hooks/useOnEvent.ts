@@ -13,9 +13,8 @@ export function useOnEvent<
   opts?: AddEventListenerOptions | boolean
 ) {
   const callbackRef = useRef<UseEventListener<TType>>(listener);
-  useEffect(() => {
-    callbackRef.current = listener;
-  });
+  // prettier-ignore
+  useEffect(() => { callbackRef.current = listener; });
   useEffect(() => {
     if (!target || !callbackRef.current) return;
     const handler = (ev: any) => callbackRef.current(ev);

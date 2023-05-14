@@ -1,8 +1,8 @@
-import { useOnEvent } from '../../hooks';
 import { propMerge, useStyleableMerge } from '../../utils';
 import { multiRef } from '../../utils/mutliRef';
+import { Icon } from '../Icon';
 import { Stack } from '../Stack';
-import { useDataTextProps } from '../Text/Text';
+import { useDataTextProps, useFontData } from '../Text/Text';
 import type {
   ButtonOptions,
   ButtonProps,
@@ -23,7 +23,6 @@ import {
   RefAttributes,
   useRef,
 } from 'react';
-import { typescalePinpoint } from 'theme-core';
 
 // prettier-ignore
 export type HTMLElementFromButtonProps<TProps extends ButtonProps> =
@@ -62,6 +61,7 @@ export function createButtonRenderer<TType extends ButtonType>(
     const visual = appearance[size];
     const opts = merge({}, visual, take);
     if (tight) opts.hPadding = opts.vPadding;
+    const fontData = useFontData(opts.font);
     return (
       <ButtonLink
         ref={ref}
@@ -69,7 +69,7 @@ export function createButtonRenderer<TType extends ButtonType>(
         disabled={disabled}
         {...propMerge(
           useDataTextProps({
-            fontData: typescalePinpoint(theme, opts.font),
+            fontData,
             emphasis: disabled ? 'disabled' : 'high',
           }),
           factory?.(theme, opts, type),
@@ -77,9 +77,9 @@ export function createButtonRenderer<TType extends ButtonType>(
         )}
       >
         <Stack direction={'row'} hAlign={alignContent} spacing={0.5}>
-          {leading && <div>{leading}</div>}
+          {leading && <Icon fontData={fontData}>{leading}</Icon>}
           <div>{children}</div>
-          {tailing && <div>{tailing}</div>}
+          {tailing && <Icon fontData={fontData}>{tailing}</Icon>}
         </Stack>
       </ButtonLink>
     );
@@ -98,12 +98,11 @@ type ButtonLinkProps = {
 const ButtonLink = forwardRef<any, ButtonLinkProps>(
   ({ link, children, disabled, ...restProps }, ref) => {
     const action = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
-    const onPress = () => action.current.setAttribute('data-pressed', 'true');
-    const onLoose = () => action.current.setAttribute('data-pressed', 'false');
-    useOnEvent('mousedown', onPress, action.current);
-    useOnEvent('touchstart', onPress, action.current);
-    useOnEvent('mouseup', onLoose, action.current);
-    useOnEvent('touchend', onLoose, action.current);
+    // TODO touch events for `data-pressed` attribute
+    // const onPress = () => action.current.setAttribute('data-pressed', 'true');
+    // const onLoose = () => action.current.setAttribute('data-pressed', 'false');
+    // useOnEvent('touchstart', onPress, action.current);
+    // useOnEvent('touchend', onLoose, action.current);
     return link ? (
       <Link
         href={link}

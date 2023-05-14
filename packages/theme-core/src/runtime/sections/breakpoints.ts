@@ -1,13 +1,13 @@
 import {
   BreakpointName,
+  BreakpointSection,
   dynamicBreakpoints,
-  DynamicBreakpointSection,
 } from '../../reference';
 
 export type MediaLogicOperator = 'not';
 
 export class RuntimeBreakpoints {
-  constructor(readonly points: DynamicBreakpointSection) {}
+  constructor(readonly points: BreakpointSection) {}
 
   point(name: BreakpointName): number {
     return this.points[name];

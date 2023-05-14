@@ -1,8 +1,10 @@
 import { UI } from '../../utils';
+import { IconStyle } from '../Icon';
 import type { ButtonOptions } from './Button';
 import { css, Theme } from '@emotion/react';
 import type { Property } from 'csstype';
 import type { MultiStateKeyUnion } from 'theme-core';
+import { typescalePinpoint } from 'theme-core';
 
 export type ButtonStyleInput = {
   background: Property.Background;
@@ -16,8 +18,11 @@ export const button = (
   style: ButtonStyleInput
 ) => {
   const { sys, rt } = t;
-  const { lineHeight } = sys.typescale[opts.font.role][opts.font.size];
+  const fontData = typescalePinpoint(t, opts.font);
   return css`
+    // TODO change to transparent and add/fix touch events
+    -webkit-tap-highlight-color: ${t.sys.color.state[style.state].light};
+
     // <==> UNIVERSAL STYLE <==>
     display: block; // <- very important for anchor tags
     appearance: unset;
@@ -38,13 +43,8 @@ export const button = (
       border-radius: inherit;
 
       & > div {
-        // button-item (icon / children)
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        // Making sure we always have at least a minimum height (& width)
-        min-height: ${lineHeight}px;
-        min-width: ${lineHeight}px;
+        // Apply icon style on button no matter what
+        ${IconStyle.wrapper(fontData)}
       }
     }
 

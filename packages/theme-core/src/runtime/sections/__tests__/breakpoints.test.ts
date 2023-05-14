@@ -1,11 +1,8 @@
-import type {
-  BreakpointName,
-  DynamicBreakpointSection,
-} from '../../../reference';
+import type { BreakpointName, BreakpointSection } from '../../../reference';
 import { RuntimeBreakpoints } from '../breakpoints';
 
 describe('runtime breakpoints', () => {
-  const bpMap: DynamicBreakpointSection = {
+  const bpMap: BreakpointSection = {
     xl: 1400,
     lg: 900,
     md: 500,
