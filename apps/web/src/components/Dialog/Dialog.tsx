@@ -1,12 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import { DialogConfig as config } from './Dialog.config';
-import * as style from './Dialog.style';
 import { useIsMobile } from '@/utils/device';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useTheme } from '@emotion/react';
 import { capitalize } from 'lodash';
-import { Button, Card, Portal, Scrim, Stack, useOnClickOutside } from 'next-ui';
+import { Button, Card, useOnClickOutside } from 'next-ui';
 import { ButtonProps } from 'next-ui/src/components/Button/Button';
+import { InternalCardProps } from 'next-ui/src/components/Card/Card';
+import RawForm from 'next-ui/src/components/RawForm/RawForm';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useAttributes } from 'next-ui/src/hooks/useAttributes';
 import 'next/dist/client/components/react-dev-overlay/internal/components/Dialog';
@@ -24,7 +25,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { FormProvider, useForm, UseFormProps } from 'react-hook-form';
+import { UseFormProps } from 'react-hook-form';
 import { SubmitHandler } from 'react-hook-form/dist/types/form';
 import { UnionExtract } from 'shared-utils';
 import { ZodSchema } from 'zod';
@@ -109,6 +110,9 @@ export type DialogData<
 > = {
   type: TType;
   title?: string;
+  /** Optional preferred width of the dialog.
+   * @default false */
+  width?: InternalCardProps['width'];
 } & (TType extends UnionExtract<DialogType, 'form'>
   ? DialogFormData<TFormSchema> & Partial<DialogActionData<TActions>>
   : TType extends UnionExtract<DialogType, 'content'>
@@ -139,15 +143,16 @@ export type DialogRef<
   ? { form: RefObject<HTMLFormElement> }
   : { form: undefined });
 
-export const Dialog = forwardRef(function DialogRenderer<
+export const Dialog = forwardRef(function SoloDialogRenderer<
   TType extends DialogType,
   TActions extends DialogResponseSource,
   TFormSchema extends ZodSchema,
   TProps extends DialogProps<TType, TActions, TFormSchema>
 >(
-  { title, type, close, ...restData }: TProps,
+  { title, type, close, width, ...restData }: TProps,
   forwardRef: ForwardedRef<DialogRef<TType, TActions, TFormSchema, TProps>>
 ) {
+  const theme = useTheme();
   const dialogRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const closeRef = useRef<_DialogCloseFn>(close);
@@ -162,26 +167,14 @@ export const Dialog = forwardRef(function DialogRenderer<
   useOnClickOutside(useIsMobile() ? close : () => {}, dialogRef);
   useOnNavigation(() => close());
   return (
-    <>
-      <Scrim />
-      <Portal>
-        <Stack hAlign vAlign css={style.wrapper}>
-          <Card
-            width={false}
-            role={'dialog'}
-            ref={dialogRef}
-            css={style.dialog}
-          >
-            <DialogInner
-              close={closeRef}
-              formRef={formRef}
-              dialogRef={dialogRef}
-              data={{ title, type, ...restData } as any}
-            />
-          </Card>
-        </Stack>
-      </Portal>
-    </>
+    <Card width={width ?? false} keepPadding role={'dialog'} ref={dialogRef}>
+      <DialogInner
+        close={closeRef}
+        formRef={formRef}
+        dialogRef={dialogRef}
+        data={{ title, type, ...restData } as any}
+      />
+    </Card>
   );
 }) as <
   TType extends DialogType,
@@ -281,16 +274,14 @@ function DialogForm<
   TActions extends DialogResponseSource,
   TFormSchema extends ZodSchema
 >(props: PropsWithChildren<DialogInnerProps<'form', TActions, TFormSchema>>) {
-  const methods = useForm({
-    resolver: zodResolver(props.data.schema),
-    ...props.data.hookform,
-  });
-  const { handleSubmit } = methods;
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(props.data.handleSubmit, console.error)}>
-        {props.children}
-      </form>
-    </FormProvider>
+    // TODO create custom context and use state to manage errors (to force re-renders)
+    <RawForm
+      schema={props.data.schema}
+      onSubmit={props.data.handleSubmit}
+      {...props.data.hookform}
+    >
+      <>{props.children}</>
+    </RawForm>
   );
 }

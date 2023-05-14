@@ -31,7 +31,7 @@ type _MessagePathBuilder<
   : never;
 
 // prettier-ignore
-export type MessagePathUnion<TMap extends PlainMessageMap> =
+export type MessagePath<TMap extends PlainMessageMap> =
   _MessagePathBuilder<TMap, keyof TMap>;
 
 type MESSAGE_ERROR = 'NOT_FOUND' | 'END_OF_ROAD' | 'EMPTY';
@@ -45,7 +45,7 @@ type _MappingFromProvider<T extends MessageProvider> = T['messages'];
 
 export function resolveMessage<TProvider extends MessageProvider>(
   source: TProvider,
-  path: MessagePathUnion<_MappingFromProvider<TProvider>>
+  path: MessagePath<_MappingFromProvider<TProvider>>
 ): string {
   if (del.length === 0) return source.error('EMPTY', []);
   const segArray = (path as string).split(del);
@@ -74,6 +74,11 @@ export const globalMessageProvider = {
       success: 'Erfolg',
       info: 'Info',
       error: 'Fehler',
+      title: 'Titel',
+      city: 'Stadt',
+      street: 'Straße',
+      postcode: 'Postleitzahl',
+      description: 'Beschreibung',
     },
     app: {
       name: 'roadone',
@@ -92,7 +97,6 @@ export const globalMessageProvider = {
       signIn: 'Einloggen',
     },
     aria: {
-      snackbar: 'Nachricht: %s',
       navigation: {
         close: 'Navigation schließen',
         open: 'Navigation öffnen',
@@ -103,13 +107,26 @@ export const globalMessageProvider = {
         group: 'Auftritte in %s',
       },
     },
+    gig: {
+      start: 'Beginn',
+    },
+    responses: {
+      gig: {
+        title: {
+          duplicate: 'Den Titel gibt es bereits',
+        },
+      },
+    },
   },
 } as const satisfies MessageProvider;
+
+export type GlobalMessageMap = _MappingFromProvider<
+  typeof globalMessageProvider
+>;
 
 /**
  * Returns the raw global message at given `path`.
  * In order to apply formatting, use the `useMessage`-hook instead.
  */
-export const getGlobalMessage = (
-  path: MessagePathUnion<_MappingFromProvider<typeof globalMessageProvider>>
-) => resolveMessage(globalMessageProvider, path);
+export const getGlobalMessage = (path: MessagePath<GlobalMessageMap>) =>
+  resolveMessage(globalMessageProvider, path);

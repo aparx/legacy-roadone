@@ -72,7 +72,7 @@ export function createPageAlignProps(theme: Theme, data?: BasePageAlignData) {
 export function createPageAlignStyle(theme: Theme, data?: BasePageAlignData) {
   return style.pageAlign(theme, {
     alignBy: data?.alignBy ?? theme.rt.breakpoints.point('xl'),
-    lowerBound: data?.alignBy ?? 'auto',
+    lowerBound: data?.lowerBound ?? 'auto',
   });
 }
 

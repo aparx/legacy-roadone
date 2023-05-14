@@ -127,7 +127,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
               </time>
             </div>
           </Text.Body>
-          {gig.description?.length && (
+          {gig.description && (
             <Text.Body
               as={'footer'}
               size={'md'}

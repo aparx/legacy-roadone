@@ -40,7 +40,11 @@ export type Card = {
 >;
 
 export type InternalCardProps = PropsWithStyleable<
-  PropsWithChildren<{ width?: BreakpointName | false }>
+  PropsWithChildren<{
+    width?: BreakpointName | false;
+    /** If true, keeps the Card's padding regardless of the device's width. */
+    keepPadding?: boolean;
+  }>
 >;
 
 // prettier-ignore
@@ -48,12 +52,17 @@ export type CardProps<TTag extends HTMLTag> =
   WithTagRepresentation<TTag, InternalCardProps>;
 
 export const Card = forwardRef(function CardRenderer<TTag extends HTMLTag>(
-  { as, children, width = config.Defaults.width, ...rest }: CardProps<TTag>,
+  { as, children, width, keepPadding, ...rest }: CardProps<TTag>,
   ref: ForwardedRef<HTMLElementFromTag<TTag>>
 ) {
+  width ??= config.Defaults.width;
   return jsx(
     as ?? config.Defaults.tag,
-    { css: style.card(useTheme(), width), ref, ...useStyleableMerge(rest) },
+    {
+      css: style.card(useTheme(), width, keepPadding),
+      ref,
+      ...useStyleableMerge(rest),
+    },
     children
   );
 }) as HTMLTagRenderer<

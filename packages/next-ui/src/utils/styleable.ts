@@ -6,7 +6,7 @@ import { useTheme } from '@emotion/react';
 import type { Property } from 'csstype';
 import { capitalize } from 'lodash';
 import { CSSProperties } from 'react';
-import type { ValueSource } from 'shared-utils';
+import type { ObjectConjunction, ValueSource } from 'shared-utils';
 import { resolveSource } from 'shared-utils';
 import { BreakpointName } from 'theme-core';
 
@@ -127,8 +127,8 @@ export type StyleableProp = { [UI.styleablePropKey]?: StyleableData };
 
 // prettier-ignore
 /** Returns a new type of `TProps` with the styleable property. */
-export type PropsWithStyleable<TProps> =
-  Omit<TProps, keyof StyleableProp> & StyleableProp;
+export type PropsWithStyleable<TProps extends object = {}> =
+  ObjectConjunction<TProps, StyleableProp>;
 
 type OptionalData = StyleableData | undefined | null;
 

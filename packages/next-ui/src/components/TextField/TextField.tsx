@@ -12,6 +12,7 @@ import { useDataTextProps, useFontData } from '../Text/Text';
 import { TextFieldConfig as config } from './TextField.config';
 import * as style from './TextField.style';
 import { useTheme } from '@emotion/react';
+import { capitalize } from 'lodash';
 import {
   ForwardedRef,
   forwardRef,
@@ -68,7 +69,8 @@ type BaseTextFieldProps<
   /** @default 'text' */
   type?: TextFieldType;
   name: TName;
-  placeholder: string;
+  /** @default 'name' but capitalized */
+  placeholder?: string;
   required?: boolean | undefined;
   disabled?: boolean;
   /** If true, placeholder is invisible when content is contained within a field. */
@@ -162,6 +164,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
   }: TextFieldProps<TName, TFields>,
   ref: ForwardedRef<TextFieldRef>
 ) {
+  placeholder ??= capitalize(name);
   const fieldRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   // prettier-ignore
@@ -182,13 +185,14 @@ export const TextField = forwardRef(function TextFieldRenderer<
   });
   let fieldState = hookform?.methods?.getFieldState?.(name as any);
   const isInvalid = Boolean(error || fieldState?.invalid);
+  error ??= fieldState?.error?.message;
   if (
     hookform?.errors &&
     name in hookform?.errors &&
     typeof hookform?.errors[name] === 'string'
   ) {
-    error = hookform.errors[name].message as string;
-  } else error ??= fieldState?.error?.message;
+    error ??= hookform.errors[name].message as string;
+  }
   return (
     <Stack
       spacing={0.5}
@@ -209,7 +213,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
     >
       {!tight && (
         <Text.Label size={'lg'} aria-hidden emphasis={emphasis}>
-          {placeholder}
+          {placeholder} {required && <sup css={style.asterisk}>*</sup>}
         </Text.Label>
       )}
       <Stack

@@ -15,6 +15,7 @@ import { WithConditionalCSSProp } from '@emotion/react/types/jsx-namespace';
 import { merge } from 'lodash';
 import Link from 'next/link';
 import {
+  ButtonHTMLAttributes,
   ForwardedRef,
   forwardRef,
   HTMLAttributes,
@@ -93,10 +94,10 @@ type ButtonLinkProps = {
   link: string | undefined;
   children: ButtonProps['children'];
   disabled: ButtonProps['disabled'];
-} & object;
+} & ButtonHTMLAttributes<HTMLElement>;
 
 const ButtonLink = forwardRef<any, ButtonLinkProps>(
-  ({ link, children, disabled, ...restProps }, ref) => {
+  ({ link, children, disabled, type, ...restProps }, ref) => {
     const action = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     // TODO touch events for `data-pressed` attribute
     // const onPress = () => action.current.setAttribute('data-pressed', 'true');
@@ -113,7 +114,12 @@ const ButtonLink = forwardRef<any, ButtonLinkProps>(
         {children}
       </Link>
     ) : (
-      <button disabled={disabled} {...restProps} ref={multiRef(action, ref)}>
+      <button
+        disabled={disabled}
+        type={type ?? 'button'}
+        {...restProps}
+        ref={multiRef(action, ref)}
+      >
         {children}
       </button>
     );

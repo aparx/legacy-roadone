@@ -59,17 +59,36 @@ type _ExtractOptionals<TObject extends object> = Exclude<
 /**
  * Splits `TString` using given `TDelimiter` as the separator. Returns a tuple.
  */
-// prettier-ignore
-export type Split<TString extends string, TDelimiter extends string> =
-  _Split<TString, TDelimiter, []>;
+export type StringSplit<
+  TString extends string,
+  TDelimiter extends string,
+  TFlagReduce extends boolean = false
+> = _Split<TString, TDelimiter, [], TFlagReduce>;
 
 type _Split<
   TStr extends string,
   TDel extends string,
-  _TBuilt extends string[]
+  _TBuilt extends string[],
+  TFlagReduce extends boolean = false
 > = TStr extends `${infer TItem}${TDel}${infer TAfter}`
-  ? _Split<TAfter, TDel, [..._TBuilt, TItem]>
+  ? _Split<TAfter, TDel, [..._TBuilt, TItem], TFlagReduce>
+  : TFlagReduce extends true
+  ? _TBuilt | [..._TBuilt, TStr]
   : [..._TBuilt, TStr];
+
+// prettier-ignore
+export type ArrayElement<TArray extends any[]> =
+  TArray extends (infer E)[] ? E : never;
+
+export type ArrayLead<
+  TArray extends any[],
+  TDefault extends ArrayElement<TArray> = never
+> = TArray extends [infer TFirst, ...any] ? TFirst : TDefault;
+
+export type ArrayTail<
+  TArray extends any[],
+  TDefault extends ArrayElement<TArray> = never
+> = TArray extends [...any, infer TLast] ? TLast : TDefault;
 
 /**
  * (Similarly) Equivalent to `ObjectConjunction`, but more verbose.
@@ -103,3 +122,7 @@ type _ConjunctionOmitBuild<
 > = TOverrides extends [infer A, ...infer B]
   ? _ConjunctionOmitBuild<_TBuilt, B, A & _ConjunctionOmit<_TBuilt, A>>
   : _TBuilt;
+
+export type RecursiveRecord<TKeys extends PropertyKey, TValue = never> = {
+  [P in TKeys]: TValue | RecursiveRecord<TKeys, TValue>;
+};

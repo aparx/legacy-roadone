@@ -2,7 +2,11 @@ import { UI } from '../../utils';
 import { css, Theme } from '@emotion/react';
 import type { BreakpointName } from 'theme-core';
 
-export const card = (theme: Theme, width: BreakpointName | false) =>
+export const card = (
+  theme: Theme,
+  width: BreakpointName | false,
+  keepPadding: boolean
+) =>
   css({
     borderRadius: theme.rt.multipliers.roundness(UI.generalRoundness),
     background: theme.sys.color.surface[1],
@@ -10,12 +14,14 @@ export const card = (theme: Theme, width: BreakpointName | false) =>
     maxWidth: width !== false ? theme.rt.breakpoints.point(width) : undefined,
     width: width !== false ? '100%' : undefined,
     boxSizing: 'border-box',
-    [theme.rt.breakpoints.lte('md')]: {
+    // prettier-ignore
+    [theme.rt.breakpoints.lte('md')]: !keepPadding ? {
       padding: theme.rt.multipliers.spacing(1.75),
-    },
-    [theme.rt.breakpoints.lte('sm')]: {
+    } : undefined,
+    // prettier-ignore
+    [theme.rt.breakpoints.lte('sm')]: !keepPadding ? {
       padding: theme.rt.multipliers.spacing(1),
-    },
+    } : undefined,
   });
 
 export const header = (theme: Theme) =>

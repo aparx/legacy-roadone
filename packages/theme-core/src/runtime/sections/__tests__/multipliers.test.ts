@@ -25,7 +25,7 @@ describe('multipliers', () => {
     const _type = type as MultiplierName;
     test(`testing for type ${type}`, () => {
       for (const unit in multipliers.nameInputMap[_type]) {
-        expect(multipliers.getMultiplier(_type, unit as any)).toBe(
+        expect(multipliers.numberizeInput(_type, unit as any)).toBe(
           (multipliers.nameInputMap[_type] as any)[unit]
         );
         expect(multipliers.multiply(_type, unit as any)).toBe(

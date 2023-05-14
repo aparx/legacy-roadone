@@ -1,20 +1,22 @@
 /** @jsxImportSource @emotion/react */
-import { RequiredChildren } from '../../utils';
+import { RawFormContextProvider } from './context/rawFormContext';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { UseFormProps } from 'react-hook-form/dist/types';
+import { PropsWithChildren, useState } from 'react';
+import type { UseFormProps } from 'react-hook-form';
+import { FieldErrors, SubmitHandler, useForm } from 'react-hook-form';
 import { ObjectConjunction } from 'shared-utils';
 import { ZodSchema } from 'zod';
 
 export type InternalFormProps<
   TSchema extends ZodSchema,
   TContext = undefined
-> = {
+> = PropsWithChildren<{
   schema: TSchema;
-  children: RequiredChildren;
-} & (TContext extends undefined | null
-  ? { context?: undefined }
-  : { context: TContext });
+  onSubmit: SubmitHandler<TSchema>;
+}> &
+  (TContext extends undefined | null
+    ? { context?: undefined }
+    : { context: TContext });
 
 export type FormProps<
   TSchema extends ZodSchema,
@@ -28,6 +30,7 @@ export const RawForm = <TSchema extends ZodSchema, TContext = undefined>({
   schema,
   children,
   context,
+  onSubmit,
   ...rest
 }: FormProps<TSchema>) => {
   const methods = useForm<TSchema>({
@@ -35,7 +38,19 @@ export const RawForm = <TSchema extends ZodSchema, TContext = undefined>({
     context,
     ...rest,
   });
-  return <form onSubmit={() => console.log('')}>{children}</form>;
+  const [errors, setErrors] = useState<FieldErrors<TSchema>>();
+  return (
+    <RawFormContextProvider value={{ methods, errors }}>
+      <form
+        onSubmit={methods.handleSubmit((v) => {
+          setErrors({});
+          onSubmit(v);
+        }, setErrors)}
+      >
+        {children}
+      </form>
+    </RawFormContextProvider>
+  );
 };
 
 export default RawForm;

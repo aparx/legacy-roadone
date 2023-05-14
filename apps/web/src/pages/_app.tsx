@@ -1,5 +1,5 @@
-import { Navbar } from '@/components';
-import { DialogHandleRenderer } from '@/stores/components/dialogHandle';
+import { Navbar, NavbarConfig } from '@/components';
+import { DialogHandleRenderer, ToastHandleRenderer } from '@/handles';
 import * as style from '@/styles/app';
 import '@/styles/reset.css';
 import { theme } from '@/styles/theme';
@@ -36,6 +36,13 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
                   <ScrimRoot>
                     <Component {...pageProps} />
                     <DialogHandleRenderer />
+                    <ToastHandleRenderer
+                      sd={{
+                        marginTop: theme.rt.multipliers.spacingInverse(
+                          NavbarConfig.height
+                        ),
+                      }}
+                    />
                   </ScrimRoot>
                 </WindowBreakpointProvider>
               </SessionProvider>

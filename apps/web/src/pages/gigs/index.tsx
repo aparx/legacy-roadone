@@ -1,20 +1,21 @@
 import { DialogConfig, Page } from '@/components';
+import { useToastHandle } from '@/handles';
+import { useDialogHandle } from '@/handles/DialogHandle/DialogHandle.store';
 import { Permission } from '@/modules/auth/utils/permission';
 import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
 import { InputGig, inputGigSchema } from '@/modules/schemas/gig';
 import { apiRouter } from '@/server/routers/_api';
-import { useDialogHandle } from '@/stores/components/dialogHandle';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { UseTRPCMutationResult } from '@trpc/react-query/shared';
-import { Button, Stack } from 'next-ui';
+import { Button, Stack, TextField } from 'next-ui';
+import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { ReactNode, useMemo } from 'react';
-import { useFormContext } from 'react-hook-form';
-import { MdAdd } from 'react-icons/md';
+import { MdAdd, MdLocationCity, MdLocationPin, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
 
@@ -109,9 +110,10 @@ export default function GigsPage() {
 // <================================>
 
 function AddEventPanel() {
-  const showDialog = useDialogHandle((s) => s.show);
+  const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const mutation = api.gig.addGig.useMutation();
   const addName = useMessage('general.add', getGlobalMessage('aria.gig.name'));
+  const addToast = useToastHandle((s) => s.add);
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
       <div>
@@ -121,12 +123,25 @@ function AddEventPanel() {
             showDialog({
               title: addName,
               type: 'form',
+              width: 'sm',
               actions: DialogConfig.dialogSaveCancelSource,
               schema: inputGigSchema,
               content: <AddGigForm mutation={mutation} />,
-              handleSubmit: (e) => {
-                console.log('mutate');
-                mutation.mutate(e);
+              handleSubmit: (data) => {
+                mutation.mutate(data, {
+                  onSuccess: closeDialog,
+                  onError: (error) => {
+                    console.log(error, error.message);
+                    addToast({
+                      type: 'error',
+                      message: `Fehler: ${getGlobalMessage(
+                        error.message as any
+                      )}`,
+                      title: 'Aktion fehlgeschlagen!',
+                      duration: 'normal',
+                    });
+                  },
+                });
               },
             })
           }
@@ -141,61 +156,59 @@ function AddEventPanel() {
 function AddGigForm({
   mutation,
 }: {
-  mutation: UseTRPCMutationResult<void, any, InputGig, any>;
+  mutation: UseTRPCMutationResult<InputGig, any, InputGig, any>;
 }) {
   const { isLoading } = mutation;
-  const ctx = useFormContext<InputGig>();
+  const form = useRawForm<InputGig>();
   return (
-    <>
+    <Stack spacing={'lg'}>
       {isLoading && <div>LOADING...</div>}
-      <label>
-        <p>Start</p>
-        <input
-          disabled={isLoading}
-          type={'datetime-local'}
-          {...ctx.register('start', { required: true, valueAsDate: true })}
-        />
-      </label>
-      <label>
-        <p>Title</p>
-        <input
-          disabled={isLoading}
-          type={'text'}
-          {...ctx.register('title', { required: true })}
-        />
-      </label>
-      <label>
-        <p>City</p>
-        <input
-          disabled={isLoading}
-          type={'text'}
-          {...ctx.register('city', { required: true })}
-        />
-      </label>
-      <label>
-        <p>Street</p>
-        <input
-          disabled={isLoading}
-          type={'text'}
-          {...ctx.register('street', { required: true })}
-        />
-      </label>
-      <label>
-        <p>Postcode</p>
-        <input
-          disabled={isLoading}
-          type={'text'}
-          {...ctx.register('postcode', { required: true })}
-        />
-      </label>
-      <label>
-        <p>Description</p>
-        <input
-          disabled={isLoading}
-          type={'text'}
-          {...ctx.register('description', { required: true })}
-        />
-      </label>
-    </>
+      <TextField
+        name={'title'}
+        placeholder={getGlobalMessage('translation.title')}
+        leading={<MdTitle />}
+        required
+        disabled={isLoading}
+        hookform={form}
+      />
+      <TextField
+        leading
+        name={'start'}
+        placeholder={getGlobalMessage('gig.start')}
+        type={'datetime-local'}
+        required
+        disabled={isLoading}
+        hookform={{ ...form, options: { valueAsDate: true } }}
+      />
+      <TextField
+        name={'city'}
+        placeholder={getGlobalMessage('translation.city')}
+        leading={<MdLocationCity />}
+        required
+        disabled={isLoading}
+        hookform={form}
+      />
+      <TextField
+        name={'street'}
+        placeholder={getGlobalMessage('translation.street')}
+        leading={<MdLocationPin />}
+        required
+        disabled={isLoading}
+        hookform={form}
+      />
+      <TextField
+        name={'postcode'}
+        placeholder={getGlobalMessage('translation.postcode')}
+        required
+        disabled={isLoading}
+        hookform={form}
+      />
+      <TextField
+        name={'description'}
+        placeholder={getGlobalMessage('translation.description')}
+        disabled={isLoading}
+        hookform={form}
+      />
+    </Stack>
   );
 }

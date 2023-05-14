@@ -3,6 +3,8 @@ import { createPermissiveProcedure } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
+import { GlobalMessageMap, MessagePath } from '@/utils/message';
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 export const gigRouter = router({
@@ -28,7 +30,15 @@ export const gigRouter = router({
   addGig: procedure
     .use(createPermissiveProcedure('postEvents'))
     .input(inputGigSchema)
-    .mutation(({ input }) => {
-      console.log('successfully mutated!', input);
-    }),
+    .mutation(
+      async ({ input }) =>
+        await prisma.gig.create({ data: input }).catch((e) => {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'responses.title.duplicate' satisfies MessagePath<GlobalMessageMap>,
+            cause: e,
+          });
+        })
+    ),
 });

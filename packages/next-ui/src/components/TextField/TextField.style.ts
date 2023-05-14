@@ -98,3 +98,9 @@ export const shell = (
     } // END OF LABEL
   `;
 };
+
+/** Style for the asterisk used to display an urge of requirement */
+export const asterisk = (t: Theme) =>
+  css({
+    color: t.rt.emphasis.emphasize(t.sys.color.scheme.onSurface, 'low'),
+  });

@@ -1,4 +1,4 @@
-import { Dialog, DialogConfig as config } from '@/components';
+import { DialogConfig as config } from '@/components';
 import {
   DialogData,
   DialogResponseSource,
@@ -7,7 +7,7 @@ import {
 import { ZodSchema } from 'zod';
 import { create } from 'zustand';
 
-export type DialogHandle = {
+export type DialogHandleStore = {
   dialog: DialogData<any, any, any> | undefined;
   close: () => void;
   show: <
@@ -19,7 +19,7 @@ export type DialogHandle = {
   ) => void;
 };
 
-export const useDialogHandle = create<DialogHandle>((set) => ({
+export const useDialogHandle = create<DialogHandleStore>((set) => ({
   dialog: undefined,
   close: () => set({ dialog: undefined }),
   show: <
@@ -30,9 +30,3 @@ export const useDialogHandle = create<DialogHandle>((set) => ({
     dialog: DialogData<TType, TActions, TFormSchema>
   ) => set({ dialog: dialog }),
 }));
-
-export function DialogHandleRenderer() {
-  const handle = useDialogHandle();
-  if (!handle || !handle.dialog) return null;
-  return <Dialog {...handle.dialog} close={handle.close} />;
-}

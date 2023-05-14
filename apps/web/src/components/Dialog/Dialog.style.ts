@@ -6,7 +6,3 @@ export const wrapper = css({
   inset: 0,
   zIndex: config.zIndex,
 });
-
-export const dialog = css({
-  padding: 20,
-});
