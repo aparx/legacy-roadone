@@ -73,6 +73,7 @@ export function createButtonRenderer<TType extends ButtonType>(
             fontData,
             emphasis: disabled ? 'disabled' : 'high',
           }),
+
           factory?.(theme, opts, type),
           useStyleableMerge(restProps)
         )}

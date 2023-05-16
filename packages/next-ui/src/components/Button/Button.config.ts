@@ -58,7 +58,7 @@ export module ButtonConfig {
         // premature optimization is evil, thus we'll keep this until issues
         const typeMerge = merge({}, tree._opts, _tree._type?.[type]?._opts);
         for (const size of buttonSizeArray) {
-          out[type][size] = merge(
+          out[type]![size] = merge(
             {},
             typeMerge,
             _tree._size?.[size]?._opts,

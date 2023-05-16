@@ -1,9 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import * as style from './GigCard.style';
+import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
 import { GigEvent } from '@/modules/schemas/gig';
 import { useMessage } from '@/utils/hooks/useMessage';
+import { getGlobalMessage } from '@/utils/message';
 import {
+  Button,
   propMerge,
   PropsWithoutChildren,
   PropsWithStyleable,
@@ -15,6 +18,15 @@ import {
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
+import { MdDelete, MdEdit } from 'react-icons/md';
+
+export type GigEditFunction = (gig: RenderableGig) => any;
+export type GigDeleteFunction = (gig: RenderableGig) => any;
+
+export type GigItemFunctions = {
+  onEdit: GigEditFunction;
+  onDelete: GigDeleteFunction;
+};
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
 export type RenderableGig = GigEvent & {
@@ -23,10 +35,10 @@ export type RenderableGig = GigEvent & {
 };
 
 export type GigProps = PropsWithoutChildren<HTMLAttributes<HTMLDivElement>> &
-  PropsWithStyleable<{ gig: RenderableGig }>;
+  PropsWithStyleable<{ gig: RenderableGig } & GigItemFunctions>;
 
 export const GigCard = forwardRef<HTMLDivElement, GigProps>(
-  function GigRenderer({ gig, ...restProps }, ref) {
+  function GigRenderer({ gig, onEdit, onDelete, ...restProps }, ref) {
     const isDone = gig.state === 'done';
     const isNext = gig.state === 'next';
     // prettier-ignore
@@ -38,6 +50,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
     ], [gig.start]);
     // Renderable address information being displayed with a possible separator
     const address: string[] = [`${gig.postcode} ${gig.city}`, `${gig.street}`];
+    const showEdit = Permission.useGlobalPermission('editEvents');
+    const showDelete = Permission.useGlobalPermission('deleteEvents');
     return (
       <Stack
         ref={ref}
@@ -93,12 +107,49 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
           <div>{month}</div>
         </Stack>
         {/* address and time */}
-        <Stack direction={'column'} spacing={0} sd={{ padding: 'xl' }}>
-          <header>
+        <Stack spacing={0} sd={{ padding: 'xl', width: '100%' }}>
+          <Stack
+            as={'header'}
+            direction={'row'}
+            spacing={'lg'}
+            hAlign={'space-between'}
+            vAlign
+            style={{ flexWrap: 'wrap' }}
+          >
             <Text.Title size={'md'} emphasis={isDone ? 'disabled' : 'high'}>
               {gig.title}
             </Text.Title>
-          </header>
+            {(showEdit || showDelete) && (
+              <Stack direction={'row'}>
+                {showEdit && (
+                  <Button.Text
+                    tight
+                    aria-label={getGlobalMessage('translation.edit')}
+                    onClick={() => onEdit(gig)}
+                    sd={{
+                      color: (t) => t.sys.color.scheme.onSurface,
+                      emphasis: 'medium',
+                    }}
+                  >
+                    <MdEdit />
+                  </Button.Text>
+                )}
+                {showDelete && (
+                  <Button.Text
+                    tight
+                    aria-label={getGlobalMessage('translation.delete')}
+                    onClick={() => onDelete(gig)}
+                    sd={{
+                      color: (t) => t.sys.color.scheme.error,
+                      emphasis: 'medium',
+                    }}
+                  >
+                    <MdDelete />
+                  </Button.Text>
+                )}
+              </Stack>
+            )}
+          </Stack>
           <Text.Body
             as={'section'}
             size={'md'}
@@ -143,3 +194,5 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
 );
 
 export default GigCard;
+
+function Dialog() {}

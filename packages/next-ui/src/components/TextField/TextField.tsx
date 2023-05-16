@@ -82,12 +82,11 @@ type BaseTextFieldProps<
   error?: string;
 };
 
-export type TextFieldName<TFields extends FieldValues | undefined | null> =
-  TFields extends undefined | null ? FieldPath<TFields> : string;
+export type TextFieldName<TFields extends FieldValues> = FieldPath<TFields>;
 
 export type InternalTextFieldProps<
   TName extends TextFieldName<TFields>,
-  TFields extends FieldValues | undefined
+  TFields extends FieldValues
 > = {
   hookform?: TName extends FieldPath<TFields>
     ? {
@@ -108,9 +107,9 @@ export type TextFieldProps<
 > = PropsWithStyleable<
   InternalTextFieldProps<TName, TFields> &
     PropsWithoutChildren<{
-      field?: ObjectConjunction<
+      field?: Omit<
         InputHTMLAttributes<HTMLInputElement>,
-        InternalTextFieldProps<TName, TFields>
+        keyof InternalTextFieldProps<TName, TFields>
       >;
     }> &
     PropsWithoutChildren<
@@ -191,7 +190,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
     name in hookform?.errors &&
     typeof hookform?.errors[name] === 'string'
   ) {
-    error ??= hookform.errors[name].message as string;
+    error ??= hookform.errors[name]!.message as string;
   }
   return (
     <Stack

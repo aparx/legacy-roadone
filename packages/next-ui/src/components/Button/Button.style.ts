@@ -32,7 +32,7 @@ export const button = (
     color: transparent;
     width: fit-content;
     height: fit-content;
-    border-radius: ${rt.multipliers.roundness(opts.roundness)}px;
+    border-radius: ${rt.multipliers.roundness(opts.roundness ?? 0)}px;
     text-decoration: none;
     user-select: none;
 

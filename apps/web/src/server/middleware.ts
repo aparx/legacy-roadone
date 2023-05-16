@@ -20,6 +20,6 @@ export const createRoleProcedure = (gte: Role, errorMessage?: string) =>
   });
 
 export const createPermissiveProcedure = (
-  permission: keyof typeof Globals.permissionMap,
+  permission: keyof typeof Globals.permissions,
   errorMessage: string = `missing permission ${permission}`
-) => createRoleProcedure(Globals.permissionMap[permission], errorMessage);
+) => createRoleProcedure(Globals.permissions[permission], errorMessage);

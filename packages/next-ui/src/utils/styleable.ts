@@ -1,3 +1,4 @@
+import { TextConfig } from '../components';
 import { UI } from './magics';
 import { propMerge } from './merge';
 import type { MultiplierValueInput } from './types';
@@ -8,7 +9,7 @@ import { capitalize } from 'lodash';
 import { CSSProperties } from 'react';
 import type { ObjectConjunction, ValueSource } from 'shared-utils';
 import { resolveSource } from 'shared-utils';
-import { BreakpointName } from 'theme-core';
+import { BreakpointName, OpacityEmphasis } from 'theme-core';
 
 import QuadSides = BoxSide.QuadSides;
 
@@ -18,6 +19,7 @@ export type StyleableColorProps = {
   background?: ValueSource<OptionalColor, [Theme]>;
   color?: ValueSource<OptionalColor, [Theme]>;
   border?: ValueSource<Property.Border, [Theme]>;
+  emphasis?: OpacityEmphasis;
 };
 
 export type StyleableDimensionProps = {
@@ -152,18 +154,26 @@ export function useStyleableMerge({ sd, ...rest }: StyleableProp & object) {
 }
 
 function createInlineStyle(theme: Theme, data: StyleableData) {
-  const { multipliers } = theme.rt;
+  const { multipliers, emphasis } = theme.rt;
   const mapper = (v: MultiplierValueInput<'spacing'>) => multipliers.spacing(v);
+  const fg = (data.color && resolveSource(data.color, theme)) ?? undefined;
   return {
-    background: data.background && resolveSource(data.background, theme),
-    color: data.color && resolveSource(data.color, theme),
+    background:
+      (data.background && resolveSource(data.background, theme)) ?? undefined,
+    color: fg && data.emphasis ? emphasis.emphasize(fg, data.emphasis) : fg,
     border: data.border && resolveSource(data.border, theme),
-    opacity: data.opacity && resolveSource(data.opacity, theme),
-    borderRadius: multipliers.roundness(data.roundness),
-    ...toPartialPrefixedQuadSides('margin', data, mapper),
-    ...toPartialPrefixedQuadSides('padding', data, mapper),
+    opacity: data.opacity
+      ? resolveSource(data.opacity, theme)
+      : !fg && data.emphasis
+      ? emphasis.emphasis(data.emphasis)
+      : undefined,
+    borderRadius: data.roundness
+      ? multipliers.roundness(data.roundness ?? 0)
+      : undefined,
     width: data.fit ? 'fit-content' : resolveSource(data.width, theme),
     height: data.fit ? 'fit-content' : resolveSource(data.height, theme),
+    ...toPartialPrefixedQuadSides('margin', data, mapper),
+    ...toPartialPrefixedQuadSides('padding', data, mapper),
   } satisfies CSSProperties;
 }
 

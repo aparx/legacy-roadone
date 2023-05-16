@@ -1,9 +1,12 @@
-import { inputGigSchema } from '@/modules/schemas/gig';
+import {
+  editGigSchema,
+  gigIdSchema,
+  inputGigSchema,
+} from '@/modules/schemas/gig';
 import { createPermissiveProcedure } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
-import { GlobalMessageMap, MessagePath } from '@/utils/message';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
@@ -12,7 +15,7 @@ export const gigRouter = router({
     .input(
       z.object({
         cursor: z.number().int().default(0),
-        limit: z.number().max(50).default(25),
+        limit: z.number().max(50).default(30),
       })
     )
     .query(async ({ input: { cursor: skip, limit: take } }) => {
@@ -30,15 +33,37 @@ export const gigRouter = router({
   addGig: procedure
     .use(createPermissiveProcedure('postEvents'))
     .input(inputGigSchema)
-    .mutation(
-      async ({ input }) =>
-        await prisma.gig.create({ data: input }).catch((e) => {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message:
-              'responses.title.duplicate' satisfies MessagePath<GlobalMessageMap>,
-            cause: e,
-          });
+    .mutation(async ({ input }) => {
+      if (
+        await prisma.gig.findUnique({
+          where: { title_start: { title: input.title, start: input.start } },
         })
-    ),
+      ) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Title with given start already exists',
+        });
+      }
+      return await prisma.gig.create({ data: input }).catch(handleAsTRPCError);
+    }),
+  editGig: procedure
+    .use(createPermissiveProcedure('editEvents'))
+    .input(editGigSchema)
+    .mutation(async ({ input }) => {
+      const { id } = input;
+      if (!(await prisma.gig.findUnique({ where: { id } })))
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Gig not found' });
+      return await prisma.gig
+        .update({ where: { id }, data: input })
+        .catch(handleAsTRPCError);
+    }),
+  deleteGig: procedure
+    .use(createPermissiveProcedure('deleteEvents'))
+    .input(gigIdSchema)
+    .mutation(async ({ input }) => {
+      const { id } = input;
+      if (!(await prisma.gig.findUnique({ where: { id } })))
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Gig not found' });
+      return prisma.gig.delete({ where: { id } });
+    }),
 });

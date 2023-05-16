@@ -1,6 +1,9 @@
 /** @jsxImportSource @emotion/react */
 import { GigCard } from '@/modules/gigs/components/GigCard';
-import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
+import {
+  GigItemFunctions,
+  RenderableGig,
+} from '@/modules/gigs/components/GigCard/GigCard';
 import { useMessage } from '@/utils/hooks/useMessage';
 import {
   Card,
@@ -20,10 +23,11 @@ export type GigGroupProps = PropsWithoutChildren<
     gigs: RenderableGig[];
     /** @default 'md' */
     width?: BreakpointName;
+    events: GigItemFunctions;
   }>;
 
 export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
-  function GigGroupRenderer({ year, gigs, width, ...restProps }, ref) {
+  function GigGroupRenderer({ year, gigs, width, events, ...restProps }, ref) {
     const isDone = year < new Date().getFullYear();
     return (
       <Card
@@ -48,7 +52,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
                 key={gig.id}
                 aria-hidden={gig.state === 'done'}
               >
-                <GigCard gig={gig} />
+                <GigCard gig={gig} {...events} />
               </li>
             ))}
           </ul>

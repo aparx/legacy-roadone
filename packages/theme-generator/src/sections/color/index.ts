@@ -1,8 +1,9 @@
 import { SectionBuilderParent, SectionGenerator } from '../../builder';
+import { ElevationGenerator } from './elevation';
 import { SchemeGenerator } from './scheme';
 import { StateGenerator } from './state';
 import { SurfaceGenerator } from './surface';
-import { SystemColorSection, Theme, TypescaleSection } from 'theme-core';
+import { SystemColorSection, Theme } from 'theme-core';
 
 export * from './scheme';
 export * from './state';
@@ -22,11 +23,13 @@ export class ColorGenerator extends SectionGenerator<
     const dependants = await Promise.all([
       new SurfaceGenerator(this.parent, [scheme]).generate(),
       new StateGenerator(this.parent, [scheme]).generate(),
+      new ElevationGenerator(this.parent, [scheme]).generate(),
     ]);
     return this.update({
       scheme: scheme.build(),
       surface: dependants[0].build(),
       state: dependants[1].build(),
+      elevation: dependants[2].build(),
     });
   }
 }

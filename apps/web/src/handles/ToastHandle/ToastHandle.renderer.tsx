@@ -1,4 +1,4 @@
-import { NavbarConfig, Toast } from '@/components';
+import { Toast, ToastConfig as config } from '@/components';
 import { useToastHandle } from '@/handles';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import {
@@ -21,7 +21,7 @@ export default function ToastHandle(props: PropsWithStyleable) {
         {...propMerge(
           {
             css: {
-              zIndex: 1 + NavbarConfig.zBaseIndex,
+              zIndex: config.zIndex,
               pointerEvents: 'none',
               position: 'fixed',
               inset: 0,

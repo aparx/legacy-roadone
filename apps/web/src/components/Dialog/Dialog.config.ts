@@ -33,6 +33,11 @@ export module DialogConfig {
     dialogCancelAction,
   ] as const satisfies DialogResponseSource;
 
+  export const dialogYesCancelSource = [
+    { id: 'yes', name: getGlobalMessage('modal.sureYes') },
+    dialogCancelAction,
+  ] as const satisfies DialogResponseSource;
+
   export const dialogSaveCancelSource = [
     { id: 'save', name: getGlobalMessage('general.save'), role: 'submit' },
     dialogCancelAction,

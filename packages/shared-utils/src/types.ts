@@ -59,21 +59,29 @@ type _ExtractOptionals<TObject extends object> = Exclude<
 /**
  * Splits `TString` using given `TDelimiter` as the separator. Returns a tuple.
  */
-export type StringSplit<
+export type SplitToTuple<
   TString extends string,
   TDelimiter extends string,
   TFlagReduce extends boolean = false
-> = _Split<TString, TDelimiter, [], TFlagReduce>;
+> = _SplitInArray<TString, TDelimiter, [], TFlagReduce>;
 
-type _Split<
+export type SplitToUnion<
+  TString extends string,
+  TDelimiter extends string,
+  TFlagReduce extends boolean = false
+> = SplitToTuple<TString, TDelimiter, TFlagReduce>[number];
+
+type _SplitInArray<
   TStr extends string,
   TDel extends string,
   _TBuilt extends string[],
   TFlagReduce extends boolean = false
 > = TStr extends `${infer TItem}${TDel}${infer TAfter}`
-  ? _Split<TAfter, TDel, [..._TBuilt, TItem], TFlagReduce>
-  : TFlagReduce extends true
-  ? _TBuilt | [..._TBuilt, TStr]
+  ? TFlagReduce extends true
+    ?
+        | _SplitInArray<TAfter, TDel, [..._TBuilt, TItem], TFlagReduce>
+        | [..._TBuilt, TItem]
+    : _SplitInArray<TAfter, TDel, [..._TBuilt, TItem], TFlagReduce>
   : [..._TBuilt, TStr];
 
 // prettier-ignore

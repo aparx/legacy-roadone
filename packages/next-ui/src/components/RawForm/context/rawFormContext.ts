@@ -7,7 +7,7 @@ export type RawFormContext<TFields extends FieldValues, TContext = any> = {
   errors: FieldErrors<TFields> | undefined;
 };
 
-export const rawFormContext = createContext<RawFormContext<any>>(null);
+export const rawFormContext = createContext<RawFormContext<any>>(null as any);
 
 export const RawFormContextProvider = rawFormContext.Provider;
 

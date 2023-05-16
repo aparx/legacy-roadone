@@ -9,9 +9,13 @@ export module Globals {
   // <======================>
 
   /** Map of all permissions that require authorization. */
-  export const permissionMap = {
+  export const permissions = {
     /** Permission to be able to add new events (gigs) */
     postEvents: 'MEMBER',
+    /** Permission to be able to edit already existing events (gigs) */
+    editEvents: 'MEMBER',
+    /** Permission to be able to delete existing events (gigs) */
+    deleteEvents: 'ADMIN',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
