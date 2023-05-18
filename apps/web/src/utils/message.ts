@@ -58,10 +58,8 @@ export const globalMessages = {
     gig: {
       add_title_start_duplicate:
         'Den Titel mit gegebenem Beginn gibt es bereits!',
-      add_success:
-        'Es kann dauern, bis der hinzugefügte Auftritt angezeigt wird.',
-      edit_success:
-        'Es kann dauern, bis die Überarbeitung des Auftritts angezeigt wird.',
+      add_success: 'Es kann dauern, bis der neue Auftritt angezeigt wird.',
+      edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
     },
   },
 } as const satisfies TraversableObject<string>;
