@@ -1,6 +1,8 @@
 import { css, keyframes, Theme } from '@emotion/react';
 import { UI } from 'next-ui';
 
+const fadeDurationMultiplier = 0.1; /* 10% */
+
 const progressFrames = keyframes`
   from { width: 100% }
   90% { opacity: 100%; }
@@ -8,9 +10,9 @@ const progressFrames = keyframes`
 `;
 
 const toastFrames = keyframes`
-  from { opacity: 0; transform: translateY(-25%) }
-  5%, 95% { opacity: 1; transform: unset; }
-  to { opacity: 0; transform: translateY(-25%) }
+  from { opacity: 0; transform: translateX(-5%) }
+  5%, 90% { opacity: 1; transform: unset; }
+  95%, to { opacity: 0; transform: translateX(-5%) }
 `;
 
 export const toast = (
@@ -42,6 +44,9 @@ export const toast = (
       bottom: 0,
       left: 0,
       transition: 'width 2s',
-      animation: `${progressFrames} ${data.duration}s linear forwards`,
+      animation: `${progressFrames} ${Math.max(
+        data.duration - data.duration * fadeDurationMultiplier,
+        0
+      )}s linear forwards`,
     },
   });

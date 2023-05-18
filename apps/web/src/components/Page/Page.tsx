@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { Globals } from '@/utils/global/globals';
 import { useTheme } from '@emotion/react';
 import { NextSeo } from 'next-seo';
 import { NextSeoProps } from 'next-seo/lib/types';
@@ -39,7 +40,7 @@ export default function Page({
           type: 'website',
           url: `https://${process.env.NEXT_PUBLIC_SELF_URL}/${pageURL}`,
           description: meta?.description,
-          locale: 'de_DE',
+          locale: Globals.siteLocale,
         }}
       />
       <PageAlign

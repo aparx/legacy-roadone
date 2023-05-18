@@ -2,7 +2,8 @@
 import * as style from './GigCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
-import { GigEvent } from '@/modules/schemas/gig';
+import { ProcessedGig } from '@/modules/schemas/gig';
+import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import {
@@ -20,22 +21,21 @@ import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
 import { MdDelete, MdEdit } from 'react-icons/md';
 
-export type GigEditFunction = (gig: RenderableGig) => any;
-export type GigDeleteFunction = (gig: RenderableGig) => any;
+export type GigMutateFunction = (gig: RenderableGig) => any;
 
-export type GigItemFunctions = {
-  onEdit: GigEditFunction;
-  onDelete: GigDeleteFunction;
+export type GigMutateFunctionMap = {
+  onEdit: GigMutateFunction;
+  onDelete: GigMutateFunction;
 };
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
-export type RenderableGig = GigEvent & {
+export type RenderableGig = ProcessedGig & {
   /** @default 'upcoming' */
   state?: 'upcoming' | 'next' | 'done';
 };
 
 export type GigProps = PropsWithoutChildren<HTMLAttributes<HTMLDivElement>> &
-  PropsWithStyleable<{ gig: RenderableGig } & GigItemFunctions>;
+  PropsWithStyleable<{ gig: RenderableGig } & GigMutateFunctionMap>;
 
 export const GigCard = forwardRef<HTMLDivElement, GigProps>(
   function GigRenderer({ gig, onEdit, onDelete, ...restProps }, ref) {
@@ -44,9 +44,9 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
     // prettier-ignore
     const [day, month, zone] = useMemo(() => [
       // cannot use automatic locale detection, because of SSR (server locale)
-      gig.start.toLocaleString('de-DE', { day: '2-digit' }),
-      gig.start.toLocaleString('de-DE', { month: 'short' }),
-      gig.start.toLocaleString('de-DE', { timeZoneName: 'short' }),
+      gig.start.toLocaleString(Globals.timeLocale, { day: '2-digit' }),
+      gig.start.toLocaleString(Globals.timeLocale, { month: 'short' }),
+      gig.start.toLocaleString(Globals.timeLocale, { timeZoneName: 'short' }),
     ], [gig.start]);
     // Renderable address information being displayed with a possible separator
     const address: string[] = [`${gig.postcode} ${gig.city}`, `${gig.street}`];
@@ -171,7 +171,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             <div css={style.time}>
               <span css={style.separator} />
               <time dateTime={gig.start.toISOString()}>
-                {`${gig.start.toLocaleString('de-DE', {
+                {`${gig.start.toLocaleString(Globals.timeLocale, {
                   hour: 'numeric',
                   minute: 'numeric',
                 })} Uhr`}
@@ -183,9 +183,10 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
               as={'footer'}
               size={'md'}
               emphasis={isDone ? 'disabled' : 'medium'}
-            >
-              {gig.description}
-            </Text.Body>
+              dangerouslySetInnerHTML={{
+                __html: gig.htmlDescription ?? gig.description,
+              }}
+            />
           )}
         </Stack>
       </Stack>

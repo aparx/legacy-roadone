@@ -8,8 +8,8 @@ import {
   PropsWithStyleable,
   Stack,
   Text,
+  useAwareTimeout,
   useStyleableMerge,
-  useTimeout,
 } from 'next-ui';
 import { forwardRef, ReactElement, ReactNode } from 'react';
 import { IconBaseProps } from 'react-icons';
@@ -65,7 +65,7 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
     duration ??= 'normal'; // TODO
     duration =
       typeof duration === 'string' ? toastDurationMap[duration] : duration;
-    useTimeout(() => {
+    useAwareTimeout(() => {
       onFinish();
     }, duration * 1000);
     const t = useTheme();

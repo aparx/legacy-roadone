@@ -1,7 +1,7 @@
 import { Permission } from '@/modules/auth/utils/permission';
 import { Role } from '@/modules/schemas/role';
 import { middleware } from '@/server/trpc';
-import { Globals } from '@/utils/globals';
+import { Globals } from '@/utils/global/globals';
 import { TRPCError } from '@trpc/server';
 
 /**
@@ -21,5 +21,5 @@ export const createRoleProcedure = (gte: Role, errorMessage?: string) =>
 
 export const createPermissiveProcedure = (
   permission: keyof typeof Globals.permissions,
-  errorMessage: string = `missing permission ${permission}`
+  errorMessage: string = `missing permission '${permission}'`
 ) => createRoleProcedure(Globals.permissions[permission], errorMessage);

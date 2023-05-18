@@ -1,6 +1,6 @@
 import { Toast, ToastConfig as config } from '@/components';
+import type { ToastData } from '@/components/Toast/Toast';
 import { useToastHandle } from '@/handles';
-import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import {
   PageAlign,
   Portal,
@@ -10,11 +10,13 @@ import {
 } from 'next-ui';
 
 export default function ToastHandle(props: PropsWithStyleable) {
-  const handle = useToastHandle();
-  useOnNavigation(handle.clear);
+  const [toasts, closeToast] = useToastHandle((s) => [s.list, s.close]);
   const styleableMerge = useStyleableMerge(props);
-  if (!handle.list.length) return null;
-  const toast = handle.list[0];
+  if (!toasts.length) return null;
+  const renderToasts: ToastData[] = [];
+  for (let i = 0; i < Math.min(5, toasts.length); ++i)
+    renderToasts.push(toasts[i]);
+  console.log('rerender', toasts);
   return (
     <Portal>
       <PageAlign
@@ -26,19 +28,22 @@ export default function ToastHandle(props: PropsWithStyleable) {
               position: 'fixed',
               inset: 0,
               display: 'flex',
+              flexDirection: 'column',
+              spacing: 20,
               alignItems: 'start',
             },
           },
           styleableMerge
         )}
       >
-        <Toast
-          // key will force a refresh and thus animation resets
-          key={toast.id}
-          {...toast}
-          sd={{ marginV: 'md' }}
-          onFinish={handle.close}
-        />
+        {renderToasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            {...toast}
+            sd={{ marginV: 'md' }}
+            onFinish={closeToast}
+          />
+        ))}
       </PageAlign>
     </Portal>
   );

@@ -25,8 +25,16 @@ export const gigSchema = z
   .extend(inputGigSchema.shape)
   .extend(gigIdSchema.shape);
 
+export const processedGigSchema = gigSchema.extend(
+  z.object({
+    htmlDescription: z.string().optional().nullish(),
+  }).shape
+);
+
 export type InputGig = z.infer<typeof inputGigSchema>;
 
 export type EditGig = z.infer<typeof editGigSchema>;
 
 export type GigEvent = z.infer<typeof gigSchema>;
+
+export type ProcessedGig = z.infer<typeof processedGigSchema>;

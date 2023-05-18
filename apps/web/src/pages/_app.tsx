@@ -6,7 +6,7 @@ import { theme } from '@/styles/theme';
 import { api, queryClient } from '@/utils/api';
 import { WindowBreakpointProvider } from '@/utils/context/windowBreakpoint';
 import { roboto } from '@/utils/font';
-import '@/utils/langset';
+import '@/utils/global/langInit';
 import { Global, ThemeProvider } from '@emotion/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';

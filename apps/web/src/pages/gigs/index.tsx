@@ -2,7 +2,11 @@ import { DialogConfig, Page } from '@/components';
 import { useToastHandle } from '@/handles';
 import { useDialogHandle } from '@/handles/DialogHandle/DialogHandle.store';
 import { Permission } from '@/modules/auth/utils/permission';
-import { RenderableGig } from '@/modules/gigs/components/GigCard/GigCard';
+import type {
+  GigMutateFunction,
+  GigMutateFunctionMap,
+  RenderableGig,
+} from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
 import {
   EditGig,
@@ -11,11 +15,13 @@ import {
   inputGigSchema,
 } from '@/modules/schemas/gig';
 import { apiRouter } from '@/server/routers/_api';
+import type { GetGigsResult } from '@/server/routers/gig';
 import { api, queryClient } from '@/utils/api';
-import { toDatetimeLocal } from '@/utils/date';
-import { Globals } from '@/utils/globals';
+import { toDatetimeLocal } from '@/utils/functional/date';
+import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
+import { InfiniteData } from '@tanstack/react-query';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { UseTRPCMutationResult } from '@trpc/react-query/shared';
 import { Button, Stack, TextField } from 'next-ui';
@@ -25,6 +31,11 @@ import { MdAdd, MdLocationCity, MdLocationPin, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
 
+module config {
+  /** Width of all rendered gig group cards */
+  export const gigWidth = 'md' satisfies BreakpointName;
+}
+
 export async function getStaticProps() {
   const helpers = createServerSideHelpers({
     queryClient,
@@ -32,31 +43,137 @@ export async function getStaticProps() {
     ctx: { session: null },
     transformer: superjson,
   });
-  await helpers.gig.getGigs.prefetchInfinite({}); // <- same input's important!
+  await helpers.gig.getGigs.prefetchInfinite({ parseMarkdown: true });
   return {
     props: { trpcState: helpers.dehydrate() },
     revalidate: Globals.isrIntervals.gigs,
   };
 }
 
-const gigsWidth = 'md' satisfies BreakpointName;
-
 export default function GigsPage() {
   // prettier-ignore
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    api.gig.getGigs.useInfiniteQuery({}, {
+    api.gig.getGigs.useInfiniteQuery({ parseMarkdown: true }, {
       trpc: { abortOnUnmount: true },
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
-
   const apiEdit = api.gig.editGig.useMutation();
+  // Dialogs
+  const editGigDialog = useMutateGigDialog({ type: 'edit', endpoint: apiEdit });
+  const deleteGigDialog = useDeleteGigDialog();
+  // Required render-data
+  const gigGroups = useCreateGigGroups(data);
+  return (
+    <Page
+      name={'Auftritte'}
+      meta={{ description: 'Alle Auftritte von roadone' }}
+      pageURL={'gigs'}
+    >
+      {Permission.useGlobalPermission('postEvents') && <AddEventPanel />}
+      <Stack as={'main'} direction={'column'} spacing={'md'} hAlign>
+        <>
+          {useRenderGigGroups(gigGroups, {
+            // potential bottleneck: underlying `useMemo` with this obj as dep.
+            onEdit: editGigDialog,
+            onDelete: deleteGigDialog,
+          })}
+        </>
+        {hasNextPage && (
+          <Button.Text
+            disabled={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {getGlobalMessage('general.load_more')}
+          </Button.Text>
+        )}
+      </Stack>
+    </Page>
+  );
+}
+
+// <================================>
+//       RESTRICTED COMPONENTS
+// <================================>
+
+function AddEventPanel() {
+  const mutation = api.gig.addGig.useMutation();
+  const addGigDialog = useMutateGigDialog({ type: 'add', endpoint: mutation });
+  return (
+    <Stack hAlign sd={{ marginBottom: 'xl', childLength: config.gigWidth }}>
+      <div>
+        <Button.Primary leading={<MdAdd />} onClick={() => addGigDialog()}>
+          {useMessage('general.add', getGlobalMessage('aria.gig.name'))}
+        </Button.Primary>
+      </div>
+    </Stack>
+  );
+}
+
+// <================================>
+//           GIG DATA HOOKS
+// <================================>
+
+/** Creates gig groups by year and sorts them after descending order. */
+function useCreateGigGroups(data: InfiniteData<GetGigsResult> | undefined) {
+  return useMemo(() => {
+    // Gig to year map
+    const gigMap = new Map<number, RenderableGig[]>();
+    const current = Date.now();
+    let _next: RenderableGig | undefined;
+    data?.pages
+      .flatMap(({ data }) => data.flat() as RenderableGig[])
+      // we sort descending (newest [top] -> oldest [bottom])
+      .sort((a, b) => (a.start.getTime() < b.start.getTime() ? 1 : -1))
+      .forEach((gig) => {
+        const year = gig.start.getFullYear();
+        if (!gigMap.has(year)) gigMap.set(year, []);
+        gigMap.get(year)!.push(gig);
+        if (current - Globals.gigLength >= gig.start.getTime()) {
+          gig.state = 'done'; // `gig` is already finished ("done")
+        } else if (!_next || gig.start.getTime() < _next?.start?.getTime()) {
+          gig.state = 'upcoming';
+          _next = gig; // `gig` is closer to now than previous gigs (time-wise)
+        } else gig.state = 'upcoming';
+      });
+    if (_next) _next.state = 'next';
+    return gigMap;
+  }, [data]);
+}
+
+/** Converts `yearToGigMap` into renderable `GigGroup` elements. */
+function useRenderGigGroups(
+  yearToGigMap: Map<number, RenderableGig[]>,
+  functionMap: GigMutateFunctionMap
+) {
+  return useMemo(() => {
+    const groups: ReactNode[] = [];
+    for (const [year, gig] of yearToGigMap.entries()) {
+      groups.push(
+        <GigGroup
+          key={year}
+          width={config.gigWidth}
+          year={year}
+          gigs={gig}
+          events={functionMap}
+        />
+      );
+    }
+    return groups;
+  }, [yearToGigMap, functionMap]);
+}
+
+// <======================================>
+//               GIG DIALOGS
+// <======================================>
+
+function useDeleteGigDialog(): GigMutateFunction {
   const apiDelete = api.gig.deleteGig.useMutation();
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
-  const editGigDialog = useShowGigDialog({ type: 'edit', endpoint: apiEdit });
-  const deleteGigDialog = useCallback(
+  return useCallback(
     (gig: GigEvent) => {
+      const { id } = gig;
       showDialog({
         title: getGlobalMessage('modal.sureTitle'),
         type: 'modal',
@@ -66,7 +183,7 @@ export default function GigsPage() {
         onHandleYes: () => {
           closeDialog();
           apiDelete.mutate(
-            { id: gig.id },
+            { id },
             {
               onSuccess: () => {
                 addToast({
@@ -92,88 +209,6 @@ export default function GigsPage() {
     },
     [addToast, apiDelete, closeDialog, showDialog]
   );
-
-  const gigMap = useMemo(() => {
-    // Gig to year map
-    const map = new Map<number, RenderableGig[]>();
-    const now = Date.now();
-    let _next: RenderableGig | undefined;
-    data?.pages
-      .flatMap(({ data }) => data.flat() as RenderableGig[])
-      // we sort descending (newest [top] -> oldest [bottom])
-      .sort((a, b) => (a.start.getTime() < b.start.getTime() ? 1 : -1))
-      .forEach((gig) => {
-        const year = gig.start.getFullYear();
-        if (!map.has(year)) map.set(year, []);
-        map.get(year)!.push(gig);
-        if (now - Globals.gigLength >= gig.start.getTime()) {
-          gig.state = 'done'; // `gig` is already finished ("done")
-        } else if (!_next || gig.start.getTime() < _next?.start?.getTime()) {
-          gig.state = 'upcoming';
-          _next = gig; // `gig` is closer to now than previous gigs (time-wise)
-        } else gig.state = 'upcoming';
-      });
-    if (_next) _next.state = 'next';
-    return map;
-  }, [data]);
-
-  const gigGroupArray = useMemo(() => {
-    const groups: ReactNode[] = [];
-    for (const year of gigMap.keys()) {
-      groups.push(
-        <GigGroup
-          key={year}
-          width={gigsWidth}
-          year={year}
-          gigs={gigMap.get(year)!}
-          events={{
-            onEdit: editGigDialog,
-            onDelete: deleteGigDialog,
-          }}
-        />
-      );
-    }
-    return groups;
-  }, [editGigDialog, gigMap]);
-
-  return (
-    <Page
-      name={'Auftritte'}
-      meta={{ description: 'Alle Auftritte von roadone' }}
-      pageURL={'gigs'}
-    >
-      {Permission.useGlobalPermission('postEvents') && <AddEventPanel />}
-      <Stack as={'main'} direction={'column'} spacing={'md'} hAlign>
-        {gigGroupArray as any /* <- why not assignable? */}
-        {hasNextPage && (
-          <Button.Text
-            disabled={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
-          >
-            {getGlobalMessage('general.load_more')}
-          </Button.Text>
-        )}
-      </Stack>
-    </Page>
-  );
-}
-
-// <================================>
-//   RESTRICTED (ADMIN) COMPONENTS
-// <================================>
-
-function AddEventPanel() {
-  const mutation = api.gig.addGig.useMutation();
-  const addGigDialog = useShowGigDialog({ type: 'add', endpoint: mutation });
-  return (
-    <Stack hAlign sd={{ marginBottom: 'xl', childLength: gigsWidth }}>
-      <div>
-        <Button.Primary leading={<MdAdd />} onClick={() => addGigDialog()}>
-          {useMessage('general.add', getGlobalMessage('aria.gig.name'))}
-        </Button.Primary>
-      </div>
-    </Stack>
-  );
 }
 
 type GigDialogProps =
@@ -188,7 +223,7 @@ type GigDialogProps =
       gig?: GigEvent;
     };
 
-function useShowGigDialog(props: Omit<GigDialogProps, 'gig'>) {
+function useMutateGigDialog(props: Omit<GigDialogProps, 'gig'>) {
   const { type, endpoint } = props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
@@ -233,6 +268,10 @@ function useShowGigDialog(props: Omit<GigDialogProps, 'gig'>) {
     [showDialog, type, endpoint, closeDialog, addToast]
   );
 }
+
+// <======================================>
+//                GIG FORMS
+// <======================================>
 
 function GigInputForm({ endpoint, gig }: GigDialogProps) {
   const { isLoading } = endpoint;

@@ -1,7 +1,8 @@
 /** @jsxImportSource @emotion/react */
+import { GigGroupConfig as config } from './GigGroup.config';
 import { GigCard } from '@/modules/gigs/components/GigCard';
 import {
-  GigItemFunctions,
+  GigMutateFunctionMap,
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { useMessage } from '@/utils/hooks/useMessage';
@@ -13,18 +14,21 @@ import {
 } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { forwardRef, HTMLAttributes } from 'react';
-import { BreakpointName } from 'theme-core';
+import type { ObjectConjunction } from 'shared-utils';
+import type { BreakpointName } from 'theme-core';
 
-export type GigGroupProps = PropsWithoutChildren<
-  HTMLAttributes<HTMLDivElement>
-> &
-  PropsWithStyleable<{
-    year: number;
-    gigs: RenderableGig[];
-    /** @default 'md' */
-    width?: BreakpointName;
-    events: GigItemFunctions;
-  }>;
+export type InternalGigGroupProps = {
+  year: number;
+  gigs: RenderableGig[];
+  /** @default 'md' */
+  width?: BreakpointName;
+  events: GigMutateFunctionMap;
+};
+
+export type GigGroupProps = ObjectConjunction<
+  PropsWithoutChildren<HTMLAttributes<HTMLDivElement>>,
+  PropsWithStyleable<InternalGigGroupProps>
+>;
 
 export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
   function GigGroupRenderer({ year, gigs, width, events, ...restProps }, ref) {
@@ -33,7 +37,7 @@ export const GigGroup = forwardRef<HTMLDivElement, GigGroupProps>(
       <Card
         as={'article'}
         ref={ref}
-        width={width ?? 'md'}
+        width={width ?? config.defaults.width}
         id={`${year}`}
         aria-hidden={isDone}
         aria-label={useMessage('aria.gig.group', String(year))}

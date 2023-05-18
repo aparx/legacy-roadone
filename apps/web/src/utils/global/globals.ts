@@ -4,6 +4,11 @@ export module Globals {
   /** A possible gig's length, after which a Gig is declared `done` */
   export const gigLength = 2.16e7; /* 6h */
 
+  /** Locale of the entire site */
+  export const siteLocale = 'de_DE';
+  /** Locale of time translations */
+  export const timeLocale = siteLocale.replace('_', '-');
+
   // <======================>
   //  GENERAL CONFIGURATION
   // <======================>

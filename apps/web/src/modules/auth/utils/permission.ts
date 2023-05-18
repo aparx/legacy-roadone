@@ -1,5 +1,5 @@
 import { defaultRole, Role, roleArray } from '@/modules/schemas/role';
-import { Globals } from '@/utils/globals';
+import { Globals } from '@/utils/global/globals';
 import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
 
