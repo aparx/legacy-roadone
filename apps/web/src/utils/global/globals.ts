@@ -25,6 +25,6 @@ export module Globals {
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
-    gigs: 15,
+    gigs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
   } as const satisfies Record<string, number>;
 }

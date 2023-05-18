@@ -31,6 +31,11 @@ async function ensureGigExistence(id: string, complement: boolean = true) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Gig not found' });
 }
 
+/**
+ * Gig router, handling `Gigs` (events).
+ * Note: editing, deleting and adding Gigs will result in an immediate
+ * revalidation of the `/gigs` route.
+ */
 export const gigRouter = router({
   getGigs: procedure
     .input(
@@ -41,6 +46,7 @@ export const gigRouter = router({
       })
     )
     .query(async ({ input }): Promise<GetGigsResult> => {
+      // console.log('called getGigs endpoint', input);
       const { cursor: skip, limit: take, parseMarkdown } = input;
       const data = await prisma.gig
         .findMany({ orderBy: { start: 'desc' }, skip, take: 1 + take })
@@ -70,7 +76,7 @@ export const gigRouter = router({
   addGig: procedure
     .use(createPermissiveProcedure('postEvents'))
     .input(inputGigSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx: { res } }) => {
       if (
         await prisma.gig.findUnique({
           where: { title_start: { title: input.title, start: input.start } },
@@ -81,26 +87,40 @@ export const gigRouter = router({
           message: 'Title with given start already exists',
         });
       }
-      return await prisma.gig.create({ data: input }).catch(handleAsTRPCError);
-    }),
-  editGig: procedure
-    .use(createPermissiveProcedure('editEvents'))
-    .input(editGigSchema)
-    .mutation(async ({ input }) => {
-      const { id } = input;
-      return ensureGigExistence(id).then(() =>
-        prisma.gig
-          .update({ where: { id }, data: input })
-          .catch(handleAsTRPCError)
-      );
+      return await prisma.gig
+        .create({ data: input })
+        .then((data) => {
+          res?.revalidate('/gigs');
+          return data;
+        })
+        .catch(handleAsTRPCError);
     }),
   deleteGig: procedure
     .use(createPermissiveProcedure('deleteEvents'))
     .input(gigIdSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx: { res } }) => {
+      const { id } = input;
+      return ensureGigExistence(id)
+        .then(() => prisma.gig.delete({ where: { id } }))
+        .then((data) => {
+          res?.revalidate('/gigs');
+          return data;
+        })
+        .catch(handleAsTRPCError);
+    }),
+  editGig: procedure
+    .use(createPermissiveProcedure('editEvents'))
+    .input(editGigSchema)
+    .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>
-        prisma.gig.delete({ where: { id } })
+        prisma.gig
+          .update({ where: { id }, data: input })
+          .then((data) => {
+            res?.revalidate('/gigs');
+            return data;
+          })
+          .catch(handleAsTRPCError)
       );
     }),
 });
