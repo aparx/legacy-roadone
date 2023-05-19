@@ -3,6 +3,7 @@ import { Role } from '@/modules/schemas/role';
 import { middleware } from '@/server/trpc';
 import { Globals } from '@/utils/global/globals';
 import { TRPCError } from '@trpc/server';
+import * as sanitizeHtml from 'sanitize-html';
 
 /**
  * Allocates a new middleware that throws an error if the user has a role less
@@ -23,3 +24,14 @@ export const createPermissiveProcedure = (
   permission: keyof typeof Globals.permissions,
   errorMessage: string = `missing permission '${permission}'`
 ) => createRoleProcedure(Globals.permissions[permission], errorMessage);
+
+/** Middleware that sanitizes every string value of the input object (optional).
+ * Note: this procedure is `not` deep! It's just a "shallow" sanitization! */
+export const fullSanitizationProcedure = middleware((opts) => {
+  if (opts.input && typeof opts.input === 'object') {
+    Object.keys(opts.input as object)
+      .filter((k) => typeof opts.input![k] === 'string')
+      .forEach((k) => (opts.input![k] = sanitizeHtml(opts.input![k])));
+  }
+  return opts.next({ ctx: opts.ctx });
+});

@@ -4,12 +4,14 @@ export type InfiniteItem<TItem> = {
   item: TItem;
 };
 
-type _InferItemMutation<TKey extends string> = TKey extends `on${infer TCap}`
-  ? Uncapitalize<TCap>
-  : never;
-
-export type InfiniteItemEvents<TItem> = {
-  [P in `on${Capitalize<InfiniteItemMutation>}`]: _InferItemMutation<P>;
+export type InfiniteItemEvents<
+  TItem extends object,
+  TTypes extends InfiniteItemMutation = Exclude<InfiniteItemMutation, 'add'>
+> = {
+  [P in `on${Capitalize<TTypes>}`]: InfiniteItemMutateFunction<
+    P extends `on${infer TCap}` ? Uncapitalize<TCap> : never,
+    TItem
+  >;
 };
 
 /** Ways of mutating an infinite item; all required in `InfiniteItemEvents`. */

@@ -1,10 +1,14 @@
 import type { BlogProcessedData } from '@/modules/schemas/blog';
 import {
   blogContentSchema,
+  blogEditSchema,
   blogIdSchema,
   blogProcessedSchema,
 } from '@/modules/schemas/blog';
-import { createPermissiveProcedure } from '@/server/middleware';
+import {
+  createPermissiveProcedure,
+  fullSanitizationProcedure,
+} from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { renderMarkdown } from '@/utils/functional/markdown';
@@ -48,7 +52,7 @@ export const blogRouter = router({
       console.time('markdown');
       const blogArray = await Promise.all(
         data.map(async (blog): Promise<BlogProcessedData> => {
-          let markdown = await renderMarkdown(blog.content, true);
+          let markdown = await renderMarkdown(blog.content);
           (blog as BlogProcessedData).htmlContent = markdown;
           return blog;
         })
@@ -62,16 +66,27 @@ export const blogRouter = router({
       return { data: blogArray, nextCursor };
     }),
   addBlog: procedure
-    .use(createPermissiveProcedure('postBlogs'))
     .input(blogContentSchema)
+    .use(createPermissiveProcedure('blog.post'))
+    .use(fullSanitizationProcedure)
     .mutation(async ({ input, ctx: { session } }) => {
       return prisma.blogPost.create({
         data: { ...input, authorId: session!.user!.id },
       });
     }),
+  editBlog: procedure
+    .input(blogEditSchema)
+    .use(createPermissiveProcedure('blog.edit'))
+    .use(fullSanitizationProcedure)
+    .mutation(async ({ input }) => {
+      const { id } = input;
+      return ensureBlogExistence(id).then(() =>
+        prisma.blogPost.update({ data: input, where: { id } })
+      );
+    }),
   deleteBlog: procedure
-    .use(createPermissiveProcedure('deleteBlogs'))
     .input(blogIdSchema)
+    .use(createPermissiveProcedure('blog.delete'))
     .mutation(async ({ input: { id } }) => {
       return ensureBlogExistence(id).then(() =>
         prisma.blogPost.delete({ where: { id } })

@@ -2,7 +2,7 @@
 import { GigGroupConfig as config } from './GigGroup.config';
 import { GigCard } from '@/modules/gigs/components/GigCard';
 import {
-  GigMutateFunctionMap,
+  GigRequiringMutationMap,
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { useMessage } from '@/utils/hooks/useMessage';
@@ -22,7 +22,7 @@ export type InternalGigGroupProps = {
   gigs: RenderableGig[];
   /** @default 'md' */
   width?: BreakpointName;
-  events: GigMutateFunctionMap;
+  events: GigRequiringMutationMap;
 };
 
 export type GigGroupProps = ObjectConjunction<

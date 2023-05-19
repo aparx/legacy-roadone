@@ -5,7 +5,10 @@ import {
   gigIdSchema,
   GigProcessedData,
 } from '@/modules/schemas/gig';
-import { createPermissiveProcedure } from '@/server/middleware';
+import {
+  createPermissiveProcedure,
+  fullSanitizationProcedure,
+} from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
@@ -59,7 +62,7 @@ export const gigRouter = router({
         ? await Promise.all(
             data.map(async (gig): Promise<GigProcessedData> => {
               if (!gig.description?.length) return gig;
-              const markdown = await renderMarkdown(gig.description!, true);
+              const markdown = await renderMarkdown(gig.description!);
               (gig as GigProcessedData).htmlDescription = markdown;
               return gig;
             })
@@ -73,8 +76,9 @@ export const gigRouter = router({
       return { data: gigArray, nextCursor };
     }),
   addGig: procedure
-    .use(createPermissiveProcedure('postEvents'))
     .input(gigContentSchema)
+    .use(createPermissiveProcedure('gig.post'))
+    .use(fullSanitizationProcedure)
     .mutation(async ({ input, ctx: { res } }) => {
       if (
         await prisma.gig.findUnique({
@@ -95,8 +99,8 @@ export const gigRouter = router({
         .catch(handleAsTRPCError);
     }),
   deleteGig: procedure
-    .use(createPermissiveProcedure('deleteEvents'))
     .input(gigIdSchema)
+    .use(createPermissiveProcedure('gig.delete'))
     .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id)
@@ -108,8 +112,9 @@ export const gigRouter = router({
         .catch(handleAsTRPCError);
     }),
   editGig: procedure
-    .use(createPermissiveProcedure('editEvents'))
     .input(gigEditSchema)
+    .use(createPermissiveProcedure('gig.edit'))
+    .use(fullSanitizationProcedure)
     .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>

@@ -14,6 +14,8 @@ export const globalMessages = {
     edit: 'Bearbeiten',
     delete: 'Löschen',
     content: 'Inhalt',
+    share: 'Teilen',
+    comments: 'Kommentare',
   },
   app: {
     name: 'roadone',
@@ -22,6 +24,7 @@ export const globalMessages = {
     load_more: 'Mehr laden',
     profile_picture: 'Profilbild',
     add: '%s hinzufügen',
+    delete: '%s löschen',
     edit: '%s bearbeiten',
     accept: 'Annehmen',
     deny: 'Ablehnen',
@@ -45,6 +48,10 @@ export const globalMessages = {
       card: 'Auftritt am %s',
       group: 'Auftritte in %s',
     },
+    blog: {
+      showComments: 'Kommentare anzeigen',
+      closeComments: 'Kommentare ausblenden',
+    },
   },
   gig: {
     name: 'Auftritt',
@@ -52,7 +59,9 @@ export const globalMessages = {
     edit: 'Auftritt bearbeiten',
   },
   blog: {
-    name: 'Blog',
+    post: {
+      name: 'Blog-Eintrag',
+    },
   },
   modal: {
     sureTitle: 'Bist du sicher?',

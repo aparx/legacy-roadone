@@ -21,6 +21,8 @@ export const stack = (theme: Theme, data: Omit<StackData, 'spacing'>) => {
   return css({
     display: 'flex',
     flexDirection: data.direction,
+    flexWrap:
+      data.wrap === true ? 'wrap' : data.wrap === false ? 'nowrap' : data.wrap,
     [hProp]: hCenter || 'initial',
     [vProp]: vCenter || 'initial',
   });

@@ -7,6 +7,7 @@ export const blogIdSchema = z.object({ id: z.string().cuid() });
 export const blogContentSchema = z.object({
   title: z.string().min(3).max(64),
   content: z.string().max(4046),
+  commentsDisabled: z.boolean(),
 });
 
 /** The base blog schema, as found in the database. */

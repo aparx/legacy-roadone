@@ -80,10 +80,11 @@ model Gig {
 model BlogPost {
   id      String @id @default(cuid())
   title   String
-  content String // markdown content
+  content String @db.LongText // markdown content
 
-  commentCount Int           @default(0)
-  comments     BlogComment[]
+  commentsDisabled Boolean       @default(false)
+  commentCount     Int           @default(0)
+  comments         BlogComment[]
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String

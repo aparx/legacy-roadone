@@ -58,11 +58,11 @@ export const Card = forwardRef(function CardRenderer<TTag extends HTMLTag>(
   width ??= config.Defaults.width;
   return jsx(
     as ?? config.Defaults.tag,
-    {
-      css: style.card(useTheme(), width, keepPadding),
-      ref,
-      ...useStyleableMerge(rest),
-    },
+    propMerge(
+      { css: style.card(useTheme(), width, !!keepPadding) },
+      { ref },
+      useStyleableMerge(rest)
+    ),
     children
   );
 }) as HTMLTagRenderer<
@@ -170,9 +170,11 @@ export type CardFooterProps = PropsWithStyleable<{
 Card.Footer = forwardRef<HTMLElement, CardFooterProps>(
   function CardFooterRenderer({ children, ...rest }, ref) {
     return (
-      <footer css={style.footer} ref={ref} {...useStyleableMerge(rest)}>
+      <section
+        {...propMerge({ css: style.footer }, { ref }, useStyleableMerge(rest))}
+      >
         {children}
-      </footer>
+      </section>
     );
   }
 );

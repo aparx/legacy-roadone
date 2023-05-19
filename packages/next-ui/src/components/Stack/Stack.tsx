@@ -29,6 +29,8 @@ export type StackData = {
   direction: StackDirection;
   /** @default 1 */
   spacing: MultiplierValueInput<'spacing'>;
+  /** @default 'nowrap' */
+  wrap?: boolean | Property.FlexWrap;
   vAlign?: StackCenter;
   hAlign?: StackCenter;
 };
@@ -47,6 +49,7 @@ export const Stack = forwardRef(function StackRenderer<TTag extends HTMLTag>(
     children,
     direction,
     spacing,
+    wrap,
     vAlign,
     hAlign,
     ...rest
@@ -56,7 +59,7 @@ export const Stack = forwardRef(function StackRenderer<TTag extends HTMLTag>(
   return jsx(
     as ?? config.Defaults.tag,
     propMerge(
-      useStackProps({ direction, spacing, vAlign, hAlign }),
+      useStackProps({ direction, spacing, vAlign, hAlign, wrap }),
       useStyleableMerge(rest),
       { ref }
     ),
@@ -74,12 +77,13 @@ export function createStackProps(
   {
     direction = config.Defaults.direction,
     spacing = config.Defaults.spacing,
+    wrap = config.Defaults.wrap,
     vAlign,
     hAlign,
   }: Partial<StackData>
 ) {
   return {
-    css: style.stack(theme, { direction, vAlign, hAlign }),
+    css: style.stack(theme, { direction, vAlign, hAlign, wrap }),
     // Since spacing is not bound to any limits, we ensure to not create
     // unnecessary amounts of class merges, thus using inline style instead
     style: { gap: theme.rt.multipliers.spacing(spacing) },

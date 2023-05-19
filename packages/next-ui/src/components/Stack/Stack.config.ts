@@ -6,5 +6,6 @@ export module StackConfig {
     export const direction = 'column' satisfies StackData['direction'];
     export const spacing = 1 satisfies StackData['spacing'];
     export const tag = 'div' satisfies HTMLTag;
+    export const wrap = 'nowrap' satisfies StackData['wrap'];
   }
 }

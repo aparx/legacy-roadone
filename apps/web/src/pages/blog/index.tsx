@@ -1,22 +1,21 @@
-import { DialogConfig, Page } from '@/components';
-import { useDialogHandle, useToastHandle } from '@/handles';
+import { Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
-import {
-  BlogContentData,
-  blogContentSchema,
-  BlogData,
-  BlogEditData,
-} from '@/modules/schemas/blog';
+import { BlogPostCard } from '@/modules/blogs/components/BlogPostCard';
+import { BlogContentData, blogContentSchema } from '@/modules/schemas/blog';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
+import {
+  useDeleteDialog,
+  useMutateDialog,
+  UseMutateFormInput,
+  UseMutateType,
+} from '@/utils/pages/infinite/infiniteDialog';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { UseTRPCMutationResult } from '@trpc/react-query/shared';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
-import { useCallback } from 'react';
 import { MdAdd, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 
@@ -42,24 +41,45 @@ export default function BlogPage() {
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
+  const editDialog = useMutateDialog({
+    title: useMessage('general.edit', getGlobalMessage('blog.post.name')),
+    type: 'edit',
+    endpoint: api.blog.editBlog.useMutation(),
+    schema: blogContentSchema,
+    response: { success: getGlobalMessage('responses.blog.edit_success') },
+    form: (props) => <BlogPostForm {...props} />,
+    width: 'md',
+  });
+  const deleteDialog = useDeleteDialog({
+    title: useMessage('general.delete', getGlobalMessage('blog.post.name')),
+    endpoint: api.blog.deleteBlog.useMutation(),
+    width: 'sm',
+  });
   return (
     <Page name={'Blogs'} pageURL={'/blogs'}>
-      {Permission.useGlobalPermission('postBlogs') && <AddPanel />}
-      {data?.pages
-        ?.flatMap((p) => p.data)
-        .map((data) => {
-          return (
-            <Stack key={data.id}>
-              <p>{data.title}</p>
-              <div
-                style={{ whiteSpace: 'pre-line' }}
-                dangerouslySetInnerHTML={{
-                  __html: data.htmlContent ?? data.content,
-                }}
+      {Permission.useGlobalPermission('blog.post') && <AddBlogPanel />}
+      <Stack as={'main'} hAlign>
+        {data?.pages
+          ?.flatMap((p) => p.data)
+          .map((data) => {
+            return (
+              <BlogPostCard
+                key={data.id}
+                blog={data}
+                onDelete={deleteDialog}
+                onEdit={editDialog}
               />
-            </Stack>
-          );
-        })}
+            );
+          })}
+        {hasNextPage && (
+          <Button.Text
+            disabled={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {getGlobalMessage('general.load_more')}
+          </Button.Text>
+        )}
+      </Stack>
     </Page>
   );
 }
@@ -67,14 +87,21 @@ export default function BlogPage() {
 //       RESTRICTED COMPONENTS
 // <================================>
 
-function AddPanel() {
+function AddBlogPanel() {
   const mutation = api.blog.addBlog.useMutation();
-  const addGigDialog = useMutateBlogDialog({ type: 'add', endpoint: mutation });
+  const addDialog = useMutateDialog({
+    title: useMessage('general.add', getGlobalMessage('blog.post.name')),
+    type: 'add',
+    endpoint: mutation,
+    schema: blogContentSchema,
+    form: (props) => <BlogPostForm {...props} />,
+    width: 'md',
+  });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: 'md' }}>
       <div>
-        <Button.Primary leading={<MdAdd />} onClick={() => addGigDialog()}>
-          {useMessage('general.add', getGlobalMessage('blog.name'))}
+        <Button.Primary leading={<MdAdd />} onClick={() => addDialog()}>
+          {useMessage('general.add', getGlobalMessage('blog.post.name'))}
         </Button.Primary>
       </div>
     </Stack>
@@ -85,71 +112,13 @@ function AddPanel() {
 //                Blog FORMS
 // <======================================>
 
-type BlogDialogProps =
-  | {
-      type: 'add';
-      endpoint: UseTRPCMutationResult<
-        BlogContentData,
-        any,
-        BlogContentData,
-        any
-      >;
-      blog?: BlogData;
-    }
-  | {
-      type: 'edit';
-      endpoint: UseTRPCMutationResult<BlogEditData, any, BlogEditData, any>;
-      blog?: BlogData;
-    };
-
-function useMutateBlogDialog(props: Omit<BlogDialogProps, 'blog'>) {
-  const { type, endpoint } = props;
-  const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
-  const addToast = useToastHandle((s) => s.add);
-  const title = useMessage(`general.${type}`, getGlobalMessage('blog.name'));
-  return useCallback(
-    (blog?: BlogData) => {
-      showDialog({
-        title,
-        type: 'form',
-        width: 'lg',
-        actions: DialogConfig.dialogSaveCancelSource,
-        schema: blogContentSchema,
-        content: <BlogInputForm {...({ ...props, blog } as BlogDialogProps)} />,
-        handleSubmit: (data) => {
-          let newData: any = data;
-          if (type === 'edit')
-            newData = { ...data, id: blog!.id } satisfies BlogEditData;
-          endpoint.mutate(newData, {
-            onSuccess: () => {
-              closeDialog();
-              addToast({
-                type: 'success',
-                title: getGlobalMessage('general.actionSuccess'),
-                message: getGlobalMessage(`responses.blog.${type}_success`),
-              });
-            },
-            onError: (error) => {
-              addToast({
-                type: 'error',
-                title: getGlobalMessage('general.actionFailed'),
-                message: `${getGlobalMessage(
-                  error.message as any,
-                  error.message
-                )}`,
-              });
-            },
-          });
-        },
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showDialog, type, endpoint, closeDialog, addToast]
-  );
-}
-
-function BlogInputForm({ endpoint, blog }: BlogDialogProps) {
-  const { isLoading } = endpoint;
+function BlogPostForm<TType extends UseMutateType>(
+  props: UseMutateFormInput<TType, typeof blogContentSchema>
+) {
+  const {
+    endpoint: { isLoading },
+  } = props;
+  const item = props.type === 'edit' ? props.item : undefined;
   const form = useRawForm<BlogContentData>();
   return (
     <Stack spacing={'lg'}>
@@ -157,7 +126,7 @@ function BlogInputForm({ endpoint, blog }: BlogDialogProps) {
       <TextField
         name={'title'}
         placeholder={getGlobalMessage('translation.title')}
-        field={{ defaultValue: blog?.title }}
+        field={{ defaultValue: item?.title }}
         leading={<MdTitle />}
         required
         disabled={isLoading}
@@ -167,11 +136,19 @@ function BlogInputForm({ endpoint, blog }: BlogDialogProps) {
         name={'content'}
         type={'textarea'}
         placeholder={getGlobalMessage('translation.content')}
-        field={{ defaultValue: blog?.content }}
+        field={{ defaultValue: item?.content }}
         required
         disabled={isLoading}
         hookform={form}
       />
+      <label>
+        Kommentare verbieten
+        <input
+          type={'checkbox'}
+          defaultChecked={!!item?.commentsDisabled}
+          {...form.methods.register('commentsDisabled')}
+        />
+      </label>
     </Stack>
   );
 }

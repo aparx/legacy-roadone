@@ -1,7 +1,7 @@
 import { Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import type {
-  GigMutateFunctionMap,
+  GigRequiringMutationMap,
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
@@ -55,19 +55,20 @@ export default function GigsPage() {
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
-  const apiEdit = api.gig.editGig.useMutation();
-  const apiDelete = api.gig.deleteGig.useMutation();
   // Dialogs
   const editGigDialog = useMutateDialog({
+    title: useMessage('general.edit', getGlobalMessage('gig.name')),
     type: 'edit',
-    endpoint: apiEdit,
+    endpoint: api.gig.editGig.useMutation(),
+    response: { success: getGlobalMessage('responses.gig.edit_success') },
     schema: gigContentSchema,
-    dialogWidth: 'sm',
-    form: (props) => <GigInputForm {...props} />,
+    form: (props) => <GigForm {...props} />,
+    width: 'sm',
   });
   const deleteGigDialog = useDeleteDialog({
-    endpoint: apiDelete,
-    dialogWidth: 'sm',
+    title: useMessage('general.delete', getGlobalMessage('gig.name')),
+    endpoint: api.gig.deleteGig.useMutation(),
+    width: 'sm',
   });
   // Required render-data
   const gigGroups = useCreateGigGroups(data);
@@ -77,7 +78,7 @@ export default function GigsPage() {
       meta={{ description: 'Alle Auftritte von roadone' }}
       pageURL={'gigs'}
     >
-      {Permission.useGlobalPermission('postEvents') && <AddEventPanel />}
+      {Permission.useGlobalPermission('gig.post') && <AddEventPanel />}
       <Stack as={'main'} direction={'column'} spacing={'md'} hAlign>
         <>
           {useRenderGigGroups(gigGroups, {
@@ -106,11 +107,13 @@ export default function GigsPage() {
 function AddEventPanel() {
   const endpoint = api.gig.addGig.useMutation();
   const addDialog = useMutateDialog({
+    title: useMessage('general.add', getGlobalMessage('gig.name')),
     type: 'add',
-    dialogWidth: 'sm',
-    endpoint,
-    form: (props) => <GigInputForm {...props} />,
     schema: gigContentSchema,
+    response: { success: getGlobalMessage('responses.gig.add_success') },
+    endpoint,
+    form: (props) => <GigForm {...props} />,
+    width: 'sm',
   });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: config.gigWidth }}>
@@ -157,7 +160,7 @@ function useCreateGigGroups(data: InfiniteData<GetGigsOutput> | undefined) {
 /** Converts `yearToGigMap` into renderable `GigGroup` elements. */
 function useRenderGigGroups(
   yearToGigMap: Map<number, RenderableGig[]>,
-  functionMap: GigMutateFunctionMap
+  functionMap: GigRequiringMutationMap
 ) {
   return useMemo(() => {
     const groups: ReactNode[] = [];
@@ -180,7 +183,7 @@ function useRenderGigGroups(
 //                GIG FORMS
 // <======================================>
 
-function GigInputForm<TType extends UseMutateType>(
+function GigForm<TType extends UseMutateType>(
   props: UseMutateFormInput<TType, typeof gigContentSchema>
 ) {
   const {

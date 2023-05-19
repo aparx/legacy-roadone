@@ -16,15 +16,15 @@ export module Globals {
   /** Map of all permissions that require authorization. */
   export const permissions = {
     /** Permission to be able to add new events (gigs) */
-    postEvents: 'MEMBER',
+    'gig.post': 'MEMBER',
     /** Permission to be able to edit already existing events (gigs) */
-    editEvents: 'MEMBER',
+    'gig.edit': 'MEMBER',
     /** Permission to be able to delete existing events (gigs) */
-    deleteEvents: 'ADMIN',
+    'gig.delete': 'ADMIN',
 
-    postBlogs: 'ADMIN',
-    editBlogs: 'ADMIN',
-    deleteBlogs: 'ADMIN',
+    'blog.post': 'ADMIN',
+    'blog.edit': 'ADMIN',
+    'blog.delete': 'ADMIN',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */

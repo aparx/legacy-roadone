@@ -6,7 +6,7 @@ import { GigProcessedData } from '@/modules/schemas/gig';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
-import { InfiniteItemMutateFunction } from '@/utils/pages/infinite/infiniteItem';
+import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import {
   Button,
   propMerge,
@@ -22,12 +22,8 @@ import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
 import { MdDelete, MdEdit } from 'react-icons/md';
 
-export type GigMutateFunction = (gig: RenderableGig) => any;
-
-export type GigMutateFunctionMap = {
-  onEdit: InfiniteItemMutateFunction<'edit', RenderableGig>;
-  onDelete: InfiniteItemMutateFunction<'delete', RenderableGig>;
-};
+/** Events that handle mutation ('edit' and 'delete') on Gigs. */
+export type GigRequiringMutationMap = InfiniteItemEvents<RenderableGig>;
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
 export type RenderableGig = GigProcessedData & {
@@ -36,7 +32,7 @@ export type RenderableGig = GigProcessedData & {
 };
 
 export type GigProps = PropsWithoutChildren<HTMLAttributes<HTMLDivElement>> &
-  PropsWithStyleable<{ gig: RenderableGig } & GigMutateFunctionMap>;
+  PropsWithStyleable<{ gig: RenderableGig } & GigRequiringMutationMap>;
 
 export const GigCard = forwardRef<HTMLDivElement, GigProps>(
   function GigRenderer({ gig, onEdit, onDelete, ...restProps }, ref) {
@@ -51,8 +47,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
     ], [gig.start]);
     // Renderable address information being displayed with a possible separator
     const address: string[] = [`${gig.postcode} ${gig.city}`, `${gig.street}`];
-    const showEdit = Permission.useGlobalPermission('editEvents');
-    const showDelete = Permission.useGlobalPermission('deleteEvents');
+    const showEdit = Permission.useGlobalPermission('gig.edit');
+    const showDelete = Permission.useGlobalPermission('gig.delete');
     return (
       <Stack
         ref={ref}
@@ -115,7 +111,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             spacing={'lg'}
             hAlign={'space-between'}
             vAlign
-            style={{ flexWrap: 'wrap' }}
+            wrap
           >
             <Text.Title size={'md'} emphasis={isDone ? 'disabled' : 'high'}>
               {gig.title}
@@ -127,26 +123,24 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
                     tight
                     aria-label={getGlobalMessage('translation.edit')}
                     onClick={() => onEdit({ item: gig })}
+                    icon={<MdEdit />}
                     sd={{
                       color: (t) => t.sys.color.scheme.onSurface,
                       emphasis: 'medium',
                     }}
-                  >
-                    <MdEdit />
-                  </Button.Text>
+                  />
                 )}
                 {showDelete && (
                   <Button.Text
                     tight
                     aria-label={getGlobalMessage('translation.delete')}
                     onClick={() => onDelete({ item: gig })}
+                    icon={<MdDelete />}
                     sd={{
                       color: (t) => t.sys.color.scheme.error,
                       emphasis: 'medium',
                     }}
-                  >
-                    <MdDelete />
-                  </Button.Text>
+                  />
                 )}
               </Stack>
             )}
@@ -155,9 +149,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             as={'section'}
             size={'md'}
             emphasis={isDone ? 'disabled' : 'high'}
-            {...propMerge(useStackProps({ direction: 'row', spacing: 'md' }), {
-              style: { flexWrap: 'wrap' },
-            })}
+            {...useStackProps({ direction: 'row', spacing: 'md', wrap: true })}
           >
             <address css={style.address}>
               {address.map((info, i) => {

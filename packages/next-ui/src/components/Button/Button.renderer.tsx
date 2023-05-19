@@ -54,6 +54,7 @@ export function createButtonRenderer<TType extends ButtonType>(
       alignContent = config.Defaults.alignContent,
       tailing,
       tight,
+      icon,
       ...restProps
     }: TProps,
     ref: ForwardedRef<HTMLElementFromButtonProps<TProps>>
@@ -73,14 +74,20 @@ export function createButtonRenderer<TType extends ButtonType>(
             fontData,
             emphasis: disabled ? 'disabled' : 'high',
           }),
-
           factory?.(theme, opts, type),
           useStyleableMerge(restProps)
         )}
       >
         <Stack direction={'row'} hAlign={alignContent} spacing={0.5}>
           {leading && <Icon fontData={fontData}>{leading}</Icon>}
-          <div>{children}</div>
+          {icon && (
+            <Icon
+              fontData={fontData}
+              icon={icon}
+              style={{ fontSize: '105%' }}
+            />
+          )}
+          {children && <div>{children}</div>}
           {tailing && <Icon fontData={fontData}>{tailing}</Icon>}
         </Stack>
       </ButtonLink>

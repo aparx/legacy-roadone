@@ -8,7 +8,13 @@ import { createButtonRenderer } from './Button.renderer';
 import { mainButton } from './variations/mainButton';
 import { textButton } from './variations/textButton';
 import { capitalize } from 'lodash';
-import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
+import {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactElement,
+  ReactNode,
+} from 'react';
+import { IconBaseProps } from 'react-icons';
 import { MultiObjectConjunction } from 'shared-utils';
 import { palettePrimaryArray, TypescalePinpoint } from 'theme-core';
 
@@ -47,13 +53,14 @@ export type InternalButtonProps = PropsWithStyleable<{
   /** @default 'sm' */
   size?: ButtonSize;
   tight?: boolean;
+  icon?: false | ReactElement<IconBaseProps>;
   leading?: ReactNode;
   tailing?: ReactNode;
   [UI.customStylePropKey]?: Partial<ButtonOptions>;
 }>;
 
 export type ButtonProps = MultiObjectConjunction<
-  [InternalButtonProps, BiasedButtonProps, InternalButtonProps]
+  [BiasedButtonProps, InternalButtonProps]
 >;
 
 // In order for LSP to recognize the Text type, we have to export it.
