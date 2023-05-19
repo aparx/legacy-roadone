@@ -2,7 +2,7 @@ import { Page } from '@/components';
 import { toastTypeArray } from '@/components/Toast/Toast';
 import { useToastHandle } from '@/handles';
 import { capitalize } from 'lodash';
-import { Button, Stack } from 'next-ui';
+import { Button, Stack, TextField } from 'next-ui';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function MediaPage() {
@@ -31,6 +31,12 @@ export default function MediaPage() {
       </Stack>
       <Stack>
         <Button.Secondary>Click</Button.Secondary>
+        <TextField
+          name={'test'}
+          type={'textarea'}
+          placeholder={'Placeholder'}
+          required
+        />
       </Stack>
     </Page>
   );

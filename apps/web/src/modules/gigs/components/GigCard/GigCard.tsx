@@ -2,10 +2,11 @@
 import * as style from './GigCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
-import { ProcessedGig } from '@/modules/schemas/gig';
+import { GigProcessedData } from '@/modules/schemas/gig';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
+import { InfiniteItemMutateFunction } from '@/utils/pages/infinite/infiniteItem';
 import {
   Button,
   propMerge,
@@ -24,12 +25,12 @@ import { MdDelete, MdEdit } from 'react-icons/md';
 export type GigMutateFunction = (gig: RenderableGig) => any;
 
 export type GigMutateFunctionMap = {
-  onEdit: GigMutateFunction;
-  onDelete: GigMutateFunction;
+  onEdit: InfiniteItemMutateFunction<'edit', RenderableGig>;
+  onDelete: InfiniteItemMutateFunction<'delete', RenderableGig>;
 };
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
-export type RenderableGig = ProcessedGig & {
+export type RenderableGig = GigProcessedData & {
   /** @default 'upcoming' */
   state?: 'upcoming' | 'next' | 'done';
 };
@@ -125,7 +126,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
                   <Button.Text
                     tight
                     aria-label={getGlobalMessage('translation.edit')}
-                    onClick={() => onEdit(gig)}
+                    onClick={() => onEdit({ item: gig })}
                     sd={{
                       color: (t) => t.sys.color.scheme.onSurface,
                       emphasis: 'medium',
@@ -138,7 +139,7 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
                   <Button.Text
                     tight
                     aria-label={getGlobalMessage('translation.delete')}
-                    onClick={() => onDelete(gig)}
+                    onClick={() => onDelete({ item: gig })}
                     sd={{
                       color: (t) => t.sys.color.scheme.error,
                       emphasis: 'medium',

@@ -86,7 +86,7 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
           useStyleableMerge(rest)
         )}
       >
-        <Icon icon={toastIconMap[type]()} />
+        <Icon key={'leading'} icon={toastIconMap[type]()} />
         <Stack spacing={0}>
           {title && (
             <Text.Title as={'div'} size={'md'}>

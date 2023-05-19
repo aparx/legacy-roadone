@@ -60,7 +60,8 @@ export const shell = (
           background: ${bgBase};
         }
 
-        & input {
+        & input,
+        & textarea {
           border: unset;
           box-shadow: unset;
           outline: unset;
@@ -68,10 +69,16 @@ export const shell = (
           overflow: hidden;
           color: inherit;
           width: 100%;
+          resize: none;
 
           &::placeholder {
             color: inherit;
           }
+        }
+
+        & textarea {
+          font: unset;
+          min-height: ${(fontData.lineHeight ?? 0) * 4}px;
         }
       }
 

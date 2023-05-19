@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const gigIdSchema = z.object({ id: z.string().cuid() });
 
 /** The gig schema used to create a new schema client-side */
-export const inputGigSchema = z.object({
+export const gigContentSchema = z.object({
   title: z.string().min(3).max(128) /* @unique */,
   country: z.string().max(32).optional().nullish(),
   description: z.string().max(256).optional().nullish(),
@@ -14,7 +14,7 @@ export const inputGigSchema = z.object({
 });
 
 /** The gig schema used to edit an existing Gig on the client-side */
-export const editGigSchema = inputGigSchema.extend(gigIdSchema.shape);
+export const gigEditSchema = gigContentSchema.extend(gigIdSchema.shape);
 
 /** The complete gig schema, that exists like this in the database. */
 export const gigSchema = z
@@ -22,19 +22,17 @@ export const gigSchema = z
     createdAt: z.date() /* @default(now()) */,
     updatedAt: z.date().optional().nullish(),
   })
-  .extend(inputGigSchema.shape)
+  .extend(gigContentSchema.shape)
   .extend(gigIdSchema.shape);
 
-export const processedGigSchema = gigSchema.extend(
-  z.object({
-    htmlDescription: z.string().optional().nullish(),
-  }).shape
-);
+export const gigProcessedSchema = z
+  .object({ htmlDescription: z.string().optional().nullish() })
+  .extend(gigSchema.shape);
 
-export type InputGig = z.infer<typeof inputGigSchema>;
+export type GigContentData = z.infer<typeof gigContentSchema>;
 
-export type EditGig = z.infer<typeof editGigSchema>;
+export type GigEditData = z.infer<typeof gigEditSchema>;
 
-export type GigEvent = z.infer<typeof gigSchema>;
+export type GigProcessedData = z.infer<typeof gigProcessedSchema>;
 
-export type ProcessedGig = z.infer<typeof processedGigSchema>;
+export type GigData = z.infer<typeof gigSchema>;

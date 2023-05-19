@@ -31,6 +31,7 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
                   <Navbar>
                     <Navbar.Page link={'/home'} name={'Home'} />
                     <Navbar.Page link={'/gigs'} name={'Auftritte'} />
+                    <Navbar.Page link={'/blog'} name={'Blog'} />
                     <Navbar.Page link={'/media'} name={'Media'} />
                   </Navbar>
                   <ScrimRoot>

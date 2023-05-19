@@ -1,32 +1,29 @@
-import { DialogConfig, Page } from '@/components';
-import { useToastHandle } from '@/handles';
-import { useDialogHandle } from '@/handles/DialogHandle/DialogHandle.store';
+import { Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import type {
-  GigMutateFunction,
   GigMutateFunctionMap,
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
-import {
-  EditGig,
-  GigEvent,
-  InputGig,
-  inputGigSchema,
-} from '@/modules/schemas/gig';
+import { GigContentData, gigContentSchema } from '@/modules/schemas/gig';
 import { apiRouter } from '@/server/routers/_api';
-import type { GetGigsResult } from '@/server/routers/gig';
+import type { GetGigsOutput } from '@/server/routers/gig';
 import { api, queryClient } from '@/utils/api';
 import { toDatetimeLocal } from '@/utils/functional/date';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
+import {
+  useDeleteDialog,
+  useMutateDialog,
+  UseMutateFormInput,
+  UseMutateType,
+} from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteData } from '@tanstack/react-query';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { UseTRPCMutationResult } from '@trpc/react-query/shared';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
-import { ReactNode, useCallback, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { MdAdd, MdLocationCity, MdLocationPin, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
@@ -59,9 +56,19 @@ export default function GigsPage() {
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   const apiEdit = api.gig.editGig.useMutation();
+  const apiDelete = api.gig.deleteGig.useMutation();
   // Dialogs
-  const editGigDialog = useMutateGigDialog({ type: 'edit', endpoint: apiEdit });
-  const deleteGigDialog = useDeleteGigDialog();
+  const editGigDialog = useMutateDialog({
+    type: 'edit',
+    endpoint: apiEdit,
+    schema: gigContentSchema,
+    dialogWidth: 'sm',
+    form: (props) => <GigInputForm {...props} />,
+  });
+  const deleteGigDialog = useDeleteDialog({
+    endpoint: apiDelete,
+    dialogWidth: 'sm',
+  });
   // Required render-data
   const gigGroups = useCreateGigGroups(data);
   return (
@@ -97,12 +104,18 @@ export default function GigsPage() {
 // <================================>
 
 function AddEventPanel() {
-  const mutation = api.gig.addGig.useMutation();
-  const addGigDialog = useMutateGigDialog({ type: 'add', endpoint: mutation });
+  const endpoint = api.gig.addGig.useMutation();
+  const addDialog = useMutateDialog({
+    type: 'add',
+    dialogWidth: 'sm',
+    endpoint,
+    form: (props) => <GigInputForm {...props} />,
+    schema: gigContentSchema,
+  });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: config.gigWidth }}>
       <div>
-        <Button.Primary leading={<MdAdd />} onClick={() => addGigDialog()}>
+        <Button.Primary leading={<MdAdd />} onClick={() => addDialog()}>
           {useMessage('general.add', getGlobalMessage('aria.gig.name'))}
         </Button.Primary>
       </div>
@@ -115,7 +128,7 @@ function AddEventPanel() {
 // <================================>
 
 /** Creates gig groups by year and sorts them after descending order. */
-function useCreateGigGroups(data: InfiniteData<GetGigsResult> | undefined) {
+function useCreateGigGroups(data: InfiniteData<GetGigsOutput> | undefined) {
   return useMemo(() => {
     // Gig to year map
     const gigMap = new Map<number, RenderableGig[]>();
@@ -164,125 +177,24 @@ function useRenderGigGroups(
 }
 
 // <======================================>
-//               GIG DIALOGS
-// <======================================>
-
-function useDeleteGigDialog(): GigMutateFunction {
-  const apiDelete = api.gig.deleteGig.useMutation();
-  const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
-  const addToast = useToastHandle((s) => s.add);
-  return useCallback(
-    (gig: GigEvent) => {
-      const { id } = gig;
-      showDialog({
-        title: getGlobalMessage('modal.sureTitle'),
-        type: 'modal',
-        actions: DialogConfig.dialogYesCancelSource,
-        width: 'sm',
-        content: `Du bist gerade dabei, den Auftritt '${gig.title}' zu löschen.`,
-        onHandleYes: () => {
-          closeDialog();
-          apiDelete.mutate(
-            { id },
-            {
-              onSuccess: () => {
-                addToast({
-                  type: 'success',
-                  title: getGlobalMessage('general.actionSuccess'),
-                  message: `Auftritt ${gig.title} erfolgreich gelöscht!`,
-                });
-              },
-              onError: (error) => {
-                addToast({
-                  type: 'error',
-                  title: getGlobalMessage('general.actionFailed'),
-                  message: getGlobalMessage(
-                    error as any,
-                    getGlobalMessage('general.error')
-                  ),
-                });
-              },
-            }
-          );
-        },
-      });
-    },
-    [addToast, apiDelete, closeDialog, showDialog]
-  );
-}
-
-type GigDialogProps =
-  | {
-      type: 'add';
-      endpoint: UseTRPCMutationResult<InputGig, any, InputGig, any>;
-      gig?: GigEvent;
-    }
-  | {
-      type: 'edit';
-      endpoint: UseTRPCMutationResult<EditGig, any, EditGig, any>;
-      gig?: GigEvent;
-    };
-
-function useMutateGigDialog(props: Omit<GigDialogProps, 'gig'>) {
-  const { type, endpoint } = props;
-  const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
-  const addToast = useToastHandle((s) => s.add);
-  const title = useMessage(`general.${type}`, getGlobalMessage('gig.name'));
-  return useCallback(
-    (gig?: GigEvent) => {
-      showDialog({
-        title,
-        type: 'form',
-        width: 'sm',
-        actions: DialogConfig.dialogSaveCancelSource,
-        schema: inputGigSchema,
-        content: <GigInputForm {...({ ...props, gig } as GigDialogProps)} />,
-        handleSubmit: (data) => {
-          let newData: any = data;
-          if (type === 'edit')
-            newData = { ...data, id: gig!.id } satisfies EditGig;
-          endpoint.mutate(newData, {
-            onSuccess: () => {
-              closeDialog();
-              addToast({
-                type: 'success',
-                title: getGlobalMessage('general.actionSuccess'),
-                message: getGlobalMessage(`responses.gig.${type}_success`),
-              });
-            },
-            onError: (error) => {
-              addToast({
-                type: 'error',
-                title: getGlobalMessage('general.actionSuccess'),
-                message: `${getGlobalMessage(
-                  error.message as any,
-                  error.message
-                )}`,
-              });
-            },
-          });
-        },
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showDialog, type, endpoint, closeDialog, addToast]
-  );
-}
-
-// <======================================>
 //                GIG FORMS
 // <======================================>
 
-function GigInputForm({ endpoint, gig }: GigDialogProps) {
-  const { isLoading } = endpoint;
-  const form = useRawForm<InputGig>();
+function GigInputForm<TType extends UseMutateType>(
+  props: UseMutateFormInput<TType, typeof gigContentSchema>
+) {
+  const {
+    endpoint: { isLoading },
+  } = props;
+  const form = useRawForm<GigContentData>();
+  const item = props.type === 'edit' ? props.item : undefined;
   return (
     <Stack spacing={'lg'}>
       {isLoading && <div>LOADING...</div>}
       <TextField
         name={'title'}
         placeholder={getGlobalMessage('translation.title')}
-        field={{ defaultValue: gig?.title }}
+        field={{ defaultValue: item?.title }}
         leading={<MdTitle />}
         required
         disabled={isLoading}
@@ -293,7 +205,7 @@ function GigInputForm({ endpoint, gig }: GigDialogProps) {
         name={'start'}
         placeholder={getGlobalMessage('gig.start')}
         field={{
-          defaultValue: gig?.start ? toDatetimeLocal(gig.start) : undefined,
+          defaultValue: item?.start ? toDatetimeLocal(item.start) : undefined,
         }}
         type={'datetime-local'}
         required
@@ -303,7 +215,7 @@ function GigInputForm({ endpoint, gig }: GigDialogProps) {
       <TextField
         name={'city'}
         placeholder={getGlobalMessage('translation.city')}
-        field={{ defaultValue: gig?.city }}
+        field={{ defaultValue: item?.city }}
         leading={<MdLocationCity />}
         required
         disabled={isLoading}
@@ -312,7 +224,7 @@ function GigInputForm({ endpoint, gig }: GigDialogProps) {
       <TextField
         name={'street'}
         placeholder={getGlobalMessage('translation.street')}
-        field={{ defaultValue: gig?.street }}
+        field={{ defaultValue: item?.street }}
         leading={<MdLocationPin />}
         required
         disabled={isLoading}
@@ -321,7 +233,7 @@ function GigInputForm({ endpoint, gig }: GigDialogProps) {
       <TextField
         name={'postcode'}
         placeholder={getGlobalMessage('translation.postcode')}
-        field={{ defaultValue: gig?.postcode }}
+        field={{ defaultValue: item?.postcode }}
         required
         disabled={isLoading}
         hookform={form}
@@ -329,7 +241,7 @@ function GigInputForm({ endpoint, gig }: GigDialogProps) {
       <TextField
         name={'description'}
         placeholder={getGlobalMessage('translation.description')}
-        field={{ defaultValue: gig?.description ?? undefined }}
+        field={{ defaultValue: item?.description ?? undefined }}
         disabled={isLoading}
         hookform={form}
       />

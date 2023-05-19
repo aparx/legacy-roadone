@@ -16,7 +16,6 @@ export default function ToastHandle(props: PropsWithStyleable) {
   const renderToasts: ToastData[] = [];
   for (let i = 0; i < Math.min(5, toasts.length); ++i)
     renderToasts.push(toasts[i]);
-  console.log('rerender', toasts);
   return (
     <Portal>
       <PageAlign

@@ -1,24 +1,25 @@
 import {
-  editGigSchema,
-  GigEvent,
+  gigContentSchema,
+  GigData,
+  gigEditSchema,
   gigIdSchema,
-  inputGigSchema,
-  ProcessedGig,
+  GigProcessedData,
 } from '@/modules/schemas/gig';
 import { createPermissiveProcedure } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { renderMarkdown } from '@/utils/functional/markdown';
+import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-export type GetGigsResult = {
-  data: GigEvent[];
+export type GetGigsOutput = {
+  data: GigData[];
   nextCursor: number | undefined | null;
 };
 
-export async function isGigExisting(id: string): Promise<boolean> {
+async function isGigExisting(id: string): Promise<boolean> {
   return (await prisma.gig.count({ where: { id } })) !== 0;
 }
 
@@ -39,13 +40,11 @@ async function ensureGigExistence(id: string, complement: boolean = true) {
 export const gigRouter = router({
   getGigs: procedure
     .input(
-      z.object({
-        cursor: z.number().int().default(0),
-        limit: z.number().max(50).default(30),
-        parseMarkdown: z.boolean().default(false),
-      })
+      z
+        .object({ parseMarkdown: z.boolean().default(false) })
+        .extend(infiniteQueryInput.shape)
     )
-    .query(async ({ input }): Promise<GetGigsResult> => {
+    .query(async ({ input }): Promise<GetGigsOutput> => {
       // console.log('called getGigs endpoint', input);
       const { cursor: skip, limit: take, parseMarkdown } = input;
       const data = await prisma.gig
@@ -58,10 +57,10 @@ export const gigRouter = router({
       // tags or attributes need change.
       const gigArray = parseMarkdown
         ? await Promise.all(
-            data.map(async (gig): Promise<ProcessedGig> => {
+            data.map(async (gig): Promise<GigProcessedData> => {
               if (!gig.description?.length) return gig;
               const markdown = await renderMarkdown(gig.description!, true);
-              (gig as ProcessedGig).htmlDescription = markdown;
+              (gig as GigProcessedData).htmlDescription = markdown;
               return gig;
             })
           )
@@ -75,7 +74,7 @@ export const gigRouter = router({
     }),
   addGig: procedure
     .use(createPermissiveProcedure('postEvents'))
-    .input(inputGigSchema)
+    .input(gigContentSchema)
     .mutation(async ({ input, ctx: { res } }) => {
       if (
         await prisma.gig.findUnique({
@@ -110,7 +109,7 @@ export const gigRouter = router({
     }),
   editGig: procedure
     .use(createPermissiveProcedure('editEvents'))
-    .input(editGigSchema)
+    .input(gigEditSchema)
     .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>

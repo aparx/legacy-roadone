@@ -13,6 +13,7 @@ export const globalMessages = {
     description: 'Beschreibung',
     edit: 'Bearbeiten',
     delete: 'Löschen',
+    content: 'Inhalt',
   },
   app: {
     name: 'roadone',
@@ -50,6 +51,9 @@ export const globalMessages = {
     start: 'Beginn',
     edit: 'Auftritt bearbeiten',
   },
+  blog: {
+    name: 'Blog',
+  },
   modal: {
     sureTitle: 'Bist du sicher?',
     sureYes: 'Ja, ich bin sicher',
@@ -59,6 +63,10 @@ export const globalMessages = {
       add_title_start_duplicate:
         'Den Titel mit gegebenem Beginn gibt es bereits!',
       add_success: 'Es kann dauern, bis der neue Auftritt angezeigt wird.',
+      edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
+    },
+    blog: {
+      add_success: 'Es kann dauern, bis der neue Blog-Eintrag angezeigt wird.',
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
     },
   },

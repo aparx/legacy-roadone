@@ -11,7 +11,7 @@ import { Text } from '../Text';
 import { useDataTextProps, useFontData } from '../Text/Text';
 import { TextFieldConfig as config } from './TextField.config';
 import * as style from './TextField.style';
-import { useTheme } from '@emotion/react';
+import { jsx, useTheme } from '@emotion/react';
 import { capitalize } from 'lodash';
 import {
   ForwardedRef,
@@ -46,21 +46,23 @@ import {
 import { ObjectConjunction, UnionExtract } from 'shared-utils';
 import { OpacityEmphasis } from 'theme-core';
 
-export type TextFieldType = UnionExtract<
-  InputHTMLAttributes<HTMLInputElement>['type'],
-  | 'text'
-  | 'time'
-  | 'date'
-  | 'datetime-local'
-  | 'tel'
-  | 'password'
-  | 'search'
-  | 'email'
-  | 'url'
-  | 'number'
-  | 'month'
-  | 'week'
->;
+export type TextFieldType =
+  | UnionExtract<
+      InputHTMLAttributes<HTMLInputElement>['type'],
+      | 'text'
+      | 'time'
+      | 'date'
+      | 'datetime-local'
+      | 'tel'
+      | 'password'
+      | 'search'
+      | 'email'
+      | 'url'
+      | 'number'
+      | 'month'
+      | 'week'
+    >
+  | 'textarea';
 
 type BaseTextFieldProps<
   TName extends FieldPath<TFields> | string,
@@ -233,14 +235,14 @@ export const TextField = forwardRef(function TextFieldRenderer<
                 : leading}
             </Icon>
           )}
-          <input
-            type={type}
-            disabled={disabled}
-            placeholder={tight ? placeholder : undefined}
-            aria-invalid={error ? true : undefined}
-            aria-errormessage={error}
-            {...propMerge({ required }, field, regProps)}
-          />
+          {jsx(type === 'textarea' ? 'textarea' : 'input', {
+            type: type === 'textarea' ? undefined : type,
+            disabled,
+            placeholder: tight ? placeholder : undefined,
+            'aria-invalid': error ? true : undefined,
+            'aria-errormessage': error,
+            ...propMerge({ required }, field, regProps),
+          })}
           {tailing && (
             <Icon identify={tailingIconId} fontData={fontData}>
               {tailing === true && type in typeToIconMap

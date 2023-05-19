@@ -21,10 +21,15 @@ export module Globals {
     editEvents: 'MEMBER',
     /** Permission to be able to delete existing events (gigs) */
     deleteEvents: 'ADMIN',
+
+    postBlogs: 'ADMIN',
+    editBlogs: 'ADMIN',
+    deleteBlogs: 'ADMIN',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
     gigs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
+    blogs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
   } as const satisfies Record<string, number>;
 }
