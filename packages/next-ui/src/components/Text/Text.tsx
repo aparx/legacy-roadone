@@ -103,7 +103,7 @@ export function useDataTextProps({ fontData, color, emphasis }: TextStyleData) {
     style: {
       fontSize: `${fontData.fontSize / theme.ref.typeface.base.fontSize}rem`,
       color: emphasized ?? color,
-      opacity: !emphasized ? theme.rt.emphasis.emphasis(emphasis) : 'initial',
+      opacity: !emphasized ? theme.rt.emphasis.alpha(emphasis) : 'initial',
     } satisfies CSSProperties,
     css: css({
       fontWeight: theme.ref.typeface.weights[fontData.fontWeight],

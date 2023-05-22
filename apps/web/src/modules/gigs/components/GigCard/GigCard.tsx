@@ -2,7 +2,7 @@
 import * as style from './GigCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
-import { GigProcessedData } from '@/modules/schemas/gig';
+import { GigProcessedData } from '@/modules/gigs/gig';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';

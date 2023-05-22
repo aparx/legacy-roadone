@@ -14,7 +14,7 @@ import { z, ZodSchema } from 'zod';
 
 // prettier-ignore
 export type InfiniteMutationEndpoint<TFormData> =
-  UseTRPCMutationResult<TFormData, any, TFormData, any>;
+  UseTRPCMutationResult<unknown, any, TFormData, any>;
 
 /** Mutation data that is the base with all `InfiniteItemMutation`s. */
 export type DialogInfiniteMutationData<TFormData extends object> = {

@@ -1,7 +1,10 @@
 import { Page } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
+import {
+  BlogPostContentData,
+  blogPostContentSchema,
+} from '@/modules/blogs/blogPost';
 import { BlogPostCard } from '@/modules/blogs/components/BlogPostCard';
-import { BlogContentData, blogContentSchema } from '@/modules/schemas/blog';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
@@ -45,7 +48,7 @@ export default function BlogPage() {
     title: useMessage('general.edit', getGlobalMessage('blog.post.name')),
     type: 'edit',
     endpoint: api.blog.editBlog.useMutation(),
-    schema: blogContentSchema,
+    schema: blogPostContentSchema,
     response: { success: getGlobalMessage('responses.blog.edit_success') },
     form: (props) => <BlogPostForm {...props} />,
     width: 'md',
@@ -58,16 +61,17 @@ export default function BlogPage() {
   return (
     <Page name={'Blogs'} pageURL={'/blogs'}>
       {Permission.useGlobalPermission('blog.post') && <AddBlogPanel />}
-      <Stack as={'main'} hAlign>
+      <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {data?.pages
           ?.flatMap((p) => p.data)
-          .map((data) => {
+          .map((data, index) => {
             return (
               <BlogPostCard
                 key={data.id}
                 blog={data}
                 onDelete={deleteDialog}
                 onEdit={editDialog}
+                replyAutoShow={index === 0}
               />
             );
           })}
@@ -93,7 +97,7 @@ function AddBlogPanel() {
     title: useMessage('general.add', getGlobalMessage('blog.post.name')),
     type: 'add',
     endpoint: mutation,
-    schema: blogContentSchema,
+    schema: blogPostContentSchema,
     form: (props) => <BlogPostForm {...props} />,
     width: 'md',
   });
@@ -113,13 +117,13 @@ function AddBlogPanel() {
 // <======================================>
 
 function BlogPostForm<TType extends UseMutateType>(
-  props: UseMutateFormInput<TType, typeof blogContentSchema>
+  props: UseMutateFormInput<TType, typeof blogPostContentSchema>
 ) {
   const {
     endpoint: { isLoading },
   } = props;
   const item = props.type === 'edit' ? props.item : undefined;
-  const form = useRawForm<BlogContentData>();
+  const form = useRawForm<BlogPostContentData>();
   return (
     <Stack spacing={'lg'}>
       {isLoading && <div>LOADING...</div>}
@@ -145,8 +149,8 @@ function BlogPostForm<TType extends UseMutateType>(
         Kommentare verbieten
         <input
           type={'checkbox'}
-          defaultChecked={!!item?.commentsDisabled}
-          {...form.methods.register('commentsDisabled')}
+          defaultChecked={!!item?.repliesDisabled}
+          {...form.methods.register('repliesDisabled')}
         />
       </label>
     </Stack>

@@ -5,6 +5,7 @@ import {
   PropsWithStyleable,
   useStyleableMerge,
 } from '../../utils';
+import { multiRef } from '../../utils/mutliRef';
 import { Icon } from '../Icon';
 import { Stack } from '../Stack';
 import { Text } from '../Text';
@@ -26,7 +27,7 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { FieldErrors, UseFormReturn } from 'react-hook-form';
+import { FieldErrors, RefCallBack, UseFormReturn } from 'react-hook-form';
 import { FieldValues } from 'react-hook-form/dist/types/fields';
 import { FieldPath } from 'react-hook-form/dist/types/path';
 import { RegisterOptions } from 'react-hook-form/dist/types/validator';
@@ -124,10 +125,11 @@ export type TextFieldProps<
 
 export type TextFieldRef = {
   name: string;
+  focus: () => any;
   /** The outer "shell" (i.e. wrapper) reference */
-  shell: RefObject<HTMLDivElement>;
+  shell: HTMLDivElement | null;
   /** The inner actual input field reference */
-  field: RefObject<HTMLInputElement>;
+  field: HTMLInputElement | null;
 };
 
 export const typeToIconMap = {
@@ -170,7 +172,10 @@ export const TextField = forwardRef(function TextFieldRenderer<
   const shellRef = useRef<HTMLDivElement>(null);
   // prettier-ignore
   useImperativeHandle(ref, () => ({
-    field: fieldRef, shell: shellRef, name,
+    name,
+    field: fieldRef.current,
+    shell: shellRef.current,
+    focus: () => fieldRef?.current?.focus()
   }), [name]);
   const leadingIconId = useId();
   const tailingIconId = useId();
@@ -179,11 +184,17 @@ export const TextField = forwardRef(function TextFieldRenderer<
   const emphasis = disabled
     ? ('disabled' satisfies OpacityEmphasis)
     : undefined;
-  let regProps = hookform?.methods?.register?.(name as any, {
-    required,
-    valueAsNumber: type === 'number' ? (true as any) : undefined,
-    ...hookform.options,
-  });
+  let regProps: object | undefined;
+  let refArray: (RefCallBack | RefObject<HTMLInputElement>)[] = [fieldRef];
+  if (hookform?.methods?.register) {
+    const { ref, ...rest } = hookform.methods.register(name as any, {
+      required,
+      valueAsNumber: type === 'number' ? (true as any) : undefined,
+      ...hookform.options,
+    });
+    refArray.push(ref);
+    regProps = rest;
+  }
   let fieldState = hookform?.methods?.getFieldState?.(name as any);
   const isInvalid = Boolean(error || fieldState?.invalid);
   error ??= fieldState?.error?.message;
@@ -197,6 +208,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
   return (
     <Stack
       spacing={0.5}
+      ref={shellRef}
       aria-disabled={disabled}
       {...propMerge(
         {
@@ -226,7 +238,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
         {...useDataTextProps({ fontData, emphasis })}
       >
         {/* Field start */}
-        <Stack direction={'row'} vAlign spacing={0}>
+        <Stack direction={'row'} vAlign spacing={0} className={'state-layer'}>
           {/* state-layer */}
           {leading && (
             <Icon identify={leadingIconId} fontData={fontData}>
@@ -242,6 +254,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
             'aria-invalid': error ? true : undefined,
             'aria-errormessage': error,
             ...propMerge({ required }, field, regProps),
+            ref: multiRef(...refArray),
           })}
           {tailing && (
             <Icon identify={tailingIconId} fontData={fontData}>

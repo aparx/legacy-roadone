@@ -1,4 +1,3 @@
-import { TextConfig } from '../components';
 import { UI } from './magics';
 import { propMerge } from './merge';
 import type { MultiplierValueInput } from './types';
@@ -165,7 +164,7 @@ function createInlineStyle(theme: Theme, data: StyleableData) {
     opacity: data.opacity
       ? resolveSource(data.opacity, theme)
       : !fg && data.emphasis
-      ? emphasis.emphasis(data.emphasis)
+      ? emphasis.alpha(data.emphasis)
       : undefined,
     borderRadius: data.roundness
       ? multipliers.roundness(data.roundness ?? 0)

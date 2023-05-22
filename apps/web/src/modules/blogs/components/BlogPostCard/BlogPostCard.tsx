@@ -1,12 +1,16 @@
 /** @jsxImportSource @emotion/react */
 import * as style from './BlogPostCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
-import type { BlogData, BlogProcessedData } from '@/modules/schemas/blog';
-import { ToggleState, useLocalToggle } from '@/utils/localState';
+import type {
+  BlogPostData,
+  BlogPostProcessedData,
+} from '@/modules/blogs/blogPost';
+import BlogReplyGroup from '@/modules/blogs/components/BlogReplyGroup/BlogReplyGroup';
+import { useRelativeTime } from '@/utils/hooks/useRelativeTime';
+import { LocalToggle, useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
-import dayjs from 'dayjs';
-import { Button, Card } from 'next-ui';
+import { Button, Card, Stack } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useId } from 'react';
 import {
@@ -21,12 +25,13 @@ import {
 import useGlobalPermission = Permission.useGlobalPermission;
 
 export type BlogPostCardProps = {
-  blog: BlogProcessedData;
-} & InfiniteItemEvents<BlogData>;
+  blog: BlogPostProcessedData;
+  replyAutoShow?: boolean;
+} & InfiniteItemEvents<BlogPostData>;
 
 export default function BlogPostCard(props: BlogPostCardProps) {
-  const { blog } = props;
-  const showComments = useLocalToggle();
+  const { blog, replyAutoShow } = props;
+  const showReplies = useLocalToggle(replyAutoShow);
   const labelledBy = useId();
   return (
     <article aria-labelledby={labelledBy}>
@@ -34,7 +39,7 @@ export default function BlogPostCard(props: BlogPostCardProps) {
         css={style.blogPostCard}
         keepPadding
         style={
-          showComments.state
+          showReplies.state
             ? {
                 borderBottomLeftRadius: 0,
                 borderBottomRightRadius: 0,
@@ -44,26 +49,25 @@ export default function BlogPostCard(props: BlogPostCardProps) {
       >
         <Card.Header>
           <Card.Header.Subtitle>
-            {dayjs(blog.createdAt).fromNow()}
+            {useRelativeTime(blog.createdAt)}
           </Card.Header.Subtitle>
           <Card.Header.Title id={labelledBy}>{blog.title}</Card.Header.Title>
         </Card.Header>
         <Card.Content
           dangerouslySetInnerHTML={{ __html: blog.htmlContent ?? blog.content }}
         />
-        <BlogPostFooter {...props} showComments={showComments} />
+        <BlogPostFooter {...props} showReplies={showReplies} />
       </Card>
-      {showComments.state && <BlogPostCommentTree {...props} />}
+      {showReplies.state && <BlogPostCommentTree {...props} />}
     </article>
   );
 }
 
 function BlogPostFooter(
-  props: BlogPostCardProps & { showComments: ToggleState }
+  props: BlogPostCardProps & { showReplies: LocalToggle }
 ) {
-  const { blog, onEdit, onDelete, showComments } = props;
-  console.log(blog);
-  const isDisabled = blog.commentsDisabled;
+  const { blog, onEdit, onDelete, showReplies } = props;
+  const isDisabled = blog.repliesDisabled;
   const showEdit = useGlobalPermission('blog.edit');
   const showDelete = useGlobalPermission('blog.delete');
   return (
@@ -95,7 +99,7 @@ function BlogPostFooter(
         leading={
           isDisabled ? (
             <MdCommentsDisabled />
-          ) : showComments.state ? (
+          ) : showReplies.state ? (
             <MdOutlineModeComment />
           ) : (
             <MdComment />
@@ -103,14 +107,11 @@ function BlogPostFooter(
         }
         disabled={isDisabled}
         aria-label={getGlobalMessage(
-          showComments.state
-            ? 'aria.blog.closeComments'
-            : 'aria.blog.showComments'
+          showReplies.state ? 'blog.reply.multiHide' : 'blog.reply.multiShow'
         )}
-        onClick={showComments.toggle}
+        onClick={showReplies.toggle}
       >
-        {/*  TODO FETCH COMMENTS */}
-        {blog.commentCount !== 0 && `${blog.commentCount} `}
+        {blog.replyCount !== 0 && `${blog.replyCount} `}
         {getGlobalMessage('translation.comments')}
       </Button.Secondary>
     </Card.Footer>
@@ -119,8 +120,20 @@ function BlogPostFooter(
 
 function BlogPostCommentTree(props: BlogPostCardProps) {
   return (
-    <section aria-label={getGlobalMessage('translation.comments')}>
-      Comment Tree
-    </section>
+    <Stack
+      as={'section'}
+      aria-label={getGlobalMessage('translation.comments')}
+      sd={{
+        padding: 'lg',
+        background: (t) => t.sys.color.surface[2],
+        roundness: 'md',
+      }}
+      style={{
+        borderTopLeftRadius: 'unset',
+        borderTopRightRadius: 'unset',
+      }}
+    >
+      <BlogReplyGroup group={{ root: props.blog, path: [] }} />
+    </Stack>
   );
 }

@@ -5,7 +5,7 @@ import type {
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
-import { GigContentData, gigContentSchema } from '@/modules/schemas/gig';
+import { GigContentData, gigContentSchema } from '@/modules/gigs/gig';
 import { apiRouter } from '@/server/routers/_api';
 import type { GetGigsOutput } from '@/server/routers/gig';
 import { api, queryClient } from '@/utils/api';

@@ -6,19 +6,28 @@ import { Session } from 'next-auth';
 import { propMerge, PropsWithStyleable, useStyleableMerge } from 'next-ui';
 import Image from 'next/image';
 import { forwardRef, HTMLAttributes } from 'react';
+import { ObjectConjunction } from 'shared-utils';
 
 export type InternalAvatarProps = {
-  user: Session['user'];
-  name: string;
+  user?: Session['user'] | undefined | null;
+  /** @default 'Avatar' */
+  name?: string;
   /** @default 30 */
   size?: number;
-} & HTMLAttributes<HTMLElement>;
+};
 
-export type AvatarProps = PropsWithStyleable<InternalAvatarProps>;
+export type AvatarProps = PropsWithStyleable<
+  ObjectConjunction<HTMLAttributes<HTMLElement>, InternalAvatarProps>
+>;
 
 export const Avatar = forwardRef<HTMLElement, AvatarProps>(
   function AvatarRenderer(
-    { user, size = config.Defaults.size, name, ...restProps },
+    {
+      user,
+      size = config.defaults.size,
+      name = config.defaults.name,
+      ...restProps
+    },
     ref
   ) {
     const theme = useTheme();

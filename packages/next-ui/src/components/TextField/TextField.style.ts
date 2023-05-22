@@ -44,7 +44,7 @@ export const shell = (
         transition-timing-function: linear;
       }
 
-      & > div {
+      & > .state-layer {
         // state-layer
         background: ${disabled ? t.sys.color.state.disabled : 'transparent'};
 
@@ -70,9 +70,10 @@ export const shell = (
           color: inherit;
           width: 100%;
           resize: none;
+          min-height: ${fontData.lineHeight}px;
 
           &::placeholder {
-            color: inherit;
+            color: ${t.rt.emphasis.emphasize(fgBase, 'low')};
           }
         }
 
@@ -87,7 +88,7 @@ export const shell = (
         color: ${t.sys.color.scheme.onSecondaryContainer};
         border-color: ${t.sys.color.scheme.primary};
         outline-color: ${t.sys.color.scheme.primary};
-        & > div {
+        & > .state-layer {
           // state-layer
           & [${IconConfig.identifyHTMLAttribute}='${leadingIconId}'] {
             background-color: ${t.sys.color.scheme.primary};
@@ -97,7 +98,7 @@ export const shell = (
       }
 
       &:not([aria-disabled='true']):hover {
-        & > div {
+        & > .state-layer {
           // state-layer
           background: ${t.sys.color.state.surface.light};
         }

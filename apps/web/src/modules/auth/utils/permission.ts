@@ -40,4 +40,14 @@ export module Permission {
   export function useGlobalPermission(key: keyof typeof Globals.permissions) {
     return isGreaterOrEqual(useRole(), Globals.permissions[key]);
   }
+
+  export function hasGlobalPermission(
+    session: Session | undefined | null,
+    key: keyof typeof Globals.permissions
+  ) {
+    return isGreaterOrEqual(
+      getRoleOfSession(session),
+      Globals.permissions[key]
+    );
+  }
 }

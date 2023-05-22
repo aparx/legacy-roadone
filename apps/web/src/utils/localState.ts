@@ -13,9 +13,9 @@ export function useLocalState<TValue>(
   return useMemo(() => ({ state, set: setState }), [state]);
 }
 
-export type ToggleState = LocalState<boolean> & { toggle: () => void };
+export type LocalToggle = LocalState<boolean> & { toggle: () => void };
 
-export function useLocalToggle(initial?: boolean): ToggleState {
+export function useLocalToggle(initial?: boolean): LocalToggle {
   const s = useLocalState(initial ?? false);
   return useMemo(() => ({ ...s, toggle: () => s.set((b) => !b) }), [s]);
 }

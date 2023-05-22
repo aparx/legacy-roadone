@@ -3,6 +3,11 @@ import { DefaultSession } from 'next-auth/src/core/types';
 
 declare module 'next-auth' {
   export interface Session extends DefaultSession {
-    user: DefaultSession['user'] & { id: string; role: Role };
+    user: DefaultSession['user'] & {
+      id: string;
+      role: Role;
+      lastAction?: Date | undefined | null;
+      actionCount?: number | undefined | null;
+    };
   }
 }

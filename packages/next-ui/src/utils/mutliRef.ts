@@ -11,6 +11,7 @@ export function updateRef<E>(element: E, references: MultiRefData<E>) {
   references
     .filter((ref) => ref != null)
     .forEach((ref) => {
+      if (!ref) return;
       if (typeof ref !== 'function') ref.current = element;
       else (ref as Function)(element);
     });

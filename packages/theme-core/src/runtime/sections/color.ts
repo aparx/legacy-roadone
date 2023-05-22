@@ -12,7 +12,7 @@ export class RuntimeEmphasis {
     return colord(color).alpha(this.ref.emphasis[emphasis]).toHex();
   }
 
-  emphasis(key: OpacityEmphasis): number {
+  alpha(key: OpacityEmphasis): number {
     return this.ref.emphasis[key];
   }
 }

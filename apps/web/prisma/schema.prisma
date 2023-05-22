@@ -13,6 +13,8 @@ datasource db {
 
 /// Enum of all possible roles with different meaning to permission
 enum Role {
+  /// Guests are unauthenticated users (default role)
+  GUEST
   USER
   /// MEMBERs are the music group's members
   MEMBER
@@ -35,7 +37,16 @@ model User {
   role      Role     @default(USER)
 
   blogPosts    BlogPost[]
-  blogComments BlogComment[]
+  blogComments BlogReply[]
+
+  /// Keeps track of when the last action (i.e. mutation) was performed.
+  lastAction DateTime?
+
+  /// Count that increments when an action was performed after another within a
+  /// certain timeframe. If the count exceeds a certain threshold, this user is
+  /// rate-limited. The number decreases with each action taken outside said
+  /// timeframe. Some `Role`s might be immune to rate-limitations.
+  actionCount Int @default(0) @db.UnsignedSmallInt
 
   @@index([role])
 }
@@ -82,9 +93,11 @@ model BlogPost {
   title   String
   content String @db.LongText // markdown content
 
-  commentsDisabled Boolean       @default(false)
-  commentCount     Int           @default(0)
-  comments         BlogComment[]
+  repliesDisabled Boolean     @default(false)
+  /// Total (deep) reply count
+  replyCount      Int         @default(0)
+  /// Total (all / deep) replies
+  replies         BlogReply[]
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
@@ -94,19 +107,23 @@ model BlogPost {
 
   @@index([createdAt(sort: Desc)])
   @@index([authorId])
+  @@index([id, repliesDisabled])
 }
 
-model BlogComment {
+model BlogReply {
   id     String   @id @default(cuid())
-  blog   BlogPost @relation(fields: [blogId], references: [id])
+  blog   BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId String
 
   content String
 
-  parent   BlogComment? @relation("parent", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent   BlogReply? @relation("parent", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   parentId String?
 
-  children BlogComment[] @relation("parent")
+  /// Relative (direct) reply count
+  replyCount Int         @default(0)
+  /// Relative (directly nested) replies
+  replies    BlogReply[] @relation("parent")
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
@@ -114,7 +131,7 @@ model BlogComment {
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  @@index([createdAt(sort: Desc)])
+  @@index([createdAt(sort: Asc)])
   @@index([blogId])
   @@index([parentId])
   @@index([authorId])

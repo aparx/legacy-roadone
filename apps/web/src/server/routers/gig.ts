@@ -2,20 +2,23 @@ import {
   gigContentSchema,
   GigData,
   gigEditSchema,
-  gigIdSchema,
   GigProcessedData,
-} from '@/modules/schemas/gig';
+} from '@/modules/gigs/gig';
 import {
-  createPermissiveProcedure,
-  fullSanitizationProcedure,
+  createPermissiveMiddleware,
+  fullSanitizationMiddleware,
+  rateLimitingMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { renderMarkdown } from '@/utils/functional/markdown';
+import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+
+const revalidatePath = '/gigs';
 
 export type GetGigsOutput = {
   data: GigData[];
@@ -77,8 +80,9 @@ export const gigRouter = router({
     }),
   addGig: procedure
     .input(gigContentSchema)
-    .use(createPermissiveProcedure('gig.post'))
-    .use(fullSanitizationProcedure)
+    .use(createPermissiveMiddleware('gig.post'))
+    .use(rateLimitingMiddleware)
+    .use(fullSanitizationMiddleware)
     .mutation(async ({ input, ctx: { res } }) => {
       if (
         await prisma.gig.findUnique({
@@ -93,38 +97,39 @@ export const gigRouter = router({
       return await prisma.gig
         .create({ data: input })
         .then((data) => {
-          res?.revalidate('/gigs');
-          return data;
-        })
-        .catch(handleAsTRPCError);
-    }),
-  deleteGig: procedure
-    .input(gigIdSchema)
-    .use(createPermissiveProcedure('gig.delete'))
-    .mutation(async ({ input, ctx: { res } }) => {
-      const { id } = input;
-      return ensureGigExistence(id)
-        .then(() => prisma.gig.delete({ where: { id } }))
-        .then((data) => {
-          res?.revalidate('/gigs');
+          res?.revalidate(revalidatePath);
           return data;
         })
         .catch(handleAsTRPCError);
     }),
   editGig: procedure
     .input(gigEditSchema)
-    .use(createPermissiveProcedure('gig.edit'))
-    .use(fullSanitizationProcedure)
+    .use(createPermissiveMiddleware('gig.edit'))
+    .use(rateLimitingMiddleware)
+    .use(fullSanitizationMiddleware)
     .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>
         prisma.gig
           .update({ where: { id }, data: input })
           .then((data) => {
-            res?.revalidate('/gigs');
+            res?.revalidate(revalidatePath);
             return data;
           })
           .catch(handleAsTRPCError)
       );
+    }),
+  deleteGig: procedure
+    .input(cuidSchema)
+    .use(createPermissiveMiddleware('gig.delete'))
+    .mutation(async ({ input, ctx: { res } }) => {
+      const { id } = input;
+      return ensureGigExistence(id)
+        .then(() => prisma.gig.delete({ where: { id } }))
+        .then((data) => {
+          res?.revalidate(revalidatePath);
+          return data;
+        })
+        .catch(handleAsTRPCError);
     }),
 });

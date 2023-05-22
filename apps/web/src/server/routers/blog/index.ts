@@ -1,24 +1,27 @@
-import type { BlogProcessedData } from '@/modules/schemas/blog';
+import type { BlogPostProcessedData } from '@/modules/blogs/blogPost';
 import {
-  blogContentSchema,
-  blogEditSchema,
-  blogIdSchema,
-  blogProcessedSchema,
-} from '@/modules/schemas/blog';
+  blogPostContentSchema,
+  blogPostEditSchema,
+  blogPostProcessedSchema,
+} from '@/modules/blogs/blogPost';
 import {
-  createPermissiveProcedure,
-  fullSanitizationProcedure,
+  createPermissiveMiddleware,
+  fullSanitizationMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
+import { blogReplyRouter } from '@/server/routers/blog/replies';
 import { procedure, router } from '@/server/trpc';
 import { renderMarkdown } from '@/utils/functional/markdown';
+import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+const revalidatePath = '/blogs';
+
 /** `getBlogs` output schema */
 const getBlogsOutputSchema = z.object({
-  data: z.array(blogProcessedSchema),
+  data: z.array(blogPostProcessedSchema),
   nextCursor: z.number().nullish(),
 });
 
@@ -38,6 +41,7 @@ async function ensureBlogExistence(id: string, complement: boolean = true) {
 }
 
 export const blogRouter = router({
+  reply: blogReplyRouter,
   getBlogs: procedure
     .input(infiniteQueryInput)
     .output(getBlogsOutputSchema)
@@ -46,18 +50,16 @@ export const blogRouter = router({
       const data = await prisma.blogPost.findMany({
         orderBy: { createdAt: 'desc' },
         skip: cursor,
-        take: limit,
+        take: limit + 1,
         include: { author: true },
       });
-      console.time('markdown');
       const blogArray = await Promise.all(
-        data.map(async (blog): Promise<BlogProcessedData> => {
+        data.map(async (blog): Promise<BlogPostProcessedData> => {
           let markdown = await renderMarkdown(blog.content);
-          (blog as BlogProcessedData).htmlContent = markdown;
+          (blog as BlogPostProcessedData).htmlContent = markdown;
           return blog;
         })
       );
-      console.timeEnd('markdown');
       let nextCursor;
       if (blogArray.length > limit) {
         blogArray.pop();
@@ -66,30 +68,39 @@ export const blogRouter = router({
       return { data: blogArray, nextCursor };
     }),
   addBlog: procedure
-    .input(blogContentSchema)
-    .use(createPermissiveProcedure('blog.post'))
-    .use(fullSanitizationProcedure)
-    .mutation(async ({ input, ctx: { session } }) => {
-      return prisma.blogPost.create({
-        data: { ...input, authorId: session!.user!.id },
-      });
+    .input(blogPostContentSchema)
+    .use(createPermissiveMiddleware('blog.post'))
+    .use(fullSanitizationMiddleware)
+    .mutation(async ({ input, ctx: { session, res } }) => {
+      return prisma.blogPost
+        .create({ data: { ...input, authorId: session!.user!.id } })
+        .then((data) => {
+          res?.revalidate(revalidatePath);
+          return data;
+        });
     }),
   editBlog: procedure
-    .input(blogEditSchema)
-    .use(createPermissiveProcedure('blog.edit'))
-    .use(fullSanitizationProcedure)
-    .mutation(async ({ input }) => {
+    .input(blogPostEditSchema)
+    .use(createPermissiveMiddleware('blog.edit'))
+    .use(fullSanitizationMiddleware)
+    .mutation(async ({ input, ctx: { res } }) => {
       const { id } = input;
-      return ensureBlogExistence(id).then(() =>
-        prisma.blogPost.update({ data: input, where: { id } })
-      );
+      return ensureBlogExistence(id)
+        .then(() => prisma.blogPost.update({ data: input, where: { id } }))
+        .then((data) => {
+          res?.revalidate(revalidatePath);
+          return data;
+        });
     }),
   deleteBlog: procedure
-    .input(blogIdSchema)
-    .use(createPermissiveProcedure('blog.delete'))
-    .mutation(async ({ input: { id } }) => {
-      return ensureBlogExistence(id).then(() =>
-        prisma.blogPost.delete({ where: { id } })
-      );
+    .input(cuidSchema)
+    .use(createPermissiveMiddleware('blog.delete'))
+    .mutation(async ({ input: { id }, ctx: { res } }) => {
+      return ensureBlogExistence(id)
+        .then(() => prisma.blogPost.delete({ where: { id } }))
+        .then((data) => {
+          res?.revalidate(revalidatePath);
+          return data;
+        });
     }),
 });

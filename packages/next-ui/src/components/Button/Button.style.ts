@@ -19,6 +19,21 @@ export const button = (
 ) => {
   const { sys, rt } = t;
   const fontData = typescalePinpoint(t, opts.font);
+  const roundness = rt.multipliers.roundness(opts.roundness ?? 0);
+  const baseBoxV = `${rt.multipliers.spacing(opts.flowPaddingV)}px`;
+  const baseBoxH = `${rt.multipliers.spacing(opts.flowPaddingH)}px`;
+  // Physical padding for the actual `padding` css-property
+  const realPaddingV = opts.oofPaddingV ? 'unset' : baseBoxV;
+  const realPaddingH = opts.oofPaddingH ? 'unset' : baseBoxH;
+  // Simulated "out-of-flow" padding for the `box-shadow` css-property
+  const boxShadowPadding = (color: unknown) => {
+    const shadow: string[] = [];
+    if (opts.oofPaddingH)
+      shadow.push(`-${baseBoxH} 0 ${color}`, `${baseBoxH} 0 ${color}`);
+    if (opts.oofPaddingV)
+      shadow.push(`0 -${baseBoxV} ${color}`, `0 ${baseBoxV} ${color}`);
+    return shadow.length === 0 ? 'unset' : shadow.join(', ');
+  };
   return css`
     // TODO change to transparent and add/fix touch events
     -webkit-tap-highlight-color: ${t.sys.color.state[style.state].light};
@@ -32,14 +47,16 @@ export const button = (
     color: transparent;
     width: fit-content;
     height: fit-content;
-    border-radius: ${rt.multipliers.roundness(opts.roundness ?? 0)}px;
+    border-radius: ${roundness}px;
     text-decoration: none;
     user-select: none;
 
     & > div {
       // state-layer
-      padding: ${rt.multipliers.spacing(opts.vPadding)}px
-        ${rt.multipliers.spacing(opts.hPadding)}px;
+      padding-top: ${realPaddingV};
+      padding-bottom: ${realPaddingV};
+      padding-left: ${realPaddingH};
+      padding-right: ${realPaddingH};
       border-radius: inherit;
 
       & > div {
@@ -53,10 +70,11 @@ export const button = (
       cursor: pointer;
       color: ${style.foreground};
       background: ${style.background};
+      box-shadow: ${boxShadowPadding(style.background)};
 
       & > div {
         // state-layer
-        transition: background ${UI.baseTransitionMs}ms;
+        transition: all ${UI.baseTransitionMs}ms;
       }
 
       // :hover, :focus-visible
@@ -64,6 +82,7 @@ export const button = (
       &:focus-visible > div {
         // state-layer
         background: ${t.sys.color.state[style.state].light};
+        box-shadow: ${boxShadowPadding(t.sys.color.state[style.state].light)};
       }
 
       // :pressed
@@ -71,6 +90,7 @@ export const button = (
       &:active > div {
         // state-layer
         background: ${t.sys.color.state[style.state].medium};
+        box-shadow: ${boxShadowPadding(t.sys.color.state[style.state].medium)};
       }
     }
 
@@ -79,6 +99,7 @@ export const button = (
     &[aria-disabled='true'] {
       color: ${t.sys.color.scheme.onSurface};
       background: ${t.sys.color.state.disabled};
+      box-shadow: ${boxShadowPadding(t.sys.color.state.disabled)};
       pointer-events: none;
     }
   `;

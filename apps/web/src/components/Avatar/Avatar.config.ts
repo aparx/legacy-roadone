@@ -1,7 +1,9 @@
 import type { InternalAvatarProps } from './Avatar';
+import { PickOptionals } from 'shared-utils';
 
 export module AvatarConfig {
-  export module Defaults {
-    export const size = 30 satisfies InternalAvatarProps['size'];
-  }
+  export const defaults = {
+    size: 30,
+    name: 'Avatar',
+  } as const satisfies Partial<PickOptionals<InternalAvatarProps>>;
 }

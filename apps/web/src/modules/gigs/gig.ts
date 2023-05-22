@@ -1,6 +1,5 @@
+import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { z } from 'zod';
-
-export const gigIdSchema = z.object({ id: z.string().cuid() });
 
 /** The gig schema used to create a new schema client-side */
 export const gigContentSchema = z.object({
@@ -14,7 +13,7 @@ export const gigContentSchema = z.object({
 });
 
 /** The gig schema used to edit an existing Gig on the client-side */
-export const gigEditSchema = gigContentSchema.extend(gigIdSchema.shape);
+export const gigEditSchema = gigContentSchema.extend(cuidSchema.shape);
 
 /** The complete gig schema, that exists like this in the database. */
 export const gigSchema = z
@@ -23,7 +22,7 @@ export const gigSchema = z
     updatedAt: z.date().optional().nullish(),
   })
   .extend(gigContentSchema.shape)
-  .extend(gigIdSchema.shape);
+  .extend(cuidSchema.shape);
 
 export const gigProcessedSchema = z
   .object({ htmlDescription: z.string().optional().nullish() })

@@ -16,6 +16,7 @@ export const globalMessages = {
     content: 'Inhalt',
     share: 'Teilen',
     comments: 'Kommentare',
+    replies: 'Antworten',
   },
   app: {
     name: 'roadone',
@@ -48,10 +49,6 @@ export const globalMessages = {
       card: 'Auftritt am %s',
       group: 'Auftritte in %s',
     },
-    blog: {
-      showComments: 'Kommentare anzeigen',
-      closeComments: 'Kommentare ausblenden',
-    },
   },
   gig: {
     name: 'Auftritt',
@@ -61,6 +58,10 @@ export const globalMessages = {
   blog: {
     post: {
       name: 'Blog-Eintrag',
+    },
+    reply: {
+      multiShow: 'Antworten anzeigen',
+      multiHide: 'Antworten ausblenden',
     },
   },
   modal: {

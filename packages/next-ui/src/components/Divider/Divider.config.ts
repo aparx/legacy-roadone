@@ -1,9 +1,11 @@
-import { DividerData } from './Divider';
+import { InternalDividerProps } from './Divider';
+import { PickOptionals } from 'shared-utils';
 
 export module DividerConfig {
   export const defaults = {
-    length: '100%',
     thickness: 2,
     orientation: 'horizontal',
-  } satisfies Required<DividerData>;
+    length: '100%',
+    emphasis: 'high',
+  } satisfies PickOptionals<InternalDividerProps>;
 }

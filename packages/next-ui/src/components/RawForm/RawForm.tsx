@@ -1,7 +1,10 @@
 /** @jsxImportSource @emotion/react */
-import { RawFormContextProvider } from './context/rawFormContext';
+import {
+  RawFormContext,
+  RawFormContextProvider,
+} from './context/rawFormContext';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PropsWithChildren, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import type { UseFormProps } from 'react-hook-form';
 import { FieldErrors, SubmitHandler, useForm } from 'react-hook-form';
 import { ObjectConjunction } from 'shared-utils';
@@ -10,13 +13,19 @@ import { ZodSchema } from 'zod';
 export type InternalFormProps<
   TSchema extends ZodSchema,
   TContext = undefined
-> = PropsWithChildren<{
+> = {
   schema: TSchema;
-  onSubmit: SubmitHandler<TSchema>;
-}> &
-  (TContext extends undefined | null
-    ? { context?: undefined }
-    : { context: TContext });
+  onSubmit: SubmitHandler<TSchema['_output']>;
+} & (TContext extends undefined | null
+  ? { context?: undefined }
+  : { context: TContext }) &
+  (
+    | { children?: ReactNode; form?: undefined }
+    | {
+        children?: undefined;
+        form?: (form: RawFormContext<TSchema>, schema: TSchema) => ReactNode;
+      }
+  );
 
 export type FormProps<
   TSchema extends ZodSchema,
@@ -29,6 +38,7 @@ export type FormProps<
 export const RawForm = <TSchema extends ZodSchema, TContext = undefined>({
   schema,
   children,
+  form,
   context,
   onSubmit,
   ...rest
@@ -47,7 +57,7 @@ export const RawForm = <TSchema extends ZodSchema, TContext = undefined>({
           onSubmit(v);
         }, setErrors)}
       >
-        {children}
+        {form?.({ methods, errors }, schema) ?? children}
       </form>
     </RawFormContextProvider>
   );

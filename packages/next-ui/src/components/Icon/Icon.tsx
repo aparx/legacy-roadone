@@ -52,6 +52,9 @@ export default function Icon({ fontData, font, ...props }: IconProps) {
         useStyleableMerge(rest)
       ),
     },
-    [icon, children]
+    <>
+      {icon}
+      {children}
+    </>
   );
 }
