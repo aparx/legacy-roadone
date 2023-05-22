@@ -18,7 +18,7 @@ export module Globals {
 
   /** If true, always prioritises at least one reply of the authenticated user and
    *  "pins" it to the top. This may lead to an extra query being executed. */
-  export const prioritiseSelfReplies = false;
+  export const prioritiseSelfReplies = true;
 
   export const replyFetchLimit = 3;
 

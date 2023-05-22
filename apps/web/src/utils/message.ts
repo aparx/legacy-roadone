@@ -60,8 +60,14 @@ export const globalMessages = {
       name: 'Blog-Eintrag',
     },
     reply: {
+      name: 'Antwort',
       multiShow: 'Antworten anzeigen',
       multiHide: 'Antworten ausblenden',
+      dialog: {
+        message_delete_zero: 'Es werden keine weiteren Antworten gelöscht.',
+        message_delete_multiple:
+          'Es werden alle Antworten zu diesem Kommentar gelöscht.',
+      },
     },
   },
   modal: {

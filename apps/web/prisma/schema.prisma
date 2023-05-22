@@ -93,11 +93,15 @@ model BlogPost {
   title   String
   content String @db.LongText // markdown content
 
-  repliesDisabled Boolean     @default(false)
+  repliesDisabled Boolean @default(false)
+
+  /// TODO field for the total amount of replies and for the (root) relative,
+  ///      so that skeletons can be shown accordingly on initial load.
+
   /// Total (deep) reply count
-  replyCount      Int         @default(0)
+  replyCount Int         @default(0)
   /// Total (all / deep) replies
-  replies         BlogReply[]
+  replies    BlogReply[]
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String

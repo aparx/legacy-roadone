@@ -14,8 +14,8 @@ import { useSession } from 'next-auth/react';
 import {
   Button,
   propMerge,
-  PropsWithStyleable,
   Stack,
+  StyleableProp,
   Text,
   UI,
   useStyleableMerge,
@@ -25,28 +25,24 @@ import { MdDelete, MdExpandLess, MdExpandMore } from 'react-icons/md';
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
-export type BlogReplyProps = PropsWithStyleable<
-  {
-    reply: BlogReplyData;
-    /** the parent group */
-    parent: CommentGroupNode;
-  } & Pick<InfiniteItemEvents<BlogReplyData>, 'onDelete'>
->;
+export type BlogReplyProps = { reply: BlogReplyData } & (
+  | { visualOnly: true; parent?: undefined }
+  | { visualOnly?: false | undefined; parent: CommentGroupNode }
+) &
+  Pick<InfiniteItemEvents<BlogReplyData>, 'onDelete'> &
+  StyleableProp;
 
-export default function BlogReplyCard({
-  reply,
-  parent,
-  onDelete,
-  ...rest
-}: BlogReplyProps) {
+export default function BlogReplyCard(props: BlogReplyProps) {
+  const { reply, visualOnly, onDelete, parent, ...rest } = props;
   const labeledBy = useId();
   const session = useSession();
   const triggerFocus = useRef(false);
   const [showReplies, setShowReplies] = useState(false);
   const isOwner = reply.authorId === session?.data?.user?.id;
+  // prettier-ignore
   const canPostReply =
     useGlobalPermission('blog.comment.post') &&
-    1 + parent.path.length < Globals.maxReplyDepth;
+    parent && 1 + parent.path.length < Globals.maxReplyDepth;
   const canManipulateReply =
     useGlobalPermission('blog.reply.ownAll') || isOwner;
   const fieldRef = useRef<BlogReplyFieldRef>(null);
@@ -81,7 +77,7 @@ export default function BlogReplyCard({
                 id={labeledBy}
                 take={{ fontWeight: 'strong' }}
               >
-                {/* replace "[[deleted]]" with something else */}
+                {/* TODO replace "[[deleted]]" with something else */}
                 {reply.author?.name || '[[deleted]]'}
               </Text.Title>
               <Text.Label
@@ -98,8 +94,8 @@ export default function BlogReplyCard({
               {reply.content}
             </Text.Body>
           </div>
-          <Stack as={'footer'} direction={'row'} spacing={1} vAlign>
-            {canPostReply && (
+          <Stack as={'footer'} direction={'row'} spacing={1} vAlign wrap>
+            {canPostReply && !visualOnly && (
               <Button.Text
                 onClick={() => {
                   triggerFocus.current = true;
@@ -112,7 +108,7 @@ export default function BlogReplyCard({
                 Antworten
               </Button.Text>
             )}
-            {reply.replyCount !== 0 && (
+            {reply.replyCount !== 0 && !visualOnly && (
               <Button.Text
                 tight
                 leading={showReplies ? <MdExpandLess /> : <MdExpandMore />}
@@ -126,7 +122,7 @@ export default function BlogReplyCard({
                   : getGlobalMessage('blog.reply.multiShow')}
               </Button.Text>
             )}
-            {canManipulateReply && (
+            {canManipulateReply && !visualOnly && (
               <Button.Text
                 tight
                 leading={<MdDelete />}
@@ -137,16 +133,16 @@ export default function BlogReplyCard({
                 }}
                 take={{ oofPaddingH: reply.replyCount === 0 && !canPostReply }}
               >
-                Löschen
+                {getGlobalMessage('translation.delete')}
               </Button.Text>
             )}
           </Stack>
         </Stack>
       </Stack>
-      {showReplies && (
+      {showReplies && parent && (
         <Stack
           as={'section'}
-          sd={{ marginLeft: 2.75, paddingLeft: 2.75 }}
+          sd={{ marginLeft: 'md', paddingLeft: 'lg' }}
           css={style.nestedRepliesStack}
         >
           <BlogReplyGroup

@@ -114,11 +114,12 @@ export const blogReplyRouter = router({
       if (found) replyArray.push(...found);
       let nextCursor: number | undefined;
       if (replyArray && replyArray.length > limit) {
-        replyArray.pop();
+        replyArray.splice(limit, replyArray.length);
         nextCursor = cursor + limit;
       }
       return { data: replyArray ?? [], nextCursor };
     }),
+
   addReply: procedure
     .input(addCommentInputSchema)
     .use(createPermissiveMiddleware('blog.comment.post'))
@@ -147,6 +148,7 @@ export const blogReplyRouter = router({
       }
       return (await prisma.$transaction(transactions))[0] as BlogReplyData;
     }),
+
   deleteReply: procedure
     .input(cuidSchema)
     .use(createPermissiveMiddleware('blog.comment.post'))

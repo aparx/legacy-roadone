@@ -14,10 +14,11 @@ import { procedure, router } from '@/server/trpc';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
+import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-const revalidatePath = '/blogs';
+const revalidatePath = '/blog';
 
 /** `getBlogs` output schema */
 const getBlogsOutputSchema = z.object({
@@ -71,36 +72,27 @@ export const blogRouter = router({
     .input(blogPostContentSchema)
     .use(createPermissiveMiddleware('blog.post'))
     .use(fullSanitizationMiddleware)
-    .mutation(async ({ input, ctx: { session, res } }) => {
+    .mutation(({ input, ctx: { session, res } }) => {
       return prisma.blogPost
         .create({ data: { ...input, authorId: session!.user!.id } })
-        .then((data) => {
-          res?.revalidate(revalidatePath);
-          return data;
-        });
+        .then((data) => pipePathRevalidate(revalidatePath, res, data));
     }),
   editBlog: procedure
     .input(blogPostEditSchema)
     .use(createPermissiveMiddleware('blog.edit'))
     .use(fullSanitizationMiddleware)
-    .mutation(async ({ input, ctx: { res } }) => {
+    .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureBlogExistence(id)
         .then(() => prisma.blogPost.update({ data: input, where: { id } }))
-        .then((data) => {
-          res?.revalidate(revalidatePath);
-          return data;
-        });
+        .then((data) => pipePathRevalidate(revalidatePath, res, data));
     }),
   deleteBlog: procedure
     .input(cuidSchema)
     .use(createPermissiveMiddleware('blog.delete'))
-    .mutation(async ({ input: { id }, ctx: { res } }) => {
+    .mutation(({ input: { id }, ctx: { res } }) => {
       return ensureBlogExistence(id)
         .then(() => prisma.blogPost.delete({ where: { id } }))
-        .then((data) => {
-          res?.revalidate(revalidatePath);
-          return data;
-        });
+        .then((data) => pipePathRevalidate(revalidatePath, res, data));
     }),
 });

@@ -38,7 +38,7 @@ export type DialogFormData<TFormSchema extends ZodSchema> = {
   schema: TFormSchema;
   handleSubmit: SubmitHandler<TFormSchema['_output']>;
   description?: string;
-  content?: ReactNode | undefined;
+  content?: ReactNode;
   hookform?: UseFormProps<TFormSchema['_output'], 'schema' | 'resolver'>;
 };
 
@@ -209,7 +209,9 @@ function DialogInner<
   const inner = (
     <>
       <DialogHeader {...props} />
-      <Card.Content>{props.data.content as any}</Card.Content>
+      <Card.Content>
+        <>{props.data.content}</>
+      </Card.Content>
       <DialogFooter {...props} />
     </>
   );

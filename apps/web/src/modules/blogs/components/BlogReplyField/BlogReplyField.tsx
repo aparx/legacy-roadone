@@ -75,7 +75,7 @@ export default BlogReplyField;
 const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
   function ReplyFormRenderer({ group, shell, field }, ref) {
     const { status } = useSession();
-    const disabled = status === 'unauthenticated';
+    const disabled = status !== 'authenticated';
     return (
       <div {...useStyleableMerge(shell ?? {})}>
         <TextField

@@ -58,7 +58,9 @@ export default function BlogPostCard(props: BlogPostCardProps) {
         />
         <BlogPostFooter {...props} showReplies={showReplies} />
       </Card>
-      {showReplies.state && <BlogPostCommentTree {...props} />}
+      {showReplies.state && !blog.repliesDisabled && (
+        <BlogPostCommentTree {...props} />
+      )}
     </article>
   );
 }

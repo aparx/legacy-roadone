@@ -15,6 +15,7 @@ import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
+import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
@@ -91,15 +92,13 @@ export const gigRouter = router({
       ) {
         throw new TRPCError({
           code: 'CONFLICT',
+          // TODO replace by global message key
           message: 'Title with given start already exists',
         });
       }
       return await prisma.gig
         .create({ data: input })
-        .then((data) => {
-          res?.revalidate(revalidatePath);
-          return data;
-        })
+        .then((data) => pipePathRevalidate(revalidatePath, res, data))
         .catch(handleAsTRPCError);
     }),
   editGig: procedure
@@ -107,29 +106,23 @@ export const gigRouter = router({
     .use(createPermissiveMiddleware('gig.edit'))
     .use(rateLimitingMiddleware)
     .use(fullSanitizationMiddleware)
-    .mutation(async ({ input, ctx: { res } }) => {
+    .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>
         prisma.gig
           .update({ where: { id }, data: input })
-          .then((data) => {
-            res?.revalidate(revalidatePath);
-            return data;
-          })
+          .then((data) => pipePathRevalidate(revalidatePath, res, data))
           .catch(handleAsTRPCError)
       );
     }),
   deleteGig: procedure
     .input(cuidSchema)
     .use(createPermissiveMiddleware('gig.delete'))
-    .mutation(async ({ input, ctx: { res } }) => {
+    .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id)
         .then(() => prisma.gig.delete({ where: { id } }))
-        .then((data) => {
-          res?.revalidate(revalidatePath);
-          return data;
-        })
+        .then((data) => pipePathRevalidate(revalidatePath, res, data))
         .catch(handleAsTRPCError);
     }),
 });

@@ -27,8 +27,8 @@ export type DialogInfiniteMutationData<TFormData extends object> = {
 export type InfiniteMutationDialogResult<
   TType extends InfiniteItemMutation,
   TSchema extends ZodSchema,
-  TFormData extends object = _ImplicitItem<TType, TSchema>
-> = InfiniteItemMutateFunction<TType, TFormData>;
+  TDataItem extends object = _ImplicitItem<TType, TSchema>
+> = InfiniteItemMutateFunction<TType, TDataItem>;
 
 /** Target (identifier) used to target a specific item for a mutation. */
 type _InfiniteItemTarget = { id: string };
@@ -46,33 +46,35 @@ type _ImplicitItem<
 
 export type UseDeleteDialogProps<
   TSchema extends ZodSchema,
-  TFormData extends object = _ImplicitItem<'delete', TSchema>
+  TDataItem extends TFormData = _ImplicitItem<'delete', TSchema>,
+  TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
 > = DialogInfiniteMutationData<TFormData> & {
-  content?: ReactNode;
+  content?: (item: InfiniteItem<TDataItem>) => ReactNode;
   response?: { success?: string };
 };
 
 /** Dialog that deletes the given infinite-item */
 export function useDeleteDialog<
   TSchema extends ZodSchema,
+  TDataItem extends TFormData = _ImplicitItem<'delete', TSchema>,
   TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
 >(
-  props: UseDeleteDialogProps<TSchema, TFormData>
-): InfiniteMutationDialogResult<'delete', TSchema, TFormData> {
+  props: UseDeleteDialogProps<TSchema, TDataItem, TFormData>
+): InfiniteMutationDialogResult<'delete', TSchema, TDataItem> {
   const { endpoint, width, content, response, title } = props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
-  return ({ item }: InfiniteItem<TFormData>) => {
-    const { id } = item;
+  return (iItem: InfiniteItem<TDataItem>) => {
+    const { id } = iItem.item;
     showDialog({
       title,
       type: 'modal',
       actions: DialogConfig.dialogYesCancelSource,
       width: width,
-      content,
+      content: content?.(iItem),
       onHandleYes: () => {
         closeDialog();
-        endpoint.mutate(item, {
+        endpoint.mutate(iItem.item, {
           onSuccess: () => {
             addToast({
               type: 'success',
