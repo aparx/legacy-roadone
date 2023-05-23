@@ -66,7 +66,7 @@ export const shell = (
           box-shadow: unset;
           outline: unset;
           background: unset;
-          overflow: hidden;
+          overflow-x: hidden;
           color: inherit;
           width: 100%;
           resize: none;

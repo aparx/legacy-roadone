@@ -1,26 +1,41 @@
 /** @jsxImportSource @emotion/react */
 import * as style from './BlogReplyField.style';
 import { useToastHandle } from '@/handles';
+import { logIn } from '@/modules/auth/utils/logInOut';
 import { blogReplyContentSchema } from '@/modules/blogs/blogReply';
+import { BlogReplyCardConfig } from '@/modules/blogs/components/BlogReplyCard';
 import { CommentGroupNode } from '@/modules/blogs/groupSchema';
 import { api } from '@/utils/api';
+import { getGlobalMessage } from '@/utils/message';
+import { useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
 import {
+  Button,
+  Icon,
+  MultiplierValueInput,
   propMerge,
   PropsWithStyleable,
+  Stack,
   TextField,
   useStyleableMerge,
 } from 'next-ui';
 import RawForm from 'next-ui/src/components/RawForm/RawForm';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
+import {
+  useDataTextProps,
+  useFontData,
+} from 'next-ui/src/components/Text/Text';
 import { TextFieldRef } from 'next-ui/src/components/TextField/TextField';
 import {
+  CSSProperties,
   forwardRef,
   HTMLAttributes,
   InputHTMLAttributes,
   useImperativeHandle,
   useRef,
 } from 'react';
+import { MdLock, MdLogin, MdSend } from 'react-icons/md';
+import { TypescalePinpoint } from 'theme-core';
 
 export type InternalReplyFieldProps = {
   /** Group of where the comment field is supposed to append comments to. */
@@ -46,7 +61,6 @@ export const BlogReplyField = forwardRef<
   const addToast = useToastHandle((s) => s.add);
   const endpoint = api.blog.reply.addReply.useMutation({
     trpc: { abortOnUnmount: true },
-    cacheTime: Infinity,
   });
   return (
     <RawForm
@@ -75,22 +89,76 @@ export default BlogReplyField;
 const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
   function ReplyFormRenderer({ group, shell, field }, ref) {
     const { status } = useSession();
-    const disabled = status !== 'authenticated';
+    const notAuthed = status === 'unauthenticated';
+    const rawForm = useRawForm();
     return (
       <div {...useStyleableMerge(shell ?? {})}>
-        <TextField
-          ref={ref}
-          name={'content'}
-          placeholder={'Kommentieren...'}
-          tight
-          field={{ autoComplete: 'off' }}
-          hookform={useRawForm()}
-          disabled={disabled}
-          required
-          {...propMerge({ css: style.replyTextField }, field)}
-        />
-        {/*{!disabled && <Button.Primary type={'submit'}>Submit</Button.Primary>}*/}
+        {notAuthed ? (
+          <NotAuthedField />
+        ) : (
+          <TextField
+            ref={ref}
+            name={'content'}
+            placeholder={'Kommentieren...'}
+            tight
+            field={{ autoComplete: 'off' }}
+            hookform={rawForm}
+            disabled={status === 'loading'}
+            tailing={
+              <Button.Text
+                type={'submit'}
+                aria-label={getGlobalMessage('translation.send')}
+                tight
+                take={{ vPaddingMode: 'oof' }}
+                icon={<MdSend />}
+                disabled={status === 'loading'}
+              />
+            }
+            required
+            {...propMerge({ css: style.replyTextField }, field)}
+          />
+        )}
       </div>
     );
   }
 );
+
+function NotAuthedField() {
+  const font = { role: 'body', size: 'md' } satisfies TypescalePinpoint;
+  const fontData = useFontData(font);
+  const theme = useTheme();
+  const padding = 'sm' satisfies MultiplierValueInput<'spacing'>;
+  return (
+    <Stack
+      sd={{ padding }}
+      direction={'row'}
+      {...propMerge(useDataTextProps({ fontData }), {
+        css: style.loginField(useTheme(), fontData),
+        style: { userSelect: 'none' } satisfies CSSProperties,
+      })}
+      hAlign={'space-between'}
+      vAlign
+    >
+      <Stack
+        direction={'row'}
+        {...useDataTextProps({ fontData, emphasis: 'medium' })}
+      >
+        <Icon
+          aria-hidden
+          icon={<MdLock />}
+          fontData={fontData}
+          style={{
+            width: `${
+              BlogReplyCardConfig.avatarSize +
+              (theme.rt.multipliers.spacing(padding) ?? 0)
+            }px`,
+          }}
+        />
+        <span aria-hidden>Einloggen um zu antworten</span>
+      </Stack>
+      <Button.Tertiary size={'sm'} leading={<MdLogin />} onClick={logIn}>
+        Einloggen
+      </Button.Tertiary>
+    </Stack>
+  );
+}

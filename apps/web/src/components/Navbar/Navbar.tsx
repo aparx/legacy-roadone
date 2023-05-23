@@ -107,13 +107,15 @@ function NavItems({ pages }: { pages: NavbarProps['children'] }) {
           label={'expand'}
           controls={navId}
           stateOpen={expand}
-          css={hiddenIfDesktop(theme)}
           aria-label={
             expand.state
               ? getGlobalMessage('aria.navigation.close')
               : getGlobalMessage('aria.navigation.open')
           }
-          {...propMerge({ css: style.hamburger }, pageAlign)}
+          {...propMerge(
+            { css: [style.hamburger, hiddenIfDesktop(theme)] },
+            pageAlign
+          )}
         />
       )}
       {isDrawerOrInitial && expand.state && (

@@ -129,6 +129,10 @@ model BlogReply {
   /// Relative (directly nested) replies
   replies    BlogReply[] @relation("parent")
 
+  /// Reply depth. In other words, how many parents there are (blog-post excluded).
+  /// If the depth is zero, `parentId` is null
+  depth Int @db.UnsignedTinyInt
+
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 

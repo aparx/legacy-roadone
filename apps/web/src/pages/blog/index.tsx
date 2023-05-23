@@ -41,7 +41,6 @@ export default function BlogPage() {
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.blog.getBlogs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
-      staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   const editDialog = useMutateDialog({

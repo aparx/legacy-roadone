@@ -26,8 +26,8 @@ export const mainButton = memoize(() => {
           role: 'body',
           size: 'md',
         },
-        flowPaddingH: 2,
-        flowPaddingV: 1,
+        hPadding: 2,
+        vPadding: 1,
         roundness: 1.25,
       },
       _size: {
@@ -36,7 +36,7 @@ export const mainButton = memoize(() => {
             font: {
               size: 'sm',
             },
-            flowPaddingH: 1.5,
+            hPadding: 1.5,
           },
         },
       },

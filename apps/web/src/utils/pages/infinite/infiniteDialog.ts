@@ -13,15 +13,20 @@ import { UnionExtract } from 'shared-utils';
 import { z, ZodSchema } from 'zod';
 
 // prettier-ignore
-export type InfiniteMutationEndpoint<TFormData> =
-  UseTRPCMutationResult<unknown, any, TFormData, any>;
+export type InfiniteMutationEndpoint<TFormData, TReturnData = unknown> =
+  UseTRPCMutationResult<TReturnData, any, TFormData, any>;
 
 /** Mutation data that is the base with all `InfiniteItemMutation`s. */
-export type DialogInfiniteMutationData<TFormData extends object> = {
+export type DialogInfiniteMutationData<
+  TFormData extends object,
+  TReturnData = unknown
+> = {
   title?: string;
-  endpoint: InfiniteMutationEndpoint<TFormData>;
+  endpoint: InfiniteMutationEndpoint<TFormData, TReturnData>;
   /** @default false */
   width?: DialogProps<'form', any, any>['width'];
+  onSuccess?: (data: TReturnData) => any;
+  onError?: (error: any) => any;
 };
 
 export type InfiniteMutationDialogResult<
@@ -47,8 +52,9 @@ type _ImplicitItem<
 export type UseDeleteDialogProps<
   TSchema extends ZodSchema,
   TDataItem extends TFormData = _ImplicitItem<'delete', TSchema>,
+  TReturnData = unknown,
   TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
-> = DialogInfiniteMutationData<TFormData> & {
+> = DialogInfiniteMutationData<TFormData, TReturnData> & {
   content?: (item: InfiniteItem<TDataItem>) => ReactNode;
   response?: { success?: string };
 };
@@ -57,11 +63,13 @@ export type UseDeleteDialogProps<
 export function useDeleteDialog<
   TSchema extends ZodSchema,
   TDataItem extends TFormData = _ImplicitItem<'delete', TSchema>,
+  TReturnData = unknown,
   TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
 >(
-  props: UseDeleteDialogProps<TSchema, TDataItem, TFormData>
+  props: UseDeleteDialogProps<TSchema, TDataItem, TReturnData, TFormData>
 ): InfiniteMutationDialogResult<'delete', TSchema, TDataItem> {
-  const { endpoint, width, content, response, title } = props;
+  const { endpoint, width, content, response, title, onSuccess, onError } =
+    props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
   return (iItem: InfiniteItem<TDataItem>) => {
@@ -75,7 +83,8 @@ export function useDeleteDialog<
       onHandleYes: () => {
         closeDialog();
         endpoint.mutate(iItem.item, {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            onSuccess?.(data);
             addToast({
               type: 'success',
               title: getGlobalMessage('general.actionSuccess'),
@@ -83,6 +92,7 @@ export function useDeleteDialog<
             });
           },
           onError: (error) => {
+            onError?.(error);
             addToast({
               type: 'error',
               title: getGlobalMessage('general.actionFailed'),
@@ -107,25 +117,28 @@ export type UseMutateType = UnionExtract<InfiniteItemMutation, 'add' | 'edit'>;
 export type UseMutateDialogProps<
   TType extends UseMutateType,
   TSchema extends ZodSchema,
+  TReturnData = unknown,
   TFormData extends object = _ImplicitItem<TType, TSchema>
-> = MutateFormlessDialogData<TType, TSchema, TFormData> &
+> = MutateFormlessDialogData<TType, TSchema, TReturnData, TFormData> &
   _MutateFormProp<TType, TSchema, TFormData>;
 
 export type MutateFormlessDialogData<
   TType extends UseMutateType,
   TSchema extends ZodSchema,
+  TReturnData = unknown,
   TFormData extends object = _ImplicitItem<TType, TSchema>
 > = TType extends 'edit'
   ? TFormData extends _InfiniteItemTarget
-    ? _MutateFormlessProps<TType, TSchema, TFormData>
+    ? _MutateFormlessProps<TType, TSchema, TReturnData, TFormData>
     : never
-  : _MutateFormlessProps<TType, TSchema, TFormData>;
+  : _MutateFormlessProps<TType, TSchema, TReturnData, TFormData>;
 
 type _MutateFormlessProps<
   TType extends UseMutateType,
   TSchema extends ZodSchema,
+  TReturnData = unknown,
   TFormData extends object = _ImplicitItem<TType, TSchema>
-> = DialogInfiniteMutationData<TFormData> & {
+> = DialogInfiniteMutationData<TFormData, TReturnData> & {
   type: TType;
   schema: TSchema;
   response?: { success?: string };
@@ -134,7 +147,8 @@ type _MutateFormlessProps<
 export type UseMutateFormInput<
   TType extends UseMutateType,
   TSchema extends ZodSchema,
-  TFormData extends object = _ImplicitItem<TType, TSchema>
+  TFormData extends object = _ImplicitItem<TType, TSchema>,
+  TReturnData = unknown
 > = TType extends 'edit'
   ? MutateFormlessDialogData<TType, TSchema, TFormData> &
       InfiniteItem<TFormData>
@@ -152,14 +166,15 @@ type _MutateFormProp<
 export function useMutateDialog<
   TType extends UseMutateType,
   TSchema extends ZodSchema,
+  TReturnData = unknown,
   TFormData extends object = _ImplicitItem<TType, TSchema>
 >(
-  props: UseMutateDialogProps<TType, TSchema, TFormData>
+  props: UseMutateDialogProps<TType, TSchema, TReturnData, TFormData>
 ): InfiniteMutationDialogResult<TType, TSchema, TFormData> {
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
   if (typeof props !== 'object') throw new Error();
-  const { form, ...restProps } = props;
+  const { form, onSuccess, onError, ...restProps } = props;
   const { type, endpoint, schema, response, width, title } = props;
   return (input?: InfiniteItem<TFormData> | any) => {
     const item = input
@@ -181,7 +196,8 @@ export function useMutateDialog<
         if (type === 'edit')
           newData = { ...formData, id: (item as _InfiniteItemTarget).id };
         endpoint.mutate(newData, {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            onSuccess?.(data);
             closeDialog();
             addToast({
               type: 'success',
@@ -190,6 +206,7 @@ export function useMutateDialog<
             });
           },
           onError: (error) => {
+            onError?.(error);
             addToast({
               type: 'error',
               title: getGlobalMessage('general.actionSuccess'),

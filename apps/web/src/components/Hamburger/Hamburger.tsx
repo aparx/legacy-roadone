@@ -44,8 +44,8 @@ export const Hamburger = forwardRef<HamburgerRef, HamburgerProps>(
         onClick={() => stateOpen.set((b) => !b)}
         take={{
           roundness: 'full',
-          flowPaddingV: newPadding,
-          flowPaddingH: newPadding,
+          vPadding: newPadding,
+          hPadding: newPadding,
         }}
         {...propMerge(restProps, {
           style: { padding: `0 ${multipliers.spacing(newPadding)}px` },

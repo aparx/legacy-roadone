@@ -12,6 +12,7 @@ import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import { useDeleteDialog } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItem } from '@/utils/pages/infinite/infiniteItem';
+import { useSession } from 'next-auth/react';
 import { Button, Icon, Stack } from 'next-ui';
 import { RefObject, useMemo } from 'react';
 import { MdWarning } from 'react-icons/md';
@@ -23,7 +24,7 @@ export type BlogCommentGroupProps = {
 
 export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   const { group, fieldRef } = props;
-  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } =
+  const { data, status, isFetchingNextPage, hasNextPage, fetchNextPage } =
     api.blog.reply.getReplies.useInfiniteQuery(
       {
         limit: Globals.replyFetchLimit,
@@ -31,8 +32,11 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
         parentId: group.path.at(-1),
       },
       {
+        enabled:
+          useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
         trpc: { abortOnUnmount: true },
-        staleTime: Infinity,
+        // staleTime: 5 * 60 * 60 * 1000 /* 5m */,
+        // staleTime: Infinity,
         getNextPageParam: (lastPage) => lastPage?.nextCursor,
       }
     );
@@ -40,7 +44,7 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
     return data?.pages?.flatMap((p) => p.data);
   }, [data]);
   const canPostReply = Permission.useGlobalPermission('blog.comment.post');
-  const deleteDialog = useDeleteDialog<any, BlogReplyData>({
+  const deleteDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('blog.reply.name')),
     endpoint: api.blog.reply.deleteReply.useMutation(),
     content: deleteDialogContent,
@@ -52,25 +56,27 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
         (!group.parent || canPostReply) && (
           <BlogReplyField group={group} ref={fieldRef} />
         )}
-      <Stack as={'ol'} aria-label={getGlobalMessage('translation.replies')}>
-        {array?.map((reply) => (
-          <li key={reply.id}>
-            <BlogReplyCard
-              reply={reply}
-              parent={group}
-              onDelete={deleteDialog}
-            />
-          </li>
-        ))}
-        {hasNextPage && (
-          <Button.Text
-            disabled={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
-          >
-            {getGlobalMessage('general.load_more')}
-          </Button.Text>
-        )}
-      </Stack>
+      {array?.length ? (
+        <Stack as={'ol'} aria-label={getGlobalMessage('translation.replies')}>
+          {array?.map((reply) => (
+            <li key={reply.id}>
+              <BlogReplyCard
+                reply={reply}
+                parent={group}
+                onDelete={deleteDialog}
+              />
+            </li>
+          ))}
+          {hasNextPage && (
+            <Button.Text
+              disabled={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+            >
+              {getGlobalMessage('general.load_more')}
+            </Button.Text>
+          )}
+        </Stack>
+      ) : null}
     </Stack>
   );
 }
@@ -88,10 +94,12 @@ const deleteDialogContent = ({ item }: InfiniteItem<BlogReplyData>) => {
         </Stack>
       )}
       <BlogReplyCard
-        sd={{ padding: 'md', background: (t) => t.sys.color.surface[2] }}
-        visualOnly
         reply={item}
-        onDelete={() => {}}
+        visualOnly
+        sd={{
+          padding: 'md',
+          background: (t) => t.sys.color.surface[2],
+        }}
       />
     </Stack>
   );

@@ -34,12 +34,14 @@ export const buttonTypeArray = [
 
 export interface ButtonOptions {
   font: TypescalePinpoint;
-  /** out-of-flow padding horizontal */
-  oofPaddingH?: boolean;
-  /** out-of-flow padding vertical */
-  oofPaddingV?: boolean;
-  flowPaddingH: MultiplierValueInput<'spacing'>;
-  flowPaddingV: MultiplierValueInput<'spacing'>;
+  /** out-of-flow padding horizontal
+   * @default 'flow' */
+  hPaddingMode?: false | 'oof' | 'flow';
+  /** out-of-flow padding vertical
+   * @default 'flow' */
+  vPaddingMode?: false | 'oof' | 'flow';
+  hPadding: MultiplierValueInput<'spacing'>;
+  vPadding: MultiplierValueInput<'spacing'>;
   roundness?: MultiplierValueInput<'roundness'>;
 }
 

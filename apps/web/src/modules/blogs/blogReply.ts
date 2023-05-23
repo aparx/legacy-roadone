@@ -13,6 +13,7 @@ export const blogReplyContentSchema = z.object({
 export const blogReplySchema = blogReplyContentSchema
   .extend(cuidSchema.shape)
   .extend({
+    depth: z.number().nullish(),
     blogId: z.string().cuid(),
     parentId: z.string().nullish().optional(),
     authorId: z.string(),

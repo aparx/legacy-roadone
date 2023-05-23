@@ -86,8 +86,12 @@ function createTextRenderer(role: TypescaleRole) {
   }) as HTMLTagRenderer<typeof config.Defaults.tag, InternalTypeTextProps>;
 }
 
-export function useFontData({ role, size }: TypescalePinpoint) {
-  return useTheme().sys.typescale[role][size];
+export function useFontData(pinpoint: TypescalePinpoint) {
+  return getFontData(useTheme(), pinpoint);
+}
+
+export function getFontData(theme: Theme, { role, size }: TypescalePinpoint) {
+  return theme.sys.typescale[role][size];
 }
 
 /** If `color` is given, only the alpha channel of the color is changed in the final

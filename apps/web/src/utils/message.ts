@@ -17,6 +17,8 @@ export const globalMessages = {
     share: 'Teilen',
     comments: 'Kommentare',
     replies: 'Antworten',
+    send: 'Senden',
+    profilePicture: 'Profilbild',
   },
   app: {
     name: 'roadone',
@@ -72,7 +74,7 @@ export const globalMessages = {
   },
   modal: {
     sureTitle: 'Bist du sicher?',
-    sureYes: 'Ja, ich bin sicher',
+    sureYes: 'Ja, ist verstanden',
   },
   responses: {
     gig: {

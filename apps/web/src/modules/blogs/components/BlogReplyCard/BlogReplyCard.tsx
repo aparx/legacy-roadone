@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { BlogReplyCardConfig as config } from './BlogReplyCard.config';
 import * as style from './BlogReplyCard.style';
 import { Avatar } from '@/components';
 import { Permission } from '@/modules/auth/utils/permission';
@@ -29,7 +30,7 @@ export type BlogReplyProps = { reply: BlogReplyData } & (
   | { visualOnly: true; parent?: undefined }
   | { visualOnly?: false | undefined; parent: CommentGroupNode }
 ) &
-  Pick<InfiniteItemEvents<BlogReplyData>, 'onDelete'> &
+  Partial<Pick<InfiniteItemEvents<BlogReplyData>, 'onDelete'>> &
   StyleableProp;
 
 export default function BlogReplyCard(props: BlogReplyProps) {
@@ -65,7 +66,8 @@ export default function BlogReplyCard(props: BlogReplyProps) {
         <div style={{ marginTop: '2px' }}>
           <Avatar
             user={reply.author}
-            name={'Profile picture'}
+            size={config.avatarSize}
+            name={getGlobalMessage('translation.profilePicture')}
             aria-hidden={true}
           />
         </div>
@@ -102,7 +104,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                   setShowReplies(true);
                   fieldRef.current?.textField?.focus();
                 }}
-                take={{ oofPaddingH: true }}
+                take={{ hPaddingMode: 'oof' }}
                 sd={{ emphasis: 'medium' }}
               >
                 Antworten
@@ -114,7 +116,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                 leading={showReplies ? <MdExpandLess /> : <MdExpandMore />}
                 onClick={() => setShowReplies((s) => !s)}
                 style={{ padding: 0 }}
-                take={{ oofPaddingH: !canPostReply }}
+                take={{ hPaddingMode: !canPostReply && 'oof' }}
                 sd={{ emphasis: 'medium' }}
               >
                 {showReplies
@@ -126,12 +128,15 @@ export default function BlogReplyCard(props: BlogReplyProps) {
               <Button.Text
                 tight
                 leading={<MdDelete />}
-                onClick={() => onDelete({ item: reply })}
+                onClick={() => onDelete?.({ item: reply })}
                 sd={{
                   color: (t) => t.sys.color.scheme.error,
                   emphasis: 'medium',
                 }}
-                take={{ oofPaddingH: reply.replyCount === 0 && !canPostReply }}
+                take={{
+                  hPaddingMode:
+                    reply.replyCount === 0 && !canPostReply && 'oof',
+                }}
               >
                 {getGlobalMessage('translation.delete')}
               </Button.Text>

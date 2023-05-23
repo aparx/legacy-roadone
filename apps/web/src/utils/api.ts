@@ -11,7 +11,14 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 60 * 1000 /* 5m */,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export const api = createTRPCNext<ApiRouter>({
   config({ ctx }) {

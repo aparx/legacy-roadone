@@ -62,7 +62,7 @@ export function createButtonRenderer<TType extends ButtonType>(
     const theme = useTheme();
     const visual = appearance[size];
     const opts = merge({}, visual, take);
-    if (tight) opts.flowPaddingH = opts.flowPaddingV;
+    if (tight) opts.hPadding = opts.vPadding;
     const fontData = useFontData(opts.font);
     return (
       <ButtonLink
