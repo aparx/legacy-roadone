@@ -6,6 +6,7 @@ import { blogReplyContentSchema } from '@/modules/blogs/blogReply';
 import { BlogReplyCardConfig } from '@/modules/blogs/components/BlogReplyCard';
 import { CommentGroupNode } from '@/modules/blogs/groupSchema';
 import { api } from '@/utils/api';
+import { formatMessage } from '@/utils/format';
 import { getGlobalMessage } from '@/utils/message';
 import { useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
@@ -74,8 +75,14 @@ export const BlogReplyField = forwardRef<
             content: data.content,
           },
           {
-            onSuccess: (comment) =>
-              addToast({ type: 'success', message: JSON.stringify(comment) }),
+            onSuccess: () =>
+              addToast({
+                type: 'success',
+                title: formatMessage(
+                  getGlobalMessage('general.added'),
+                  getGlobalMessage('blog.reply.name')
+                ),
+              }),
             onError: (e) => addToast({ type: 'error', message: `${e}` }),
           }
         )
@@ -99,7 +106,10 @@ const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
           <TextField
             ref={ref}
             name={'content'}
-            placeholder={'Kommentieren...'}
+            placeholder={`${formatMessage(
+              getGlobalMessage('general.add'),
+              getGlobalMessage('blog.reply.alternate')
+            )}...`}
             tight
             field={{ autoComplete: 'off' }}
             hookform={rawForm}
@@ -154,10 +164,10 @@ function NotAuthedField() {
             }px`,
           }}
         />
-        <span aria-hidden>Einloggen um zu antworten</span>
+        <span>{getGlobalMessage('general.signInToReply')}</span>
       </Stack>
       <Button.Tertiary size={'sm'} leading={<MdLogin />} onClick={logIn}>
-        Einloggen
+        {getGlobalMessage('translation.signIn')}
       </Button.Tertiary>
     </Stack>
   );

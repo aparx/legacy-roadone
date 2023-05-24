@@ -99,7 +99,7 @@ model BlogPost {
   ///      so that skeletons can be shown accordingly on initial load.
 
   /// Total (deep) reply count
-  replyCount Int         @default(0)
+  replyCount Int         @default(0) @db.UnsignedInt
   /// Total (all / deep) replies
   replies    BlogReply[]
 
@@ -125,7 +125,7 @@ model BlogReply {
   parentId String?
 
   /// Relative (direct) reply count
-  replyCount Int         @default(0)
+  replyCount Int         @default(0) @db.UnsignedInt
   /// Relative (directly nested) replies
   replies    BlogReply[] @relation("parent")
 

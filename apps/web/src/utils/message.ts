@@ -19,6 +19,8 @@ export const globalMessages = {
     replies: 'Antworten',
     send: 'Senden',
     profilePicture: 'Profilbild',
+    signIn: 'Einloggen',
+    signOut: 'Ausloggen',
   },
   app: {
     name: 'roadone',
@@ -27,6 +29,7 @@ export const globalMessages = {
     load_more: 'Mehr laden',
     profile_picture: 'Profilbild',
     add: '%s hinzufügen',
+    added: '%s hinzugefügt',
     delete: '%s löschen',
     edit: '%s bearbeiten',
     accept: 'Annehmen',
@@ -37,6 +40,7 @@ export const globalMessages = {
     error: 'Ein Fehler ist aufgetreten.',
     actionFailed: 'Aktion fehlgeschlagen!',
     actionSuccess: 'Aktion erfolgreich!',
+    signInToReply: 'Einloggen um zu antworten',
   },
   auth: {
     signIn: 'Einloggen',
@@ -63,6 +67,7 @@ export const globalMessages = {
     },
     reply: {
       name: 'Antwort',
+      alternate: 'Kommentar',
       multiShow: 'Antworten anzeigen',
       multiHide: 'Antworten ausblenden',
       dialog: {
@@ -74,7 +79,7 @@ export const globalMessages = {
   },
   modal: {
     sureTitle: 'Bist du sicher?',
-    sureYes: 'Ja, ist verstanden',
+    sureYes: 'Ja, ich bin mir sicher',
   },
   responses: {
     gig: {

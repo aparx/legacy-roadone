@@ -135,7 +135,10 @@ function BlogPostCommentTree(props: BlogPostCardProps) {
         borderTopRightRadius: 'unset',
       }}
     >
-      <BlogReplyGroup group={{ root: props.blog, path: [] }} />
+      <BlogReplyGroup
+        group={{ root: props.blog, path: [] }}
+        estimatedReplyCount={props.blog.replyCount}
+      />
     </Stack>
   );
 }

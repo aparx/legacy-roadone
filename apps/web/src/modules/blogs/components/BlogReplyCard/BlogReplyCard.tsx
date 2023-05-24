@@ -110,7 +110,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                 Antworten
               </Button.Text>
             )}
-            {reply.replyCount !== 0 && !visualOnly && (
+            {reply.replyCount > 0 && !visualOnly && (
               <Button.Text
                 tight
                 leading={showReplies ? <MdExpandLess /> : <MdExpandMore />}
@@ -152,6 +152,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
         >
           <BlogReplyGroup
             fieldRef={fieldRef}
+            estimatedReplyCount={reply.replyCount}
             group={{
               root: parent.root,
               parent,

@@ -11,7 +11,7 @@ export module ServerGlobals {
 
     /** The (exclusive) amount of requests within `timeframe` that lead to
      *  rate-limitation. The below number must be between 0 and 65534. */
-    export const consecutiveRequests = 8;
+    export const consecutiveRequests = 4;
 
     /** Defines the amount of milliseconds for each elapsed since the last sent
      * request will decrement the internal `actionCount` of a user by 1 (one). */

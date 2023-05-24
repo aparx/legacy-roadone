@@ -16,10 +16,6 @@ export module Globals {
   /** Maximum amount of reply-depth (exclusive; must be between 1 and 10) */
   export const maxReplyDepth = 3;
 
-  /** If true, always prioritises at least one reply of the authenticated user and
-   *  "pins" it to the top. This may lead to an extra query being executed. */
-  export const prioritiseSelfReplies = true;
-
   export const replyFetchLimit = 3;
 
   // <======================>

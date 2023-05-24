@@ -90,34 +90,9 @@ export const blogReplyRouter = router({
   getReplies: procedure
     .input(getRepliesInputSchema)
     .output(getRepliesOutputSchema)
-    .query(async ({ input, ctx }): Promise<GetReplyOutput> => {
+    .query(async ({ input }): Promise<GetReplyOutput> => {
       const { blogId, parentId, cursor, limit } = input;
-      const userId = ctx.session?.user?.id;
       let replyArray: BlogReplyData[] = [];
-      // Check if this might lead to duplication errors!
-      if (Globals.prioritiseSelfReplies && userId) {
-        // Always prioritise the user's own reply first.
-        const self = (
-          await prisma.blogPost.findFirst({
-            where: {
-              id: blogId,
-              repliesDisabled: false,
-            },
-            select: {
-              replies: {
-                where: {
-                  authorId: userId,
-                  parentId: parentId ?? null,
-                },
-                skip: cursor,
-                take: 1,
-                include: { author: true },
-              },
-            },
-          })
-        )?.replies;
-        if (self) replyArray.push(...self);
-      }
       const found = (
         await prisma.blogPost.findFirst({
           where: {
@@ -133,10 +108,6 @@ export const blogReplyRouter = router({
                     : undefined,
                 },
                 parentId: parentId ?? null,
-                authorId:
-                  userId && Globals.prioritiseSelfReplies
-                    ? { not: userId }
-                    : undefined,
               },
               skip: cursor,
               take: limit + 1,

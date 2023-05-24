@@ -72,17 +72,16 @@ export function useDeleteDialog<
     props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
-  return (iItem: InfiniteItem<TDataItem>) => {
-    const { id } = iItem.item;
+  return (dataItem: InfiniteItem<TDataItem>) => {
     showDialog({
       title,
       type: 'modal',
       actions: DialogConfig.dialogYesCancelSource,
       width: width,
-      content: content?.(iItem),
+      content: content?.(dataItem),
       onHandleYes: () => {
         closeDialog();
-        endpoint.mutate(iItem.item, {
+        endpoint.mutate(dataItem.item, {
           onSuccess: (data) => {
             onSuccess?.(data);
             addToast({

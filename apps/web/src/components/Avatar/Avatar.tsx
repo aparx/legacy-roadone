@@ -34,6 +34,7 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(
     const styleable = useStyleableMerge(restProps);
     const props = propMerge({ css: style.avatar(theme, size) }, styleable);
     return (
+      // replace with flexShrink on the items
       <div style={{ display: 'flex' }}>
         {user?.image ? (
           <Image
