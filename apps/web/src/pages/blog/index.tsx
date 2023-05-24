@@ -56,6 +56,7 @@ export default function BlogPage() {
     title: useMessage('general.delete', getGlobalMessage('blog.post.name')),
     endpoint: api.blog.deleteBlog.useMutation(),
     width: 'sm',
+    // onSuccess: console.log,
   });
   return (
     <Page name={'Blogs'} pageURL={'/blogs'}>

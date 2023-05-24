@@ -14,7 +14,7 @@ export module Globals {
   // <======================>
 
   /** Maximum amount of reply-depth (exclusive; must be between 1 and 10) */
-  export const maxReplyDepth = 3;
+  export const maxReplyDepth = 4;
 
   export const replyFetchLimit = 3;
 

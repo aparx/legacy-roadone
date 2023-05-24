@@ -7,8 +7,8 @@ import {
 } from '@/modules/blogs/blogReply';
 import {
   createPermissiveMiddleware,
-  fullSanitizationMiddleware,
   rateLimitingMiddleware,
+  shallowSanitizationMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
@@ -41,34 +41,33 @@ const getRepliesOutputSchema = z.object({
 export type GetReplyOutput = z.infer<typeof getRepliesOutputSchema>;
 export type AddReplyInput = z.infer<typeof addCommentInputSchema>;
 
-type ReplyNodePropertySelection<
-  TExclude extends string | undefined = undefined
-> = TExclude extends undefined
-  ? keyof BlogReplyData
-  : Exclude<keyof BlogReplyData, TExclude>;
+export type ReplyNodePropertySelection<TExclude extends string = never> =
+  Exclude<keyof BlogReplyData, TExclude>;
 
-type SelectReplyNodeProperties<
-  TExclude extends string | undefined = undefined
-> = Partial<Record<ReplyNodePropertySelection<TExclude>, true>>;
+export type SelectReplyNodeProperties<TExclude extends string = never> =
+  Partial<Record<ReplyNodePropertySelection<TExclude>, true>>;
 
-type DepthReplyNode<
+export type DepthReplyNode<
   TKey extends string,
   TSelection extends SelectReplyNodeProperties<TKey>
-> = { [P in keyof BlogReplyData]?: TSelection | undefined | null } & Partial<
-  Record<TKey, DepthReplyNode<TKey, TSelection>[]>
->;
+> = {
+  [P in keyof TSelection]: P extends keyof BlogReplyData
+    ? BlogReplyData[P]
+    : never;
+} & Partial<Record<TKey, DepthReplyNode<TKey, TSelection>[]>>;
 
-type ProgressiveReplyDepthBuilder<
+export type ProgressiveReplyDepthBuilder<
   TKey extends string,
   TSelection extends SelectReplyNodeProperties<TKey>
 > = {
   select: ObjectConjunction<
-    Partial<Record<keyof DepthReplyNode<TKey, TSelection>, true>>,
+    Record<keyof DepthReplyNode<TKey, TSelection>, true>,
     Partial<Record<TKey, ProgressiveReplyDepthBuilder<TKey, TSelection>>>
   >;
 };
 
-function createDeepDepthSelectTree<
+// TODO move to a separate utility
+export function createDeepDepthSelectTree<
   TKey extends string,
   TSelection extends SelectReplyNodeProperties<TKey>
 >(key: TKey, select: TSelection, depth: number = Globals.maxReplyDepth) {
@@ -129,7 +128,7 @@ export const blogReplyRouter = router({
     .input(addCommentInputSchema)
     .use(createPermissiveMiddleware('blog.comment.post'))
     .use(rateLimitingMiddleware)
-    .use(fullSanitizationMiddleware)
+    .use(shallowSanitizationMiddleware)
     .mutation(async ({ input, ctx }): Promise<BlogReplyData> => {
       if (!ctx.session) throw new TRPCError({ code: 'UNAUTHORIZED' });
       const { blogId, parentId, content } = input;
@@ -147,7 +146,7 @@ export const blogReplyRouter = router({
           code: 'BAD_REQUEST',
           message: 'Reply depth exceeded',
         });
-      const transactions = [
+      const sequence: any[] = [
         prisma.blogReply.create({
           data: {
             blogId,
@@ -157,21 +156,31 @@ export const blogReplyRouter = router({
             depth,
           },
         }),
-        // Increment the post's total reply count
-        prisma.blogPost.update({
-          where: { id: blogId },
-          data: { replyCount: { increment: 1 } },
-        }),
       ];
       if (parentId) {
-        transactions.push(
+        sequence.push(
           prisma.blogReply.update({
             where: { id: parentId },
             data: { replyCount: { increment: 1 } },
+          }),
+          // Increment the post's total reply count
+          prisma.blogPost.update({
+            where: { id: blogId },
+            data: { totalReplyCount: { increment: 1 } },
+          })
+        );
+      } else {
+        sequence.push(
+          prisma.blogPost.update({
+            where: { id: blogId },
+            data: {
+              replyCount: { increment: 1 },
+              totalReplyCount: { increment: 1 },
+            },
           })
         );
       }
-      return (await prisma.$transaction(transactions))[0] as BlogReplyData;
+      return (await prisma.$transaction(sequence))[0] as BlogReplyData;
     }),
 
   deleteReply: procedure
@@ -179,59 +188,125 @@ export const blogReplyRouter = router({
     .use(createPermissiveMiddleware('blog.comment.post'))
     .use(rateLimitingMiddleware)
     .mutation(async ({ input, ctx }) => {
-      const { session } = ctx;
       const { id } = input;
-      const root = await prisma.blogReply.findUnique({
+      const { session } = ctx;
+      const reply = await prisma.blogReply.findUnique({
         where: { id },
         select: {
           id: true,
           authorId: true,
           parentId: true,
           blogId: true,
-          replies: createDeepDepthSelectTree('replies', { id: true }),
+          replies: createDeepDepthSelectTree('replies', {
+            id: true,
+            parentId: true,
+          }),
         },
       });
-      if (!root) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!reply) throw new TRPCError({ code: 'NOT_FOUND' });
       if (
         !Permission.hasGlobalPermission(session, 'blog.reply.ownAll') &&
-        root.authorId !== session?.user?.id
+        reply.authorId !== session?.user?.id
       ) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-      // Sequential deletion tree, that is in right order (reversed)
-      const tree = createDeleteTree(root);
-      const parentTransactions: any[] = [];
-      if (root.parentId)
-        parentTransactions.push(
-          prisma.blogReply.update({
-            where: { id: root.parentId },
-            data: { replyCount: { decrement: tree.length } },
-          })
-        );
-      await prisma.$transaction([
-        ...tree.map(({ id }) => prisma.blogReply.delete({ where: { id } })),
-        ...parentTransactions,
-        prisma.blogPost.update({
-          where: { id: root.blogId },
-          data: { replyCount: { decrement: tree.length } },
-        }),
-      ]);
-      return { deleteCount: tree.length, tree: root };
+      return deleteReplyNode({ node: reply, type: 'reply' });
     }),
 });
 
-function createDeleteTree<TRoot extends DepthReplyNode<'replies', any>>(
-  root: TRoot
-) {
-  return collectRepliesTree(root, []).reverse();
+type DeepRepliesObject<TData> = TData & {
+  replies?: DeepRepliesObject<TData>[];
+};
+
+/***
+ * A deletable reply node may be a `BlogReply` or a `BlogPost`.
+ */
+type UniReplyNode =
+  | {
+      type: 'reply';
+      node: DeepRepliesObject<{
+        id: string;
+        blogId: string;
+        parentId?: string | undefined | null;
+      }>;
+    }
+  | {
+      type: 'blog';
+      node: DeepRepliesObject<{
+        id: string;
+      }>;
+    };
+
+/**
+ * Deletes given node and all its children (first).
+ * The reply node can either be a `BlogReply` or `BlogPost`, since both schemas can
+ * contain `replies` in their data and also share the `replyCount` attribute.
+ */
+export async function deleteReplyNode(root: UniReplyNode) {
+  const { node, type } = root;
+  // Delete parents in reverse due to the nature of cyclic referential actions
+  let { parents: sections, count } = collectReplyParents(root);
+  sections = sections.reverse();
+  let itemCount = count;
+  if (type === 'blog') {
+    const _length = sections.length;
+    sections.splice(-1, 1); // remove `root` from the parents `in-place`
+    itemCount += _length - sections.length;
+  } else if (!sections.length) sections.push(root);
+  const sequence: any[] = sections.flatMap(({ node, type }) => [
+    // First we delete all children of `parents`
+    prisma.blogReply.deleteMany({
+      where: {
+        parentId: type === 'reply' ? node.id : undefined,
+        blogId: type === 'blog' ? node.id : node.blogId,
+      },
+    }),
+    // Secondly, we delete the actual parent itself
+    prisma.blogReply.delete({ where: { id: node.id } }),
+  ]);
+  // Update parent's counter
+  if (type === 'reply')
+    sequence.push(
+      node.parentId
+        ? prisma.blogReply.update({
+            where: { id: node.parentId },
+            data: { replyCount: { decrement: 1 } },
+          })
+        : prisma.blogPost.update({
+            where: { id: node.blogId },
+            data: { replyCount: { decrement: 1 } },
+          })
+    );
+  if (type === 'blog')
+    sequence.push(prisma.blogPost.delete({ where: { id: node.id } }));
+  else
+    sequence.push(
+      prisma.blogPost.update({
+        where: { id: node.blogId },
+        data: {
+          totalReplyCount: { decrement: itemCount },
+        },
+      })
+    );
+  return prisma
+    .$transaction(sequence)
+    .then(() => ({ deleted: itemCount, root }));
 }
 
-function collectRepliesTree<TNode extends DepthReplyNode<'replies', any>>(
-  reply: TNode,
-  tree: TNode[]
+function collectReplyParents(node: UniReplyNode, count: number = 0) {
+  return recursiveReplyParentsCollect(node, { count, parents: [] });
+}
+
+function recursiveReplyParentsCollect(
+  uniNode: UniReplyNode,
+  result: { count: number; parents: UniReplyNode[] }
 ) {
-  tree.push(reply);
-  if (!reply.replies) return tree;
-  reply.replies.forEach((reply) => collectRepliesTree(reply, tree));
-  return tree;
+  const { node } = uniNode;
+  result.count++;
+  if (!node.replies?.length) return result;
+  result.parents.push(uniNode);
+  node.replies.forEach((node) =>
+    recursiveReplyParentsCollect({ node, type: 'reply' }, result)
+  );
+  return result;
 }

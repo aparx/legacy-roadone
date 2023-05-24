@@ -46,6 +46,7 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
     endpoint: api.blog.reply.deleteReply.useMutation(),
     content: deleteDialogContent,
     width: 'md',
+    // onSuccess: console.log,
   });
   const repliesShown = replies?.length ?? 0;
   return (

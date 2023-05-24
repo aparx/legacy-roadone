@@ -16,6 +16,7 @@ export const blogPostContentSchema = z.object({
 /** The base blog schema, as found in the database. */
 export const blogPostSchema = z
   .object({
+    totalReplyCount: z.number().default(0),
     replyCount: z.number().default(0),
     authorId: z.string().cuid(),
     author: publicUserSchema.nullish(),

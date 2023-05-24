@@ -98,10 +98,12 @@ model BlogPost {
   /// TODO field for the total amount of replies and for the (root) relative,
   ///      so that skeletons can be shown accordingly on initial load.
 
+  /// Relative (root) reply count
+  replyCount      Int         @default(0) @db.UnsignedInt
   /// Total (deep) reply count
-  replyCount Int         @default(0) @db.UnsignedInt
+  totalReplyCount Int         @default(0) @db.UnsignedInt
   /// Total (all / deep) replies
-  replies    BlogReply[]
+  replies         BlogReply[]
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
@@ -139,6 +141,8 @@ model BlogReply {
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
+  // This makes it impossible to post multiple times under the same node.
+  @@unique([parentId, blogId, authorId])
   @@index([createdAt(sort: Asc)])
   @@index([blogId])
   @@index([parentId])

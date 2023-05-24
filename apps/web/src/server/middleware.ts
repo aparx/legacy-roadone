@@ -29,15 +29,32 @@ export const createPermissiveMiddleware = (
 
 /** Middleware that sanitizes every string value of the input object (optional).
  * Note: this procedure is `not` deep! It's just a "shallow" sanitization! */
-export const fullSanitizationMiddleware = middleware((opts) => {
-  if (opts.input && typeof opts.input === 'object') {
-    Object.keys(opts.input as object)
-      .filter((k) => typeof opts.input![k] === 'string')
-      .forEach((k) => (opts.input![k] = sanitizeHtml(opts.input![k])));
-  }
+export const shallowSanitizationMiddleware = middleware((opts) => {
+  if (opts.input && typeof opts.input === 'object') sanitizeObject(opts.input);
   return opts.next({ ctx: opts.ctx });
 });
 
+/**
+ * Sanitizes every field (shallow) within `object` in-place, by mutating each field
+ * whose value is typeof `string`. This operation mutates `object`. Thus, the returned
+ * value is equivalent to `object`.
+ *
+ * @param object the object to sanitize shallowly
+ * @return the sanitized object (so simply `object`)
+ */
+export function sanitizeObject<T extends object>(object: T): T {
+  Object.keys(object as object)
+    .filter((k) => typeof object![k] === 'string')
+    .forEach((k) => (object![k] = sanitizeHtml(object![k])));
+  return object;
+}
+
+/**
+ * Middleware that implements rate limitation using `ServerGlobals.RateLimitation` as
+ * the primary configuration source, that provides all necessary (global) options.
+ * This middleware might end up mutating or querying the database, which is why this
+ * middleware shouldn't be used too frequently and only for mutations.
+ */
 export const rateLimitingMiddleware = middleware(async ({ ctx, next }) => {
   if (!ctx.session) return next({ ctx });
   const role = Permission.getRoleOfSession(ctx.session);

@@ -6,8 +6,8 @@ import {
 } from '@/modules/gigs/gig';
 import {
   createPermissiveMiddleware,
-  fullSanitizationMiddleware,
   rateLimitingMiddleware,
+  shallowSanitizationMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
@@ -45,6 +45,10 @@ async function ensureGigExistence(id: string, complement: boolean = true) {
  * revalidation of the `/gigs` route.
  */
 export const gigRouter = router({
+  /**
+   * Endpoint query that returns all available Gigs within given pagination, all ordered
+   * after the `start` field date in descending order.
+   */
   getGigs: procedure
     .input(
       z
@@ -79,11 +83,17 @@ export const gigRouter = router({
       }
       return { data: gigArray, nextCursor };
     }),
+
+  /**
+   * Endpoint mutation that adds a Gig from given input if authorized.
+   * This endpoint sanitizes given input before being put in the database.
+   * Required permission: `gig.post`
+   */
   addGig: procedure
     .input(gigContentSchema)
     .use(createPermissiveMiddleware('gig.post'))
     .use(rateLimitingMiddleware)
-    .use(fullSanitizationMiddleware)
+    .use(shallowSanitizationMiddleware)
     .mutation(async ({ input, ctx: { res } }) => {
       if (
         await prisma.gig.findUnique({
@@ -101,11 +111,17 @@ export const gigRouter = router({
         .then((data) => pipePathRevalidate(revalidatePath, res, data))
         .catch(handleAsTRPCError);
     }),
+
+  /**
+   * Endpoint mutation that edits given Gig if authorized.
+   * This endpoint sanitizes given input before being put in the database.
+   * Required permission: `gig.edit`
+   */
   editGig: procedure
     .input(gigEditSchema)
     .use(createPermissiveMiddleware('gig.edit'))
     .use(rateLimitingMiddleware)
-    .use(fullSanitizationMiddleware)
+    .use(shallowSanitizationMiddleware)
     .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id).then(() =>
@@ -115,6 +131,11 @@ export const gigRouter = router({
           .catch(handleAsTRPCError)
       );
     }),
+
+  /**
+   * Endpoint mutation that deletes a Gig with given `id` if authorized.
+   * Required permission: `gig.delete`
+   */
   deleteGig: procedure
     .input(cuidSchema)
     .use(createPermissiveMiddleware('gig.delete'))

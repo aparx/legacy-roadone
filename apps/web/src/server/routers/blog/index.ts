@@ -6,11 +6,16 @@ import {
 } from '@/modules/blogs/blogPost';
 import {
   createPermissiveMiddleware,
-  fullSanitizationMiddleware,
+  shallowSanitizationMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
-import { blogReplyRouter } from '@/server/routers/blog/replies';
+import {
+  blogReplyRouter,
+  createDeepDepthSelectTree,
+  deleteReplyNode,
+} from '@/server/routers/blog/replies';
 import { procedure, router } from '@/server/trpc';
+import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
@@ -28,39 +33,32 @@ const getBlogsOutputSchema = z.object({
 
 export type GetBlogsOutput = z.infer<typeof getBlogsOutputSchema>;
 
-async function isBlogExisting(id: string): Promise<boolean> {
-  return (await prisma.blogPost.count({ where: { id } })) !== 0;
-}
-
-/**
- * @throws TRPCError - if Blog with `id` is not existing if `complement` is true,
- * or if it is existing if `complement` is false.
- */
-async function ensureBlogExistence(id: string, complement: boolean = true) {
-  if ((await isBlogExisting(id)) !== complement)
-    throw new TRPCError({ code: 'NOT_FOUND', message: `Blog ${id} not found` });
-}
-
 export const blogRouter = router({
   reply: blogReplyRouter,
+
+  /**
+   * Endpoint that returns all blogs depending on the given pagination.
+   */
   getBlogs: procedure
     .input(infiniteQueryInput)
     .output(getBlogsOutputSchema)
     .query(async ({ input }): Promise<GetBlogsOutput> => {
       const { cursor, limit } = input;
-      const data = await prisma.blogPost.findMany({
+      const queryResult = await prisma.blogPost.findMany({
         orderBy: { createdAt: 'desc' },
         skip: cursor,
         take: limit + 1,
         include: { author: true },
       });
-      const blogArray = await Promise.all(
-        data.map(async (blog): Promise<BlogPostProcessedData> => {
-          let markdown = await renderMarkdown(blog.content);
-          (blog as BlogPostProcessedData).htmlContent = markdown;
-          return blog;
+      // prettier-ignore
+      const blogArray: BlogPostProcessedData[] = await Promise.allSettled(
+        queryResult.map(async (blog): Promise<BlogPostProcessedData> => {
+          return renderMarkdown(blog.content)
+            .then((md) => ((blog as BlogPostProcessedData).htmlContent = md))
+            .then(() => blog);
         })
-      );
+      ).then((a) => a.filter((a) => a.status === 'fulfilled'))
+       .then((a) => a.map((b: any) => b.value));
       let nextCursor;
       if (blogArray.length > limit) {
         blogArray.pop();
@@ -68,31 +66,57 @@ export const blogRouter = router({
       }
       return { data: blogArray, nextCursor };
     }),
+
+  /**
+   * Endpoint mutation that adds given blog if authorized.
+   * This endpoint sanitizes given input before being put in the database.
+   * Required permission: `blog.post`
+   */
   addBlog: procedure
     .input(blogPostContentSchema)
     .use(createPermissiveMiddleware('blog.post'))
-    .use(fullSanitizationMiddleware)
+    .use(shallowSanitizationMiddleware)
     .mutation(({ input, ctx: { session, res } }) => {
       return prisma.blogPost
         .create({ data: { ...input, authorId: session!.user!.id } })
         .then((data) => pipePathRevalidate(revalidatePath, res, data));
     }),
+
+  /**
+   * Endpoint mutation that edits given blog (with required `id`) if authorized.
+   * This endpoint sanitizes given input before being put in the database.
+   * Required permission: `blog.edit`
+   */
   editBlog: procedure
     .input(blogPostEditSchema)
     .use(createPermissiveMiddleware('blog.edit'))
-    .use(fullSanitizationMiddleware)
+    .use(shallowSanitizationMiddleware)
     .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
-      return ensureBlogExistence(id)
-        .then(() => prisma.blogPost.update({ data: input, where: { id } }))
-        .then((data) => pipePathRevalidate(revalidatePath, res, data));
+      return prisma.blogPost
+        .update({ data: input, where: { id } })
+        .then((data) => pipePathRevalidate(revalidatePath, res, data))
+        .catch((e) => handleAsTRPCError(e, 'NOT_FOUND'));
     }),
+
+  /**
+   * Endpoint mutation that deletes a blog with given `id` if authorized.
+   * Required permission: `blog.delete`
+   */
   deleteBlog: procedure
     .input(cuidSchema)
     .use(createPermissiveMiddleware('blog.delete'))
-    .mutation(({ input: { id }, ctx: { res } }) => {
-      return ensureBlogExistence(id)
-        .then(() => prisma.blogPost.delete({ where: { id } }))
-        .then((data) => pipePathRevalidate(revalidatePath, res, data));
+    .mutation(async ({ input: { id }, ctx: { res } }) => {
+      const node = await prisma.blogPost.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          replies: createDeepDepthSelectTree('replies', { id: true }),
+        },
+      });
+      if (!node) throw new TRPCError({ code: 'NOT_FOUND' });
+      return deleteReplyNode({ node, type: 'blog' }).then((data) =>
+        pipePathRevalidate(revalidatePath, res, data)
+      );
     }),
 });
