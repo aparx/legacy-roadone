@@ -1,4 +1,6 @@
 // prettier-config-ignore
+import { DeepPartial } from 'utility-types';
+
 /** Typesafe alternative to Typescript's "Extract" type-utility */
 export type UnionExtract<TUnion, TKeys extends TUnion> = TUnion extends TKeys
   ? TUnion
@@ -134,3 +136,68 @@ type _ConjunctionOmitBuild<
 export type RecursiveRecord<TKeys extends PropertyKey, TValue = never> = {
   [P in TKeys]: TValue | RecursiveRecord<TKeys, TValue>;
 };
+
+export type DeepCircularOptions = {
+  asArray?: boolean;
+  partial?: boolean;
+  undefinable?: boolean;
+  nullable?: boolean;
+};
+
+/**
+ * Equivalent to `DeepCircularObject` but with the default options of
+ * `partial`, `undefinable` and `nullable` set to true.
+ * `TOptions` will override the default behaviour.
+ */
+export type DeepCircularObjectOptional<
+  TDeepKey extends PropertyKey,
+  TDeepObjectData,
+  TOptions extends DeepCircularOptions = {}
+> = DeepCircularObject<
+  TDeepKey,
+  TDeepObjectData,
+  ObjectConjunction<
+    { partial: true; undefinable: true; nullable: true },
+    TOptions
+  >
+>;
+
+/**
+ * Constructs an object, which in itself is self circulating using the `TDeepKey` as
+ * the property key, that has the value equal to the parenting object itself.
+ * `TOptions` define the value and `TDeepKey` field type-behaviour.
+ */
+export type DeepCircularObject<
+  TDeepKey extends PropertyKey,
+  TDeepObjectData,
+  TOptions extends DeepCircularOptions = {}
+> = TOptions['partial'] extends true
+  ? DeepPartial<_BaseObjectDeepSelf<TDeepKey, TDeepObjectData, TOptions>>
+  : _BaseObjectDeepSelf<TDeepKey, TDeepObjectData, TOptions>;
+
+type _BaseObjectDeepSelf<
+  TDeepKey extends PropertyKey,
+  TDeepObjectData,
+  TOptions extends Omit<DeepCircularOptions, 'partial'>
+> = TDeepObjectData & {
+  [P in TDeepKey]: _DeepSelf_Nullish<
+    _DeepSelf_AsArray<
+      _DeepSelf_Nullish<
+        _BaseObjectDeepSelf<TDeepKey, TDeepObjectData, TOptions>,
+        TOptions
+      >,
+      TOptions
+    >,
+    TOptions
+  >;
+};
+
+type _DeepSelf_AsArray<
+  TObject,
+  TOptions extends DeepCircularOptions
+> = TOptions['asArray'] extends true ? TObject[] : TObject;
+
+type _DeepSelf_Nullish<TObject, TOptions extends DeepCircularOptions> =
+  | TObject
+  | (TOptions['nullable'] extends true ? null : never)
+  | (TOptions['undefinable'] extends true ? undefined : never);

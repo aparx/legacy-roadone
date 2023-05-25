@@ -35,6 +35,7 @@ export const button = (
       shadow.push(`0 -${baseBoxV} ${color}`, `0 ${baseBoxV} ${color}`);
     return shadow.length === 0 ? 'unset' : shadow.join(', ');
   };
+  const showBackground = style.background !== 'transparent';
   return css`
     // TODO change to transparent and add/fix touch events
     -webkit-tap-highlight-color: ${t.sys.color.state[style.state].light};
@@ -97,9 +98,12 @@ export const button = (
     // <==> DISABLED STYLE <==>
     &[disabled],
     &[aria-disabled='true'] {
+      // TODO no disabled background color if background is transparent
       color: ${t.sys.color.scheme.onSurface};
-      background: ${t.sys.color.state.disabled};
-      box-shadow: ${boxShadowPadding(t.sys.color.state.disabled)};
+      background: ${showBackground ? t.sys.color.state.disabled : 'unset'};
+      box-shadow: ${showBackground
+        ? boxShadowPadding(t.sys.color.state.disabled)
+        : 'unset'};
       pointer-events: none;
     }
   `;

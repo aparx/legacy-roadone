@@ -13,8 +13,9 @@ export module Globals {
   //    BLOG CONFIGURATION
   // <======================>
 
-  /** Maximum amount of reply-depth (exclusive; must be between 1 and 10) */
-  export const maxReplyDepth = 4;
+  /** Maximum amount of reply-depth (exclusive; must be between 1 and 10).
+   * This value must NEVER be lowered. Delete all replies before. */
+  export const maxReplyDepth = 3;
 
   export const replyFetchLimit = 3;
 

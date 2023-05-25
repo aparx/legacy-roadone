@@ -2,7 +2,10 @@
 import * as style from './BlogReplyField.style';
 import { useToastHandle } from '@/handles';
 import { logIn } from '@/modules/auth/utils/logInOut';
-import { blogReplyContentSchema } from '@/modules/blogs/blogReply';
+import {
+  blogReplyContentSchema,
+  BlogReplyData,
+} from '@/modules/blogs/blogReply';
 import { BlogReplyCardConfig } from '@/modules/blogs/components/BlogReplyCard';
 import { CommentGroupNode } from '@/modules/blogs/groupSchema';
 import { api } from '@/utils/api';
@@ -16,6 +19,7 @@ import {
   MultiplierValueInput,
   propMerge,
   PropsWithStyleable,
+  Spinner,
   Stack,
   TextField,
   useStyleableMerge,
@@ -46,6 +50,8 @@ export type InternalReplyFieldProps = {
 export type BlogReplyFieldProps = InternalReplyFieldProps & {
   shell?: PropsWithStyleable<HTMLAttributes<HTMLDivElement>>;
   field?: PropsWithStyleable<InputHTMLAttributes<HTMLInputElement>>;
+  isLoading?: boolean;
+  onAdded?: (data: BlogReplyData) => any;
 };
 
 export type BlogReplyFieldRef = {
@@ -56,7 +62,7 @@ export const BlogReplyField = forwardRef<
   BlogReplyFieldRef,
   BlogReplyFieldProps
 >(function BlogReplyFieldRenderer(props, ref) {
-  const { group } = props;
+  const { group, onAdded, isLoading } = props;
   const fieldRef = useRef<TextFieldRef>(null);
   useImperativeHandle(ref, () => ({ textField: fieldRef.current }));
   const addToast = useToastHandle((s) => s.add);
@@ -66,7 +72,13 @@ export const BlogReplyField = forwardRef<
   return (
     <RawForm
       schema={blogReplyContentSchema}
-      form={() => <ReplyForm {...props} ref={fieldRef} />}
+      form={() => (
+        <ReplyForm
+          {...props}
+          ref={fieldRef}
+          isLoading={isLoading || endpoint.isLoading}
+        />
+      )}
       onSubmit={(data) =>
         endpoint.mutate(
           {
@@ -75,14 +87,16 @@ export const BlogReplyField = forwardRef<
             content: data.content,
           },
           {
-            onSuccess: () =>
+            onSuccess: (data) => {
+              onAdded?.(data);
               addToast({
                 type: 'success',
                 title: formatMessage(
                   getGlobalMessage('general.added'),
                   getGlobalMessage('blog.reply.name')
                 ),
-              }),
+              });
+            },
             onError: (e) => addToast({ type: 'error', message: `${e}` }),
           }
         )
@@ -94,10 +108,11 @@ export const BlogReplyField = forwardRef<
 export default BlogReplyField;
 
 const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
-  function ReplyFormRenderer({ group, shell, field }, ref) {
+  function ReplyFormRenderer({ group, shell, field, isLoading }, ref) {
     const { status } = useSession();
     const notAuthed = status === 'unauthenticated';
     const rawForm = useRawForm();
+    isLoading ||= status === 'loading';
     return (
       <div {...useStyleableMerge(shell ?? {})}>
         {notAuthed ? (
@@ -113,19 +128,23 @@ const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
             tight
             field={{ autoComplete: 'off' }}
             hookform={rawForm}
-            disabled={status === 'loading'}
             tailing={
-              <Button.Text
-                type={'submit'}
-                aria-label={getGlobalMessage('translation.send')}
-                tight
-                take={{ vPaddingMode: 'oof' }}
-                icon={<MdSend />}
-                disabled={status === 'loading'}
-              />
+              isLoading ? (
+                <Spinner size={20} sd={{ marginH: 'md' }} />
+              ) : (
+                <Button.Text
+                  type={'submit'}
+                  aria-label={getGlobalMessage('translation.send')}
+                  tight
+                  take={{ vPaddingMode: 'oof' }}
+                  icon={<MdSend />}
+                  disabled={status === 'loading'}
+                />
+              )
             }
             required
             {...propMerge({ css: style.replyTextField }, field)}
+            disabled={field?.disabled || isLoading}
           />
         )}
       </div>

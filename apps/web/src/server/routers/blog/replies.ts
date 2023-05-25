@@ -16,7 +16,7 @@ import { Globals } from '@/utils/global/globals';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { TRPCError } from '@trpc/server';
-import { ObjectConjunction } from 'shared-utils';
+import { DeepCircularObject, ObjectConjunction } from 'shared-utils';
 import { z } from 'zod';
 
 const commentParent = z.object({
@@ -70,7 +70,7 @@ export type ProgressiveReplyDepthBuilder<
 export function createDeepDepthSelectTree<
   TKey extends string,
   TSelection extends SelectReplyNodeProperties<TKey>
->(key: TKey, select: TSelection, depth: number = Globals.maxReplyDepth) {
+>(key: TKey, select: TSelection, depth: number = 1 + Globals.maxReplyDepth) {
   let deepSelectTree: ProgressiveReplyDepthBuilder<TKey, TSelection> = {
     select: select as any,
   };
@@ -132,20 +132,22 @@ export const blogReplyRouter = router({
     .mutation(async ({ input, ctx }): Promise<BlogReplyData> => {
       if (!ctx.session) throw new TRPCError({ code: 'UNAUTHORIZED' });
       const { blogId, parentId, content } = input;
+
       // Before the `depth` property, the entire depth-tree was queried, which may
       // have resulted in issues in the future. To further future-proof, we include a
       // `depth` in the data for now.
       const parent = await prisma.blogReply.findFirst({
         where: { blogId, id: parentId ?? undefined },
-        select: { depth: true },
+        select: { id: true, depth: true },
       });
       if (!parent && parentId) throw new TRPCError({ code: 'NOT_FOUND' });
-      let depth = parent?.depth ? 1 + parent.depth : 0;
+      let depth = parent?.depth ? 1 + parent.depth : 1;
       if (depth > Globals.maxReplyDepth)
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Reply depth exceeded',
         });
+      // Check if comment exists
       const sequence: any[] = [
         prisma.blogReply.create({
           data: {
@@ -214,9 +216,10 @@ export const blogReplyRouter = router({
     }),
 });
 
-type DeepRepliesObject<TData> = TData & {
-  replies?: DeepRepliesObject<TData>[];
-};
+// prettier-ignore
+type DeepRepliesObject<TData> = DeepCircularObject<
+  'replies', TData, { asArray: true; partial: true }
+>;
 
 /***
  * A deletable reply node may be a `BlogReply` or a `BlogPost`.

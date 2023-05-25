@@ -1,5 +1,6 @@
 export * from './Button';
 export * from './Skeleton';
+export * from './Spinner';
 export * from './TextField';
 export * from './Icon';
 export * from './RawForm';

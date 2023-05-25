@@ -26,7 +26,10 @@ import { MdDelete, MdExpandLess, MdExpandMore } from 'react-icons/md';
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
-export type BlogReplyProps = { reply: BlogReplyData } & (
+export type BlogReplyProps = {
+  reply: BlogReplyData;
+  disabled?: boolean;
+} & (
   | { visualOnly: true; parent?: undefined }
   | { visualOnly?: false | undefined; parent: CommentGroupNode }
 ) &
@@ -34,7 +37,7 @@ export type BlogReplyProps = { reply: BlogReplyData } & (
   StyleableProp;
 
 export default function BlogReplyCard(props: BlogReplyProps) {
-  const { reply, visualOnly, onDelete, parent, ...rest } = props;
+  const { reply, visualOnly, onDelete, parent, disabled, ...rest } = props;
   const labeledBy = useId();
   const session = useSession();
   const triggerFocus = useRef(false);
@@ -104,20 +107,22 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                   setShowReplies(true);
                   fieldRef.current?.textField?.focus();
                 }}
+                disabled={disabled}
                 take={{ hPaddingMode: 'oof' }}
-                sd={{ emphasis: 'medium' }}
+                sd={{ emphasis: disabled ? 'disabled' : 'medium' }}
               >
-                Antworten
+                {getGlobalMessage('blog.reply.nameAddSingle')}
               </Button.Text>
             )}
             {reply.replyCount > 0 && !visualOnly && (
               <Button.Text
                 tight
+                disabled={disabled}
                 leading={showReplies ? <MdExpandLess /> : <MdExpandMore />}
                 onClick={() => setShowReplies((s) => !s)}
                 style={{ padding: 0 }}
                 take={{ hPaddingMode: !canPostReply && 'oof' }}
-                sd={{ emphasis: 'medium' }}
+                sd={{ emphasis: disabled ? 'disabled' : 'medium' }}
               >
                 {showReplies
                   ? getGlobalMessage('blog.reply.multiHide')
@@ -127,6 +132,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
             {canManipulateReply && !visualOnly && (
               <Button.Text
                 tight
+                disabled={disabled}
                 leading={<MdDelete />}
                 onClick={() => onDelete?.({ item: reply })}
                 sd={{
@@ -152,7 +158,8 @@ export default function BlogReplyCard(props: BlogReplyProps) {
         >
           <BlogReplyGroup
             fieldRef={fieldRef}
-            estimatedReplyCount={reply.replyCount}
+            replyCount={reply.replyCount}
+            disabled={disabled}
             group={{
               root: parent.root,
               parent,

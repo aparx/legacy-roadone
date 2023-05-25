@@ -5,6 +5,7 @@ import { Permission } from '@/modules/auth/utils/permission';
 import { BlogReplyData } from '@/modules/blogs/blogReply';
 import { BlogReplyField } from '@/modules/blogs/components/BlogReplyField';
 import type { BlogReplyFieldRef } from '@/modules/blogs/components/BlogReplyField/BlogReplyField';
+import { useBlogPost } from '@/modules/blogs/context/blogPostContext';
 import type { CommentGroupNode } from '@/modules/blogs/groupSchema';
 import { api } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
@@ -19,56 +20,101 @@ import { MdWarning } from 'react-icons/md';
 
 export type BlogCommentGroupProps = {
   group: CommentGroupNode;
-  estimatedReplyCount?: number;
+  replyCount: number;
+  disabled?: boolean;
   fieldRef?: RefObject<BlogReplyFieldRef>;
+  /** Function that is called in order to refetch the blog data. */
 };
 
 export default function BlogReplyGroup(props: BlogCommentGroupProps) {
-  const { group, fieldRef, estimatedReplyCount } = props;
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    api.blog.reply.getReplies.useInfiniteQuery(
-      {
-        limit: Globals.replyFetchLimit,
-        blogId: group.root.id,
-        parentId: group.path.at(-1),
-      },
-      {
-        // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
-        trpc: { abortOnUnmount: true },
-        staleTime: process.env.NODE_ENV === 'development' ? 0 : undefined,
-        getNextPageParam: (lastPage) => lastPage?.nextCursor,
-      }
-    );
+  const blogPost = useBlogPost();
+  const { group, fieldRef, replyCount, disabled } = props;
+  const queryParams = {
+    limit: Globals.replyFetchLimit,
+    blogId: group.root.id,
+    parentId: group.path.at(-1),
+  };
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    refetch,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
+    // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
+    trpc: { abortOnUnmount: true },
+    staleTime: Infinity, // updated automatically when changed
+    getNextPageParam: (lastPage) => lastPage?.nextCursor,
+  });
   const replies = useMemo(() => data?.pages?.flatMap((p) => p.data), [data]);
   const canPostReply = Permission.useGlobalPermission('blog.comment.post');
+  const deleteEndpoint = api.blog.reply.deleteReply.useMutation();
   const deleteDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('blog.reply.name')),
-    endpoint: api.blog.reply.deleteReply.useMutation(),
+    endpoint: deleteEndpoint,
     content: deleteDialogContent,
     width: 'md',
-    // onSuccess: console.log,
+    onSuccess: ({ deleted, root }) => {
+      refetch({ type: 'all' }).then(() =>
+        blogPost.data.set((state) => ({
+          ...state,
+          totalReplyCount: state.totalReplyCount - deleted,
+          replyCount:
+            root.type === 'reply' && root.node.parentId == null
+              ? state.replyCount - 1
+              : state.replyCount,
+        }))
+      );
+    },
   });
   const repliesShown = replies?.length ?? 0;
+  const isLoadingData = isRefetching || isLoading || deleteEndpoint.isLoading;
   return (
     <Stack css={style.blogReplyGroup} spacing={'lg'}>
       {group.path.length < Globals.maxReplyDepth &&
         (!group.parent || canPostReply) && (
-          <BlogReplyField group={group} ref={fieldRef} />
+          <BlogReplyField
+            group={group}
+            ref={fieldRef}
+            field={{ disabled: disabled || isLoadingData }}
+            isLoading={isLoadingData}
+            onAdded={(data) => {
+              refetch().then(() => {
+                // TODO consider Zustand for this
+                blogPost.data.set((state) => ({
+                  ...state,
+                  totalReplyCount: 1 + state.totalReplyCount,
+                  replyCount: data.parentId
+                    ? state.replyCount
+                    : 1 + state.replyCount,
+                }));
+                const field = fieldRef?.current?.textField?.field;
+                if (!field) return;
+                field.blur();
+                field.value = '';
+              });
+            }}
+          />
         )}
-      {(repliesShown !== 0 || (estimatedReplyCount ?? 0) > 0) && (
+      {(repliesShown !== 0 || replyCount !== 0) && (
         <Stack as={'ol'} aria-label={getGlobalMessage('translation.replies')}>
           {replies?.map((reply) => (
             <li key={reply.id}>
               <BlogReplyCard
+                // TODO
+                // disabled={isRefetching || isLoading}
                 reply={reply}
                 parent={group}
+                disabled={isLoadingData || disabled}
                 onDelete={deleteDialog}
               />
             </li>
           ))}
           {(isLoading || isFetchingNextPage) && (
             <ReplySkeletonGroup
-              totalCount={estimatedReplyCount ?? 0}
+              totalCount={replyCount ?? 0}
               countDisplayed={repliesShown}
             />
           )}

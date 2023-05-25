@@ -68,6 +68,7 @@ export const globalMessages = {
     reply: {
       name: 'Antwort',
       alternate: 'Kommentar',
+      nameAddSingle: 'Antworten',
       multiShow: 'Antworten anzeigen',
       multiHide: 'Antworten ausblenden',
       dialog: {

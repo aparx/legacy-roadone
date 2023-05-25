@@ -3,12 +3,15 @@ import { Permission } from '@/modules/auth/utils/permission';
 import {
   BlogPostContentData,
   blogPostContentSchema,
+  BlogPostData,
+  BlogPostProcessedData,
 } from '@/modules/blogs/blogPost';
 import { BlogPostCard } from '@/modules/blogs/components/BlogPostCard';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
+import { useLocalState, useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
 import {
   useDeleteDialog,
@@ -16,9 +19,11 @@ import {
   UseMutateFormInput,
   UseMutateType,
 } from '@/utils/pages/infinite/infiniteDialog';
+import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
+import { useEffect, useRef } from 'react';
 import { MdAdd, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 
@@ -38,7 +43,7 @@ export async function getStaticProps() {
 
 export default function BlogPage() {
   // prettier-ignore
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+  const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.blog.getBlogs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
       getNextPageParam: (lastPage) => lastPage?.nextCursor
@@ -64,17 +69,15 @@ export default function BlogPage() {
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {data?.pages
           ?.flatMap((p) => p.data)
-          .map((data, index) => {
-            return (
-              <BlogPostCard
-                key={data.id}
-                blog={data}
-                onDelete={deleteDialog}
-                onEdit={editDialog}
-                replyAutoShow={index === 0}
-              />
-            );
-          })}
+          .map((blog, index) => (
+            <BlogPostItem
+              key={blog.id}
+              index={index}
+              blog={blog}
+              onEdit={editDialog}
+              onDelete={deleteDialog}
+            />
+          ))}
         {hasNextPage && (
           <Button.Text
             disabled={isFetchingNextPage}
@@ -87,6 +90,30 @@ export default function BlogPage() {
     </Page>
   );
 }
+
+type BlogPostSingleProps = {
+  index: number;
+  blog: BlogPostProcessedData;
+} & InfiniteItemEvents<BlogPostData>;
+
+function BlogPostItem({ index, blog, onDelete, onEdit }: BlogPostSingleProps) {
+  const blogState = useLocalState(blog);
+  const localStateRef = useRef(blogState);
+  // prettier-ignore
+  useEffect(() => { localStateRef.current = blogState });
+  useEffect(() => localStateRef.current.set(blog), [blog]);
+  return (
+    <BlogPostCard
+      onDelete={onDelete}
+      onEdit={onEdit}
+      context={{
+        data: blogState,
+        showReplies: useLocalToggle(index === 0),
+      }}
+    />
+  );
+}
+
 // <================================>
 //       RESTRICTED COMPONENTS
 // <================================>
