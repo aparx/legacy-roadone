@@ -256,7 +256,8 @@ export async function deleteReplyNode(root: UniReplyNode) {
   let itemCount = count;
   if (type === 'blog') {
     const _length = sections.length;
-    sections.splice(-1, 1); // remove `root` from the parents `in-place`
+    // TODO replace this with something more efficient
+    sections = sections.filter((v) => v.node.id !== root.node.id);
     itemCount += _length - sections.length;
   } else if (!sections.length) sections.push(root);
   const sequence: any[] = sections.flatMap(({ node, type }) => [

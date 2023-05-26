@@ -109,10 +109,7 @@ export const blogRouter = router({
     .mutation(async ({ input: { id }, ctx: { res } }) => {
       const node = await prisma.blogPost.findUnique({
         where: { id },
-        select: {
-          id: true,
-          replies: createDeepDepthSelectTree('replies', { id: true }),
-        },
+        ...createDeepDepthSelectTree('replies', { id: true }),
       });
       if (!node) throw new TRPCError({ code: 'NOT_FOUND' });
       return deleteReplyNode({ node, type: 'blog' }).then((data) =>

@@ -48,6 +48,7 @@ export default function BlogPage() {
       trpc: { abortOnUnmount: true },
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
+  const refreshBlogs = () => refetch({ type: 'all' });
   const editDialog = useMutateDialog({
     title: useMessage('general.edit', getGlobalMessage('blog.post.name')),
     type: 'edit',
@@ -56,16 +57,19 @@ export default function BlogPage() {
     response: { success: getGlobalMessage('responses.blog.edit_success') },
     form: (props) => <BlogPostForm {...props} />,
     width: 'md',
+    onSuccess: refreshBlogs,
   });
   const deleteDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('blog.post.name')),
     endpoint: api.blog.deleteBlog.useMutation(),
     width: 'sm',
-    // onSuccess: console.log,
+    onSuccess: refreshBlogs,
   });
   return (
     <Page name={'Blogs'} pageURL={'/blogs'}>
-      {Permission.useGlobalPermission('blog.post') && <AddBlogPanel />}
+      {Permission.useGlobalPermission('blog.post') && (
+        <AddBlogPanel onSuccess={refreshBlogs} />
+      )}
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {data?.pages
           ?.flatMap((p) => p.data)
@@ -118,7 +122,7 @@ function BlogPostItem({ index, blog, onDelete, onEdit }: BlogPostSingleProps) {
 //       RESTRICTED COMPONENTS
 // <================================>
 
-function AddBlogPanel() {
+function AddBlogPanel(props: { onSuccess: (data: BlogPostData) => any }) {
   const mutation = api.blog.addBlog.useMutation();
   const addDialog = useMutateDialog({
     title: useMessage('general.add', getGlobalMessage('blog.post.name')),
@@ -127,6 +131,7 @@ function AddBlogPanel() {
     schema: blogPostContentSchema,
     form: (props) => <BlogPostForm {...props} />,
     width: 'md',
+    onSuccess: props.onSuccess,
   });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: 'md' }}>

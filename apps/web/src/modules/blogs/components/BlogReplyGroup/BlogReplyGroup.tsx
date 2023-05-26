@@ -48,6 +48,7 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
     refetch,
     isFetchingNextPage,
     hasNextPage,
+    hasPreviousPage,
     fetchNextPage,
   } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
     // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
@@ -178,7 +179,7 @@ const deleteDialogContent = ({ item }: InfiniteItem<BlogReplyData>) => {
  * action callback. The modified data is then set, to trigger a re-render.
  *
  * @param group the group of the reply which' parent is targeted
- * @param queryParams the query parameters used to fetch the reply which' parent is target
+ * @param queryParams the query parameters used to fetch the reply (not the parent!)
  */
 function useReplyParentNotify(
   group: CommentGroupNode,
