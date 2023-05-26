@@ -5,7 +5,7 @@ import type {
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
-import { GigContentData, gigContentSchema } from '@/modules/gigs/gig';
+import { GigContentData, gigContentSchema, GigData } from '@/modules/gigs/gig';
 import { apiRouter } from '@/server/routers/_api';
 import type { GetGigsOutput } from '@/server/routers/gig';
 import { api, queryClient } from '@/utils/api';
@@ -49,13 +49,14 @@ export async function getStaticProps() {
 
 export default function GigsPage() {
   // prettier-ignore
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+  const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.gig.getGigs.useInfiniteQuery({ parseMarkdown: true }, {
       trpc: { abortOnUnmount: true },
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   // Dialogs
+  const refreshGigs = () => refetch({ type: 'all' });
   const editGigDialog = useMutateDialog({
     title: useMessage('general.edit', getGlobalMessage('gig.name')),
     type: 'edit',
@@ -64,11 +65,13 @@ export default function GigsPage() {
     schema: gigContentSchema,
     form: (props) => <GigForm {...props} />,
     width: 'sm',
+    onSuccess: refreshGigs,
   });
   const deleteGigDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('gig.name')),
     endpoint: api.gig.deleteGig.useMutation(),
     width: 'sm',
+    onSuccess: refreshGigs,
   });
   // Required render-data
   const gigGroups = useCreateGigGroups(data);
@@ -78,7 +81,9 @@ export default function GigsPage() {
       meta={{ description: 'Alle Auftritte von roadone' }}
       pageURL={'gigs'}
     >
-      {Permission.useGlobalPermission('gig.post') && <AddEventPanel />}
+      {Permission.useGlobalPermission('gig.post') && (
+        <AddEventPanel onSuccess={refreshGigs} />
+      )}
       <Stack as={'main'} direction={'column'} spacing={'md'} hAlign>
         <>
           {useRenderGigGroups(gigGroups, {
@@ -104,7 +109,7 @@ export default function GigsPage() {
 //       RESTRICTED COMPONENTS
 // <================================>
 
-function AddEventPanel() {
+function AddEventPanel(props: { onSuccess: (data: GigData) => any }) {
   const endpoint = api.gig.addGig.useMutation();
   const addDialog = useMutateDialog({
     title: useMessage('general.add', getGlobalMessage('gig.name')),
@@ -114,6 +119,7 @@ function AddEventPanel() {
     endpoint,
     form: (props) => <GigForm {...props} />,
     width: 'sm',
+    onSuccess: props.onSuccess,
   });
   return (
     <Stack hAlign sd={{ marginBottom: 'xl', childLength: config.gigWidth }}>

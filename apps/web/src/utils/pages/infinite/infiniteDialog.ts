@@ -209,10 +209,11 @@ export function useMutateDialog<
             addToast({
               type: 'error',
               title: getGlobalMessage('general.actionSuccess'),
-              message: `${getGlobalMessage(
-                error.message as any,
-                error.message
-              )}`,
+              message: error.message
+                ? getGlobalMessage(error.message)
+                : process.env.NODE_ENV !== 'development'
+                ? error.message
+                : undefined,
             });
           },
         });

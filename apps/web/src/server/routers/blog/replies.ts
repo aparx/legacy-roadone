@@ -240,6 +240,7 @@ type UniReplyNode =
       type: 'blog';
       node: DeepRepliesObject<{
         id: string;
+        // blogId: string;
       }>;
     };
 
@@ -253,13 +254,9 @@ export async function deleteReplyNode(root: UniReplyNode) {
   // Delete parents in reverse due to the nature of cyclic referential actions
   let { parents: sections, count } = collectReplyParents(root);
   sections = sections.reverse();
-  let itemCount = count;
-  if (type === 'blog') {
-    const _length = sections.length;
-    // TODO replace this with something more efficient
-    sections = sections.filter((v) => v.node.id !== root.node.id);
-    itemCount += _length - sections.length;
-  } else if (!sections.length) sections.push(root);
+  if (!sections.length && type !== 'blog') sections.push(root);
+  else if (type === 'blog') ++count; // blog itself also counts as a deleted item
+  // Map each section with sequential deletion queries
   const sequence: any[] = sections.flatMap(({ node, type }) => [
     // First we delete all children of `parents`
     prisma.blogReply.deleteMany({
@@ -291,29 +288,39 @@ export async function deleteReplyNode(root: UniReplyNode) {
       prisma.blogPost.update({
         where: { id: node.blogId },
         data: {
-          totalReplyCount: { decrement: itemCount },
+          totalReplyCount: { decrement: count },
         },
       })
     );
-  return prisma
-    .$transaction(sequence)
-    .then(() => ({ deleted: itemCount, root }));
+  return prisma.$transaction(sequence).then(() => ({ deleted: count, root }));
 }
 
 function collectReplyParents(node: UniReplyNode, count: number = 0) {
-  return recursiveReplyParentsCollect(node, { count, parents: [] });
+  return recursiveReplyParentsCollect(node, node, { count, parents: [] });
 }
 
 function recursiveReplyParentsCollect(
   uniNode: UniReplyNode,
+  root: UniReplyNode,
   result: { count: number; parents: UniReplyNode[] }
 ) {
-  const { node } = uniNode;
+  const { type, node } = uniNode;
   result.count++;
   if (!node.replies?.length) return result;
-  result.parents.push(uniNode);
-  node.replies.forEach((node) =>
-    recursiveReplyParentsCollect({ node, type: 'reply' }, result)
+  // We will get duplicates with type `blog`, because blogs contain ALL
+  // replies on any depth - meaning replies may occur twice leading to a
+  // transaction failure, to mitigate this issue, we filter for duplicates.
+  if (
+    type !== 'blog' &&
+    (root.type !== 'blog' ||
+      // this isn't really efficient being O(n log n) but it is fine for now,
+      // since blog mutations (specifically "deletions") do not happen frequently
+      !result.parents.find((v) => v.node.id === node.id))
+  ) {
+    result.parents.push(uniNode);
+  }
+  node.replies.forEach((itr) =>
+    recursiveReplyParentsCollect({ node: itr, type: 'reply' }, root, result)
   );
   return result;
 }
