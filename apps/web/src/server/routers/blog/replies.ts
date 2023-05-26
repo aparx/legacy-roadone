@@ -136,17 +136,20 @@ export const blogReplyRouter = router({
       // Before the `depth` property, the entire depth-tree was queried, which may
       // have resulted in issues in the future. To further future-proof, we include a
       // `depth` in the data for now.
-      const parent = await prisma.blogReply.findFirst({
-        where: { blogId, id: parentId ?? undefined },
-        select: { id: true, depth: true },
-      });
-      if (!parent && parentId) throw new TRPCError({ code: 'NOT_FOUND' });
-      let depth = parent?.depth ? 1 + parent.depth : 1;
-      if (depth > Globals.maxReplyDepth)
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Reply depth exceeded',
+      let depth = 1;
+      if (parentId) {
+        const parent = await prisma.blogReply.findFirst({
+          where: { blogId, id: parentId },
+          select: { id: true, depth: true },
         });
+        if (!parent && parentId) throw new TRPCError({ code: 'NOT_FOUND' });
+        depth = parent?.depth ? 1 + parent.depth : 1;
+        if (depth > Globals.maxReplyDepth)
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Reply depth exceeded (${depth} on ${parentId})`,
+          });
+      }
       // Check if comment exists
       const sequence: any[] = [
         prisma.blogReply.create({

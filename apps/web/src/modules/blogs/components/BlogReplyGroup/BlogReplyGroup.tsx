@@ -15,7 +15,14 @@ import { useDeleteDialog } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItem } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
 import { Button, Icon, Skeleton, Stack } from 'next-ui';
-import { ReactElement, RefObject, useMemo } from 'react';
+import {
+  ReactElement,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { MdWarning } from 'react-icons/md';
 
 export type BlogCommentGroupProps = {
@@ -45,18 +52,19 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
     // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
     trpc: { abortOnUnmount: true },
-    staleTime: Infinity, // updated automatically when changed
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
   });
   const replies = useMemo(() => data?.pages?.flatMap((p) => p.data), [data]);
   const canPostReply = Permission.useGlobalPermission('blog.comment.post');
   const deleteEndpoint = api.blog.reply.deleteReply.useMutation();
+  const notifyParent = useReplyParentNotify(group, queryParams);
   const deleteDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('blog.reply.name')),
     endpoint: deleteEndpoint,
     content: deleteDialogContent,
     width: 'md',
     onSuccess: ({ deleted, root }) => {
+      if (queryParams.parentId) notifyParent((par) => --par.replyCount);
       refetch({ type: 'all' }).then(() =>
         blogPost.data.set((state) => ({
           ...state,
@@ -81,6 +89,8 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
             field={{ disabled: disabled || isLoadingData }}
             isLoading={isLoadingData}
             onAdded={(data) => {
+              if (queryParams.parentId) notifyParent((par) => ++par.replyCount);
+              // <===> Refetching children data <===>
               refetch().then(() => {
                 // TODO consider Zustand for this
                 blogPost.data.set((state) => ({
@@ -132,6 +142,10 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   );
 }
 
+// <=========================================>
+//          REPLY HOOKS AND DIALOGS
+// <=========================================>
+
 /** Content shown with the `delete`-Dialog, when a User is about to delete a reply. */
 const deleteDialogContent = ({ item }: InfiniteItem<BlogReplyData>) => {
   return (
@@ -155,6 +169,49 @@ const deleteDialogContent = ({ item }: InfiniteItem<BlogReplyData>) => {
     </Stack>
   );
 };
+
+/**
+ * Hook that returns a callback that can be called in order to notify the parent about
+ * child-based updates. The returned callback takes another action callback with an
+ * argument of type `BlogReplyData`, which is the actual parent.
+ * In order to perform updates on the parent, the parent has to be mutated within the
+ * action callback. The modified data is then set, to trigger a re-render.
+ *
+ * @param group the group of the reply which' parent is targeted
+ * @param queryParams the query parameters used to fetch the reply which' parent is target
+ */
+function useReplyParentNotify(
+  group: CommentGroupNode,
+  queryParams: {
+    blogId: string;
+    parentId: string | undefined | null;
+    limit: number;
+  }
+) {
+  const apiContext = api.useContext();
+  const getReplies = apiContext.blog.reply.getReplies;
+  const queryParamsRef = useRef(queryParams);
+  // prettier-ignore
+  useEffect(() => { queryParamsRef.current = queryParams; });
+  return useCallback(
+    (action: (reply: BlogReplyData) => any) => {
+      // <===> Notifying the parent <===>
+      const queryParams = queryParamsRef.current;
+      const newQueryParams = { ...queryParams, parentId: group.path.at(-2) };
+      const newData = getReplies.getInfiniteData(newQueryParams);
+      newData?.pages
+        ?.map((page) => page.data.find((v) => v.id === queryParams.parentId))
+        .filter((v) => v != null)
+        .forEach((v) => action(v!));
+      getReplies.setInfiniteData(newQueryParams, newData);
+    },
+    [getReplies, group.path]
+  );
+}
+
+// <=========================================>
+//         REPLY SKELETON COMPONENTS
+// <=========================================>
 
 type ReplySkeletonGroupProps = {
   /** The total amount of replies in this depth-level. */

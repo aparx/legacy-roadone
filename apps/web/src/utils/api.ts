@@ -14,7 +14,8 @@ function getBaseUrl() {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 60 * 1000 /* 5m */,
+      cacheTime: 6 * 60 * 60 * 1000 /* 6 min */,
+      staleTime: 60 * 60 * 1000 /* 1 min */,
       refetchOnWindowFocus: false,
     },
   },
