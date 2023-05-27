@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { ToastConfig as config } from './Toast.config';
 import * as style from './Toast.style';
 import { useTheme } from '@emotion/react';
 import { capitalize } from 'lodash';
@@ -59,10 +60,17 @@ export const toastIconMap = {
 
 export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
   function SoloToastRenderer(
-    { type, title, message, id, duration, onFinish, ...rest },
+    {
+      type,
+      title,
+      message,
+      id,
+      duration = config.defaults.duration,
+      onFinish,
+      ...rest
+    },
     ref
   ) {
-    duration ??= 'normal'; // TODO
     duration =
       typeof duration === 'string' ? toastDurationMap[duration] : duration;
     useAwareTimeout(() => {

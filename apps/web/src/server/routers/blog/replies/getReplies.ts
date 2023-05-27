@@ -23,7 +23,7 @@ export const getReplies = procedure
     const userId = ctx.session?.user?.id;
     const parentId = input.parentId ?? null;
     const replies = await prisma.$transaction(async (tx) => {
-      const replies: BlogReplyData[] = [];
+      const ownReplies: BlogReplyData[] = [];
       if (userId) {
         // Since anyone can only have up to max. one reply for each depth, we can
         // simply find first for better performance.
@@ -31,20 +31,20 @@ export const getReplies = procedure
           where: { blogId: blogId, authorId: userId, parentId },
           include: { author: true },
         });
-        if (ownReply) replies.push(ownReply);
+        if (ownReply) ownReplies.push(ownReply);
       }
       return [
-        ...replies,
+        ...ownReplies,
         ...(await tx.blogReply.findMany({
           where: {
-            id: { notIn: replies.map((r) => r.id) },
+            id: { notIn: ownReplies.map((r) => r.id) },
             blogId: blogId,
             parentId,
             blog: { repliesDisabled: false },
           },
           include: { author: true },
           skip: cursor,
-          take: 1 + limit,
+          take: Math.max(1 + limit - ownReplies.length, 0),
         })),
       ];
     });

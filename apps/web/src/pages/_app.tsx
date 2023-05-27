@@ -26,7 +26,11 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
           <TypefaceStyleClassProvider value={{ roboto: roboto.className }}>
             <div id={'app-root'} css={style.appRoot} ref={appRootRef}>
               <Global styles={style.appGlobal} />
-              <SessionProvider session={session}>
+              <SessionProvider
+                session={session}
+                refetchOnWindowFocus={false}
+                refetchInterval={60 * 60 /* 1h */}
+              >
                 <WindowBreakpointProvider>
                   <Navbar>
                     <Navbar.Page link={'/home'} name={'Home'} />

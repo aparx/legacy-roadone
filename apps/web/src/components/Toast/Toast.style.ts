@@ -26,7 +26,7 @@ export const toast = (
 ) =>
   css({
     boxShadow: `${
-      theme.sys.color.elevation[3]
+      theme.sys.color.elevation[1]
     } 0 0 ${theme.rt.multipliers.spacing('lg')}px`,
     position: 'relative',
     overflow: 'hidden',

@@ -47,7 +47,7 @@ export default function BlogPage() {
   const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.blog.getBlogs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
-      staleTime: Globals.staleTime.blogs,
+      staleTime: Globals.staleTimes.blogs,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   const refreshBlogs = () => refetch({ type: 'all' });

@@ -26,6 +26,7 @@ export const globalMessages = {
     name: 'roadone',
   },
   general: {
+    clipboard_url_success: 'Der Link wurde in die Ablage kopiert',
     load_more: 'Mehr laden',
     profile_picture: 'Profilbild',
     add: '%s hinzufügen',

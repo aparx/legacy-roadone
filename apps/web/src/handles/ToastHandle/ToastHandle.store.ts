@@ -16,8 +16,13 @@ export type ToastHandle = {
 export const useToastHandle = create<ToastHandle>((set, get) => ({
   list: [],
   add: (toast) => {
+    const state = get();
     const newToast = { id: uuidv4(), ...toast };
-    get().queue(newToast);
+    // remove toasts that are *like* `newToast`
+    state.list
+      .filter((t) => isToastAlike(t, newToast))
+      .forEach(({ id }) => state.dequeue(id));
+    state.queue(newToast);
     return newToast;
   },
   queue: (toast) => set({ list: [...get().list, toast] }),
@@ -33,3 +38,12 @@ export const useToastHandle = create<ToastHandle>((set, get) => ({
     return newQueue.length !== state.list.length;
   },
 }));
+
+function isToastAlike(toastA: ToastData, toastB: ToastData): boolean {
+  if (toastA.id === toastB.id) return true;
+  return (
+    toastB.type === toastB.type &&
+    toastA.message === toastB.message &&
+    toastA.title === toastB.title
+  );
+}

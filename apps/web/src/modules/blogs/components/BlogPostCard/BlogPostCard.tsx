@@ -1,5 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import * as style from './BlogPostCard.style';
+import { useToastHandle } from '@/handles';
 import { Permission } from '@/modules/auth/utils/permission';
 import type { BlogPostData } from '@/modules/blogs/blogPost';
 import BlogReplyGroup from '@/modules/blogs/components/BlogReplyGroup/BlogReplyGroup';
@@ -14,7 +15,7 @@ import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { Button, Card, Stack } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useRouter } from 'next/router';
-import { useEffect, useId, useState } from 'react';
+import { useId } from 'react';
 import {
   MdComment,
   MdCommentsDisabled,
@@ -83,21 +84,32 @@ function BlogPostFooter(props: Omit<BlogPostCardProps, 'context'>) {
   const showEdit = useGlobalPermission('blog.edit');
   const showDelete = useGlobalPermission('blog.delete');
   const router = useRouter();
+  const addToast = useToastHandle((s) => s.add);
   const url = `https://${process.env.NEXT_PUBLIC_SELF_URL}${router.asPath}#${blog.id}`;
-  const [canShare, setShare] = useState(true);
-  useEffect(() => {
-    setShare(typeof navigator !== 'undefined' && navigator.canShare?.({ url }));
-  }, [url]);
   return (
     <Card.Footer
       {...useStackProps({ direction: 'row', vAlign: true, wrap: true })}
     >
+      {/* TODO possibly replace with a like-button (with timeouts) */}
       <Button.Secondary
         tight
-        disabled={!canShare}
         icon={<MdShare />}
         aria-label={getGlobalMessage('translation.share')}
-        onClick={() => navigator.share?.({ url })}
+        onClick={() => {
+          if (navigator.canShare?.({ url })) navigator.share?.({ url });
+          else if (!navigator.clipboard?.writeText)
+            addToast({
+              type: 'error',
+              message: 'Dein Gerät unterstützt dies leider nicht.',
+            });
+          else
+            navigator.clipboard.writeText(url).then(() =>
+              addToast({
+                type: 'success',
+                message: getGlobalMessage('general.clipboard_url_success'),
+              })
+            );
+        }}
       />
       {showEdit && (
         <Button.Secondary

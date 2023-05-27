@@ -53,8 +53,9 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
     hasNextPage,
     fetchNextPage,
   } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
-    // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
+    enabled: useSession().status !== 'loading',
     trpc: { abortOnUnmount: true },
+    staleTime: Globals.staleTimes.replies,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
   });
   const session = useSession();

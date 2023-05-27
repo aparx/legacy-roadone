@@ -48,7 +48,8 @@ export module Globals {
   } as const satisfies Record<string, number>;
 
   /** Stale times (in milliseconds) for Tanstack-Query caching purposes */
-  export const staleTime = {
-    blogs: 5 * 60 * 1000 /* 5 min */,
+  export const staleTimes = {
+    blogs: 60 * 60 * 1000 /* 1h */,
+    replies: 5 * 60 * 1000 /* 5m */,
   } as const satisfies Record<string, number | undefined>;
 }
