@@ -27,7 +27,7 @@ export const getReplies = procedure
     const parentId = input.parentId ?? null;
     const [own, replies] = await prisma.$transaction(async (tx) => {
       const excludes: string[] = [];
-      const ownReplies: BlogReplyData[] = [];
+      let ownReplies: BlogReplyData[] | undefined;
       if (userId) {
         // Since anyone can only have up to max. one reply for each depth, we can
         // simply find first for better performance.
@@ -35,8 +35,10 @@ export const getReplies = procedure
           where: { blogId: blogId, authorId: userId, parentId },
           include: { author: true },
         });
-        if (ownReply && !input.cursor) ownReplies.push(ownReply);
-        if (ownReply) excludes.push(ownReply.id);
+        if (ownReply) {
+          if (!input.cursor) ownReplies = [ownReply];
+          excludes.push(ownReply.id);
+        }
       }
       return [
         ownReplies,
