@@ -93,6 +93,8 @@ export const globalMessages = {
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
     },
     blog: {
+      duplicate_title_start:
+        'Einen Eintrag mit diesem Titel und Startzeit gibt es bereits',
       not_found: 'Blog konnte nicht gefunden werden  (gelöscht?).',
       add_success: 'Es kann dauern, bis der neue Blog-Eintrag angezeigt wird.',
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',

@@ -46,6 +46,7 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   };
   const {
     data,
+    status,
     isLoading,
     isRefetching,
     refetch,
@@ -60,7 +61,13 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   });
   const session = useSession();
   const internalFieldRef = useRef<BlogReplyFieldRef>(null);
-  const replies = useMemo(() => data?.pages?.flatMap((p) => p.data), [data]);
+  const replies = useMemo(() => {
+    const queried = data?.pages?.flatMap((p) => p.data);
+    const own = data?.pages.flatMap((p) => p.own ?? []);
+    if (queried && own) return [...own, ...queried];
+    else if (queried) return own;
+    else return queried;
+  }, [data]);
   const canPostReply = Permission.useGlobalPermission('blog.comment.post');
   const ownReply = replies?.find((r) => r.authorId === session.data?.user?.id);
   const hasReplied = ownReply != null;
@@ -269,6 +276,8 @@ function ReplySkeleton() {
   const theme = useTheme();
   const baseColor = theme.sys.color.surface[5];
   const scanColor = theme.sys.color.scheme.surfaceVariant;
+  // Must be memorized to avoid layout shifts on re-renders
+  const maxWidth = useMemo(() => Math.round(125 + Math.random() * 125), []);
   return (
     <Stack direction={'row'} sd={{ padding: 'md' }}>
       <Skeleton
@@ -284,7 +293,7 @@ function ReplySkeleton() {
           height={20}
           baseColor={baseColor}
           scanColor={scanColor}
-          style={{ maxWidth: 250 }}
+          style={{ maxWidth }}
         />
         <Skeleton height={40} baseColor={baseColor} scanColor={scanColor} />
       </Stack>

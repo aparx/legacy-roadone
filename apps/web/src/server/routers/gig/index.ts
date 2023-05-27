@@ -17,7 +17,6 @@ import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
-import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 const revalidatePath = '/gigs';
@@ -107,10 +106,12 @@ export const gigRouter = router({
           where: { title_start: { title: input.title, start: input.start } },
         })
       ) {
-        throw new TRPCError({
+        throw createErrorFromGlobal({
           code: 'CONFLICT',
-          // TODO replace by global message key
-          message: 'Title with given start already exists',
+          message: {
+            summary: 'Title with given start already exists',
+            translate: 'responses.blog.duplicate_title_start',
+          },
         });
       }
       return await prisma.gig
