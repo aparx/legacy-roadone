@@ -142,8 +142,9 @@ model BlogReply {
   updatedAt DateTime? @updatedAt
 
   // This makes it impossible to post multiple times under the same node.
-  @@unique([parentId, blogId, authorId])
-  @@index([createdAt(sort: Asc)])
+  @@unique([parentId, blogId, authorId], name: "uniqueAuthorBlogParent")
+  @@index([blogId, authorId])
+  @@index([createdAt(sort: Desc)])
   @@index([blogId])
   @@index([parentId])
   @@index([authorId])

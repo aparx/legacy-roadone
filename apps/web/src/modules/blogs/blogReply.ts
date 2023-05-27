@@ -23,6 +23,12 @@ export const blogReplySchema = blogReplyContentSchema
     updatedAt: z.date().nullish().optional(),
   });
 
+/** Reply-like schema that owns `blogId` and `parentId`. */
+export const blogReplyParented = blogReplySchema.pick({
+  blogId: true,
+  parentId: true,
+});
+
 export type BlogReplyContentData = z.infer<typeof blogReplyContentSchema>;
 
 export type BlogReplyData = z.infer<typeof blogReplySchema>;

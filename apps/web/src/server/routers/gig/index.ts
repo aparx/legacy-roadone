@@ -12,6 +12,7 @@ import {
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
+import { createErrorFromGlobal } from '@/utils/error';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
@@ -36,7 +37,13 @@ async function isGigExisting(id: string): Promise<boolean> {
  */
 async function ensureGigExistence(id: string, complement: boolean = true) {
   if ((await isGigExisting(id)) !== complement)
-    throw new TRPCError({ code: 'NOT_FOUND', message: 'Gig not found' });
+    throw createErrorFromGlobal({
+      code: 'NOT_FOUND',
+      message: {
+        summary: 'Gig not found',
+        translate: 'responses.gig.not_found',
+      },
+    });
 }
 
 /**

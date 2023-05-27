@@ -11,6 +11,7 @@ import { CommentGroupNode } from '@/modules/blogs/groupSchema';
 import { api } from '@/utils/api';
 import { formatMessage } from '@/utils/format';
 import { getGlobalMessage } from '@/utils/message';
+import { useAddErrorToast } from '@/utils/toast';
 import { useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
 import {
@@ -50,8 +51,10 @@ export type InternalReplyFieldProps = {
 export type BlogReplyFieldProps = InternalReplyFieldProps & {
   shell?: PropsWithStyleable<HTMLAttributes<HTMLDivElement>>;
   field?: PropsWithStyleable<InputHTMLAttributes<HTMLInputElement>>;
+  hasReplied?: boolean;
   isLoading?: boolean;
   onAdded?: (data: BlogReplyData) => any;
+  onError?: (error: any) => any;
 };
 
 export type BlogReplyFieldRef = {
@@ -62,12 +65,27 @@ export const BlogReplyField = forwardRef<
   BlogReplyFieldRef,
   BlogReplyFieldProps
 >(function BlogReplyFieldRenderer(props, ref) {
-  const { group, onAdded, isLoading } = props;
+  const { group, onAdded, onError, isLoading } = props;
   const fieldRef = useRef<TextFieldRef>(null);
   useImperativeHandle(ref, () => ({ textField: fieldRef.current }));
   const addToast = useToastHandle((s) => s.add);
+  const addErrorToast = useAddErrorToast();
   const endpoint = api.blog.reply.addReply.useMutation({
     trpc: { abortOnUnmount: true },
+    onSuccess: (data) => {
+      onAdded?.(data);
+      addToast({
+        type: 'success',
+        title: formatMessage(
+          getGlobalMessage('general.added'),
+          getGlobalMessage('blog.reply.name')
+        ),
+      });
+    },
+    onError: (e) => {
+      onError?.(e);
+      addErrorToast(e);
+    },
   });
   return (
     <RawForm
@@ -80,26 +98,11 @@ export const BlogReplyField = forwardRef<
         />
       )}
       onSubmit={(data) =>
-        endpoint.mutate(
-          {
-            blogId: group.root.id,
-            parentId: group.path.at(-1),
-            content: data.content,
-          },
-          {
-            onSuccess: (data) => {
-              onAdded?.(data);
-              addToast({
-                type: 'success',
-                title: formatMessage(
-                  getGlobalMessage('general.added'),
-                  getGlobalMessage('blog.reply.name')
-                ),
-              });
-            },
-            onError: (e) => addToast({ type: 'error', message: `${e}` }),
-          }
-        )
+        endpoint.mutate({
+          blogId: group.root.id,
+          parentId: group.path.at(-1),
+          content: data.content,
+        })
       }
     />
   );
@@ -108,15 +111,25 @@ export const BlogReplyField = forwardRef<
 export default BlogReplyField;
 
 const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
-  function ReplyFormRenderer({ group, shell, field, isLoading }, ref) {
+  function ReplyFormRenderer(
+    { group, shell, field, isLoading, hasReplied },
+    ref
+  ) {
     const { status } = useSession();
     const notAuthed = status === 'unauthenticated';
     const rawForm = useRawForm();
     isLoading ||= status === 'loading';
     return (
       <div {...useStyleableMerge(shell ?? {})}>
-        {notAuthed ? (
-          <NotAuthedField />
+        {notAuthed || hasReplied ? (
+          <LockedField
+            type={notAuthed ? 'auth' : 'other'}
+            message={
+              notAuthed
+                ? getGlobalMessage('general.signInToReply')
+                : getGlobalMessage('blog.reply.already_replied')
+            }
+          />
         ) : (
           <TextField
             ref={ref}
@@ -152,42 +165,56 @@ const ReplyForm = forwardRef<TextFieldRef, BlogReplyFieldProps>(
   }
 );
 
-function NotAuthedField() {
+type LockedFieldProps = {
+  type: 'auth' | 'other';
+  message: string;
+};
+
+function LockedField(props: LockedFieldProps) {
+  const { type, message } = props;
   const font = { role: 'body', size: 'md' } satisfies TypescalePinpoint;
   const fontData = useFontData(font);
   const theme = useTheme();
-  const padding = 'sm' satisfies MultiplierValueInput<'spacing'>;
+  const isAuth = type === 'auth';
+  const paddingH: MultiplierValueInput<'spacing'> = 'sm';
   return (
     <Stack
-      sd={{ padding }}
+      sd={{ paddingH, paddingV: isAuth ? 'sm' : 'md' }}
       direction={'row'}
       {...propMerge(useDataTextProps({ fontData }), {
         css: style.loginField(useTheme(), fontData),
-        style: { userSelect: 'none' } satisfies CSSProperties,
+        style: {
+          userSelect: 'none',
+          cursor: isAuth ? 'pointer' : undefined,
+        } satisfies CSSProperties,
       })}
+      onClick={isAuth ? logIn : undefined}
       hAlign={'space-between'}
       vAlign
+      aria-hidden={!isAuth}
     >
       <Stack
         direction={'row'}
-        {...useDataTextProps({ fontData, emphasis: 'medium' })}
+        {...useDataTextProps({ fontData, emphasis: isAuth ? 'medium' : 'low' })}
       >
         <Icon
           aria-hidden
           icon={<MdLock />}
           fontData={fontData}
           style={{
-            width: `${
-              BlogReplyCardConfig.avatarSize +
-              (theme.rt.multipliers.spacing(padding) ?? 0)
-            }px`,
+            marginLeft:
+              (theme.rt.multipliers.spacing('md') ?? 0) -
+              (theme.rt.multipliers.spacing(paddingH) ?? 0),
+            width: BlogReplyCardConfig.avatarSize,
           }}
         />
-        <span>{getGlobalMessage('general.signInToReply')}</span>
+        <span>{message}</span>
       </Stack>
-      <Button.Tertiary size={'sm'} leading={<MdLogin />} onClick={logIn}>
-        {getGlobalMessage('translation.signIn')}
-      </Button.Tertiary>
+      {isAuth && (
+        <Button.Primary size={'sm'} leading={<MdLogin />} onClick={logIn}>
+          {getGlobalMessage('translation.signIn')}
+        </Button.Primary>
+      )}
     </Stack>
   );
 }

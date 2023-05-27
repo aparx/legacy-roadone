@@ -9,6 +9,9 @@ export type BlogPostBaseContext = {
   /** The (already processed) blog data. */
   data: LocalState<BlogPostProcessedData>;
 
+  /** Refetches the page where the current blog post is contained. */
+  refresh: () => Promise<void>;
+
   /** Toggle that controls the visibility of replies at root level */
   showReplies: LocalToggle;
 };

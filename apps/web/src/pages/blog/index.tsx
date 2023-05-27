@@ -8,6 +8,7 @@ import {
 } from '@/modules/blogs/blogPost';
 import { BlogPostCard } from '@/modules/blogs/components/BlogPostCard';
 import { apiRouter } from '@/server/routers/_api';
+import type { GetBlogsOutput } from '@/server/routers/blog';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
@@ -23,7 +24,7 @@ import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { MdAdd, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 
@@ -46,6 +47,7 @@ export default function BlogPage() {
   const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     api.blog.getBlogs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
+      staleTime: Globals.staleTime.blogs,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   const refreshBlogs = () => refetch({ type: 'all' });
@@ -106,6 +108,8 @@ function BlogPostItem({ index, blog, onDelete, onEdit }: BlogPostSingleProps) {
   // prettier-ignore
   useEffect(() => { localStateRef.current = blogState });
   useEffect(() => localStateRef.current.set(blog), [blog]);
+  const apiContext = api.useContext();
+  const getBlogs = apiContext.blog.getBlogs;
   return (
     <BlogPostCard
       onDelete={onDelete}
@@ -113,6 +117,19 @@ function BlogPostItem({ index, blog, onDelete, onEdit }: BlogPostSingleProps) {
       context={{
         data: blogState,
         showReplies: useLocalToggle(index === 0),
+        refresh: useCallback(
+          () =>
+            getBlogs.refetch(
+              {},
+              {
+                refetchPage: (lastPage: GetBlogsOutput) =>
+                  lastPage.data.findIndex(
+                    (v) => v.id === blogState.state.id
+                  ) !== -1,
+              }
+            ),
+          [getBlogs, blogState.state.id]
+        ),
       }}
     />
   );

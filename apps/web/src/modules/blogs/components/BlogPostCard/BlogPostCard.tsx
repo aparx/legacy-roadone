@@ -13,7 +13,8 @@ import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { Button, Card, Stack } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
-import { useId } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useId, useState } from 'react';
 import {
   MdComment,
   MdCommentsDisabled,
@@ -35,7 +36,7 @@ export default function BlogPostCard(props: BlogPostCardProps) {
   const labelledBy = useId();
   return (
     <BlogPostProvider value={context}>
-      <article aria-labelledby={labelledBy}>
+      <article aria-labelledby={labelledBy} id={data.state.id}>
         <Card
           css={style.blogPostCard}
           keepPadding
@@ -81,14 +82,22 @@ function BlogPostFooter(props: Omit<BlogPostCardProps, 'context'>) {
   const isDisabled = blog.repliesDisabled;
   const showEdit = useGlobalPermission('blog.edit');
   const showDelete = useGlobalPermission('blog.delete');
+  const router = useRouter();
+  const url = `https://${process.env.NEXT_PUBLIC_SELF_URL}${router.asPath}#${blog.id}`;
+  const [canShare, setShare] = useState(true);
+  useEffect(() => {
+    setShare(typeof navigator !== 'undefined' && navigator.canShare?.({ url }));
+  }, [url]);
   return (
     <Card.Footer
       {...useStackProps({ direction: 'row', vAlign: true, wrap: true })}
     >
       <Button.Secondary
         tight
+        disabled={!canShare}
         icon={<MdShare />}
         aria-label={getGlobalMessage('translation.share')}
+        onClick={() => navigator.share?.({ url })}
       />
       {showEdit && (
         <Button.Secondary

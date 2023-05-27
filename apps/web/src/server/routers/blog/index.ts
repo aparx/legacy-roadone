@@ -11,16 +11,16 @@ import {
 import { prisma } from '@/server/prisma';
 import {
   blogReplyRouter,
-  createDeepDepthSelectTree,
+  createDeepSelectTree,
   deleteReplyNode,
 } from '@/server/routers/blog/replies';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
+import { createErrorFromGlobal } from '@/utils/error';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import { cuidSchema } from '@/utils/schemas/identifierSchema';
 import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
-import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 const revalidatePath = '/blog';
@@ -33,6 +33,7 @@ const getBlogsOutputSchema = z.object({
 
 export type GetBlogsOutput = z.infer<typeof getBlogsOutputSchema>;
 
+/** /blog/** router */
 export const blogRouter = router({
   reply: blogReplyRouter,
 
@@ -58,7 +59,7 @@ export const blogRouter = router({
             .then(() => blog);
         })
       ).then((a) => a.filter((a) => a.status === 'fulfilled'))
-       .then((a) => a.map((b: any) => b.value));
+        .then((a) => a.map((b: any) => b.value));
       let nextCursor;
       if (blogArray.length > limit) {
         blogArray.pop();
@@ -109,9 +110,16 @@ export const blogRouter = router({
     .mutation(async ({ input: { id }, ctx: { res } }) => {
       const node = await prisma.blogPost.findUnique({
         where: { id },
-        ...createDeepDepthSelectTree('replies', { id: true }),
+        ...createDeepSelectTree('replies', { id: true }),
       });
-      if (!node) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!node)
+        throw createErrorFromGlobal({
+          code: 'NOT_FOUND',
+          message: {
+            summary: 'Blog not found',
+            translate: 'responses.blog.not_found',
+          },
+        });
       return deleteReplyNode({ node, type: 'blog' }).then((data) =>
         pipePathRevalidate(revalidatePath, res, data)
       );

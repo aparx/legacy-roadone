@@ -1,6 +1,11 @@
 import { Role } from '@/modules/schemas/role';
 
 export module ServerGlobals {
+  export module Blog {
+    /** The maximum *total* amount of replies that can exist for a blog post. */
+    export const maxTotalReplyCount = 250;
+  }
+
   export module RateLimitation {
     /** What role (and higher) is immune to rate-limitation. */
     export const immunity = 'ADMIN' satisfies Role;

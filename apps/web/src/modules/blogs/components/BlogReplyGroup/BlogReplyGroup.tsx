@@ -14,7 +14,10 @@ import { getGlobalMessage } from '@/utils/message';
 import { useDeleteDialog } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItem } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
+import { TRPCClientError } from '@trpc/client';
+import { useSession } from 'next-auth/react';
 import { Button, Icon, Skeleton, Stack } from 'next-ui';
+import { multiRef } from 'next-ui/src/utils/mutliRef';
 import {
   ReactElement,
   RefObject,
@@ -34,8 +37,8 @@ export type BlogCommentGroupProps = {
 };
 
 export default function BlogReplyGroup(props: BlogCommentGroupProps) {
-  const blogPost = useBlogPost();
   const { group, fieldRef, replyCount, disabled } = props;
+  const blogPost = useBlogPost();
   const queryParams = {
     limit: Globals.replyFetchLimit,
     blogId: group.root.id,
@@ -48,63 +51,72 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
     refetch,
     isFetchingNextPage,
     hasNextPage,
-    hasPreviousPage,
     fetchNextPage,
   } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
     // enabled: useSession().status !== 'loading' || !Globals.prioritiseSelfReplies,
     trpc: { abortOnUnmount: true },
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
   });
+  const session = useSession();
+  const internalFieldRef = useRef<BlogReplyFieldRef>(null);
   const replies = useMemo(() => data?.pages?.flatMap((p) => p.data), [data]);
   const canPostReply = Permission.useGlobalPermission('blog.comment.post');
+  const ownReply = replies?.find((r) => r.authorId === session.data?.user?.id);
+  const hasReplied = ownReply != null;
   const deleteEndpoint = api.blog.reply.deleteReply.useMutation();
-  const notifyParent = useReplyParentNotify(group, queryParams);
+  const notifyReplyParent = useReplyParentNotify(group, queryParams);
+  const notifyBlogParent = useBlogParentNotify();
   const deleteDialog = useDeleteDialog({
     title: useMessage('general.delete', getGlobalMessage('blog.reply.name')),
     endpoint: deleteEndpoint,
     content: deleteDialogContent,
     width: 'md',
     onSuccess: ({ deleted, root }) => {
-      if (queryParams.parentId) notifyParent((par) => --par.replyCount);
-      refetch({ type: 'all' }).then(() =>
-        blogPost.data.set((state) => ({
-          ...state,
-          totalReplyCount: state.totalReplyCount - deleted,
-          replyCount:
-            root.type === 'reply' && root.node.parentId == null
-              ? state.replyCount - 1
-              : state.replyCount,
-        }))
-      );
+      refetch({ type: 'all' }).then(() => {
+        if (queryParams.parentId) notifyReplyParent((par) => --par.replyCount);
+        if (root.type !== 'blog') notifyBlogParent(root.node, -deleted, -1);
+      });
     },
   });
   const repliesShown = replies?.length ?? 0;
   const isLoadingData = isRefetching || isLoading || deleteEndpoint.isLoading;
+  const apiContext = api.useContext();
   return (
     <Stack css={style.blogReplyGroup} spacing={'lg'}>
       {group.path.length < Globals.maxReplyDepth &&
         (!group.parent || canPostReply) && (
           <BlogReplyField
             group={group}
-            ref={fieldRef}
+            hasReplied={hasReplied}
+            onError={(error) => {
+              // <==> REFETCH EXISTING DATA ON ERROR <==>
+              if (!(error instanceof TRPCClientError)) return;
+              const code = error.data.code as unknown;
+              const promises: any[] = [];
+              // We refetch the blog if either NOT_FOUND or FORBIDDEN
+              if (code === 'NOT_FOUND' || code === 'FORBIDDEN')
+                promises.push(blogPost.refresh());
+              // We refetch replies only if NOT_FOUND was returned
+              if (code === 'NOT_FOUND' && queryParams.parentId)
+                promises.push(
+                  apiContext.blog.reply.getReplies.refetch({
+                    ...queryParams,
+                    parentId: group.path.at(-2),
+                  })
+                );
+              Promise.allSettled(promises).catch(console.error);
+            }}
+            ref={multiRef(fieldRef, internalFieldRef)}
             field={{ disabled: disabled || isLoadingData }}
             isLoading={isLoadingData}
             onAdded={(data) => {
-              if (queryParams.parentId) notifyParent((par) => ++par.replyCount);
-              // <===> Refetching children data <===>
+              // // Obsolete due to the `LockedField` implementation.
+              // const field = internalFieldRef?.current?.textField?.field;
+              // if (field) { field.blur(); field.value = ''; }
               refetch().then(() => {
-                // TODO consider Zustand for this
-                blogPost.data.set((state) => ({
-                  ...state,
-                  totalReplyCount: 1 + state.totalReplyCount,
-                  replyCount: data.parentId
-                    ? state.replyCount
-                    : 1 + state.replyCount,
-                }));
-                const field = fieldRef?.current?.textField?.field;
-                if (!field) return;
-                field.blur();
-                field.value = '';
+                if (queryParams.parentId)
+                  notifyReplyParent((par) => ++par.replyCount);
+                notifyBlogParent(data, 1 /* added one reply */);
               });
             }}
           />
@@ -114,11 +126,10 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
           {replies?.map((reply) => (
             <li key={reply.id}>
               <BlogReplyCard
-                // TODO
-                // disabled={isRefetching || isLoading}
                 reply={reply}
                 parent={group}
                 disabled={isLoadingData || disabled}
+                canReply={canPostReply}
                 onDelete={deleteDialog}
               />
             </li>
@@ -172,11 +183,12 @@ const deleteDialogContent = ({ item }: InfiniteItem<BlogReplyData>) => {
 };
 
 /**
- * Hook that returns a callback that can be called in order to notify the parent about
- * child-based updates. The returned callback takes another action callback with an
+ * Hook that returns a callback that can be called in order to notify the (Reply!) parent
+ * about child-based updates. The returned callback takes another action callback with an
  * argument of type `BlogReplyData`, which is the actual parent.
  * In order to perform updates on the parent, the parent has to be mutated within the
  * action callback. The modified data is then set, to trigger a re-render.
+ * Note: the parent cannot be a blog post!
  *
  * @param group the group of the reply which' parent is targeted
  * @param queryParams the query parameters used to fetch the reply (not the parent!)
@@ -196,7 +208,6 @@ function useReplyParentNotify(
   useEffect(() => { queryParamsRef.current = queryParams; });
   return useCallback(
     (action: (reply: BlogReplyData) => any) => {
-      // <===> Notifying the parent <===>
       const queryParams = queryParamsRef.current;
       const newQueryParams = { ...queryParams, parentId: group.path.at(-2) };
       const newData = getReplies.getInfiniteData(newQueryParams);
@@ -208,6 +219,23 @@ function useReplyParentNotify(
     },
     [getReplies, group.path]
   );
+}
+
+function useBlogParentNotify() {
+  const blogPost = useBlogPost();
+  return (
+    root: Partial<Pick<BlogReplyData, 'parentId'>>,
+    totalIncrement: number,
+    localIncrement: number = totalIncrement
+  ) => {
+    blogPost.data.set((state) => ({
+      ...state,
+      totalReplyCount: state.totalReplyCount + totalIncrement,
+      replyCount: root.parentId
+        ? state.replyCount + localIncrement
+        : state.replyCount,
+    }));
+  };
 }
 
 // <=========================================>

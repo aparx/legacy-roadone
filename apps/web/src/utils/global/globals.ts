@@ -46,4 +46,9 @@ export module Globals {
     gigs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
     blogs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
   } as const satisfies Record<string, number>;
+
+  /** Stale times (in milliseconds) for Tanstack-Query caching purposes */
+  export const staleTime = {
+    blogs: 5 * 60 * 1000 /* 5 min */,
+  } as const satisfies Record<string, number | undefined>;
 }

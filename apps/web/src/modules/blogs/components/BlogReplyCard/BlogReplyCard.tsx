@@ -29,6 +29,12 @@ import useGlobalPermission = Permission.useGlobalPermission;
 export type BlogReplyProps = {
   reply: BlogReplyData;
   disabled?: boolean;
+  /**
+   * If the user can reply.
+   * The necessary authorization is done automatically already. Thus, this field is
+   * independent of the permission level that the current session has.
+   */
+  canReply?: boolean;
 } & (
   | { visualOnly: true; parent?: undefined }
   | { visualOnly?: false | undefined; parent: CommentGroupNode }
@@ -37,7 +43,8 @@ export type BlogReplyProps = {
   StyleableProp;
 
 export default function BlogReplyCard(props: BlogReplyProps) {
-  const { reply, visualOnly, onDelete, parent, disabled, ...rest } = props;
+  const { reply, visualOnly, onDelete, parent, disabled, canReply, ...rest } =
+    props;
   const labeledBy = useId();
   const session = useSession();
   const triggerFocus = useRef(false);
@@ -50,6 +57,11 @@ export default function BlogReplyCard(props: BlogReplyProps) {
   const canManipulateReply =
     useGlobalPermission('blog.reply.ownAll') || isOwner;
   const fieldRef = useRef<BlogReplyFieldRef>(null);
+
+  const showReplyButton = canPostReply && !visualOnly;
+  const showExpandButton = reply.replyCount > 0 && !visualOnly;
+  const showDeleteButton = canManipulateReply && !visualOnly;
+
   useEffect(() => {
     // on-rerender try and focus the now (eventual) visible field
     if (showReplies && triggerFocus.current)
@@ -100,28 +112,28 @@ export default function BlogReplyCard(props: BlogReplyProps) {
             </Text.Body>
           </div>
           <Stack as={'footer'} direction={'row'} spacing={1} vAlign wrap>
-            {canPostReply && !visualOnly && (
+            {showReplyButton && (
               <Button.Text
                 onClick={() => {
                   triggerFocus.current = true;
                   setShowReplies(true);
                   fieldRef.current?.textField?.focus();
                 }}
-                disabled={disabled}
+                disabled={disabled || !canReply}
                 take={{ hPaddingMode: 'oof' }}
-                sd={{ emphasis: disabled ? 'disabled' : 'medium' }}
+                sd={{ emphasis: disabled || !canReply ? 'disabled' : 'medium' }}
               >
                 {getGlobalMessage('blog.reply.nameAddSingle')}
               </Button.Text>
             )}
-            {reply.replyCount > 0 && !visualOnly && (
+            {showExpandButton && (
               <Button.Text
                 tight
                 disabled={disabled}
                 leading={showReplies ? <MdExpandLess /> : <MdExpandMore />}
                 onClick={() => setShowReplies((s) => !s)}
                 style={{ padding: 0 }}
-                take={{ hPaddingMode: !canPostReply && 'oof' }}
+                take={{ hPaddingMode: !showReplyButton && 'oof' }}
                 sd={{ emphasis: disabled ? 'disabled' : 'medium' }}
               >
                 {showReplies
@@ -129,7 +141,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                   : getGlobalMessage('blog.reply.multiShow')}
               </Button.Text>
             )}
-            {canManipulateReply && !visualOnly && (
+            {showDeleteButton && (
               <Button.Text
                 tight
                 disabled={disabled}
@@ -140,8 +152,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
                   emphasis: 'medium',
                 }}
                 take={{
-                  hPaddingMode:
-                    reply.replyCount === 0 && !canPostReply && 'oof',
+                  hPaddingMode: !showReplyButton && !showExpandButton && 'oof',
                 }}
               >
                 {getGlobalMessage('translation.delete')}

@@ -137,6 +137,10 @@ export type RecursiveRecord<TKeys extends PropertyKey, TValue = never> = {
   [P in TKeys]: TValue | RecursiveRecord<TKeys, TValue>;
 };
 
+export type PickIntersecting<TObjA extends object, TObjB extends object> = {
+  [P in keyof TObjA]: P extends keyof TObjB ? TObjA[P] & TObjB[P] : never;
+};
+
 export type DeepCircularOptions = {
   asArray?: boolean;
   partial?: boolean;

@@ -7,6 +7,7 @@ import {
   InfiniteItemMutateFunction,
   InfiniteItemMutation,
 } from '@/utils/pages/infinite/infiniteItem';
+import { useAddErrorToast } from '@/utils/toast';
 import { UseTRPCMutationResult } from '@trpc/react-query/shared';
 import { ReactNode } from 'react';
 import { UnionExtract } from 'shared-utils';
@@ -72,6 +73,7 @@ export function useDeleteDialog<
     props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
+  const addErrorToast = useAddErrorToast();
   return (dataItem: InfiniteItem<TDataItem>) => {
     showDialog({
       title,
@@ -92,14 +94,7 @@ export function useDeleteDialog<
           },
           onError: (error) => {
             onError?.(error);
-            addToast({
-              type: 'error',
-              title: getGlobalMessage('general.actionFailed'),
-              message: getGlobalMessage(
-                error as any,
-                getGlobalMessage('general.error')
-              ),
-            });
+            addErrorToast(error);
           },
         });
       },
@@ -172,6 +167,7 @@ export function useMutateDialog<
 ): InfiniteMutationDialogResult<TType, TSchema, TFormData> {
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
+  const addErrorToast = useAddErrorToast();
   if (typeof props !== 'object') throw new Error();
   const { form, onSuccess, onError, ...restProps } = props;
   const { type, endpoint, schema, response, width, title } = props;
@@ -206,15 +202,7 @@ export function useMutateDialog<
           },
           onError: (error) => {
             onError?.(error);
-            addToast({
-              type: 'error',
-              title: getGlobalMessage('general.actionSuccess'),
-              message: error.message
-                ? getGlobalMessage(error.message)
-                : process.env.NODE_ENV !== 'development'
-                ? error.message
-                : undefined,
-            });
+            addErrorToast(error);
           },
         });
       },
