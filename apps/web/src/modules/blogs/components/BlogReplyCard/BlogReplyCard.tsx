@@ -11,6 +11,8 @@ import { Globals } from '@/utils/global/globals';
 import { useRelativeTime } from '@/utils/hooks/useRelativeTime';
 import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
+import { useRegreplURL } from '@/utils/urlReplace';
+import { useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
 import {
   Button,
@@ -21,8 +23,9 @@ import {
   UI,
   useStyleableMerge,
 } from 'next-ui';
+import { createStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useEffect, useId, useRef, useState } from 'react';
-import { MdDelete, MdExpandLess, MdExpandMore } from 'react-icons/md';
+import { MdCheck, MdDelete, MdExpandLess, MdExpandMore } from 'react-icons/md';
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
@@ -62,6 +65,8 @@ export default function BlogReplyCard(props: BlogReplyProps) {
   const showExpandButton = reply.replyCount > 0 && !visualOnly;
   const showDeleteButton = canManipulateReply && !visualOnly;
 
+  const t = useTheme();
+
   useEffect(() => {
     // on-rerender try and focus the now (eventual) visible field
     if (showReplies && triggerFocus.current)
@@ -69,7 +74,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
     triggerFocus.current = false;
   }, [showReplies]);
   return (
-    <Stack as={'article'} aria-labelledby={labeledBy}>
+    <Stack as={'article'} aria-labelledby={labeledBy} spacing={0}>
       <Stack
         direction={'row'}
         {...propMerge({ css: style.blogReply }, useStyleableMerge(rest))}
@@ -89,14 +94,29 @@ export default function BlogReplyCard(props: BlogReplyProps) {
         <Stack spacing={0.25}>
           <div>
             <Stack as={'header'} direction={'row'} wrap hSpacing={1}>
-              <Text.Title
-                size={'sm'}
-                id={labeledBy}
-                take={{ fontWeight: 'strong' }}
-              >
-                {/* TODO replace "[[deleted]]" with something else */}
-                {reply.author?.name || '[[deleted]]'}
-              </Text.Title>
+              {reply.author?.verified && reply.author?.name ? (
+                <Text.Title
+                  size={'sm'}
+                  id={labeledBy}
+                  take={{ fontWeight: 'strong' }}
+                  sd={{
+                    padding: 'sm',
+                    background: (t) => t.sys.color.surface[4],
+                    color: (t) => t.sys.color.scheme.onSurface,
+                  }}
+                  {...createStackProps(t, { direction: 'row', spacing: 'md' })}
+                >
+                  {reply.author?.name}
+                  <MdCheck />
+                </Text.Title>
+              ) : (
+                <Text.Title
+                  size={'sm'}
+                  id={labeledBy}
+                  take={{ fontWeight: 'strong' }}
+                ></Text.Title>
+              )}
+
               <Text.Label
                 as={'time'}
                 size={'lg'}
@@ -108,7 +128,7 @@ export default function BlogReplyCard(props: BlogReplyProps) {
               </Text.Label>
             </Stack>
             <Text.Body size={'md'} emphasis={'medium'}>
-              {reply.content}
+              <>{useRegreplURL(reply.content)}</>
             </Text.Body>
           </div>
           <Stack as={'footer'} direction={'row'} spacing={1} vAlign wrap>

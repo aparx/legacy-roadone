@@ -5,6 +5,7 @@ import type { BreakpointName } from 'theme-core';
 export const card = (
   theme: Theme,
   width: BreakpointName | false,
+  tight: boolean | undefined,
   keepPadding: boolean
 ) =>
   css({
@@ -12,7 +13,7 @@ export const card = (
     background: theme.sys.color.surface[1],
     padding: theme.rt.multipliers.spacing(3),
     maxWidth: width !== false ? theme.rt.breakpoints.point(width) : undefined,
-    width: width !== false ? '100%' : undefined,
+    width: width !== false && !tight ? '100%' : undefined,
     boxSizing: 'border-box',
     // prettier-ignore
     [theme.rt.breakpoints.lte('md')]: !keepPadding ? {

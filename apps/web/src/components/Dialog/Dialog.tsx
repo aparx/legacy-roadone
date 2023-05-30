@@ -110,14 +110,25 @@ export type DialogData<
 > = {
   type: TType;
   title?: string;
-  /** Optional preferred width of the dialog.
-   * @default false */
-  width?: InternalCardProps['width'];
-} & (TType extends UnionExtract<DialogType, 'form'>
-  ? DialogFormData<TFormSchema> & Partial<DialogActionData<TActions>>
-  : TType extends UnionExtract<DialogType, 'content'>
-  ? DialogContentData & Partial<DialogActionData<TActions>>
-  : DialogModalData & DialogActionData<TActions>);
+} & (
+  | {
+      /** Optional preferred width of the dialog.
+       * @default false */
+      width: InternalCardProps['width'] | false;
+      tight?: boolean | undefined;
+    }
+  | {
+      /** Optional preferred width of the dialog.
+       * @default false */
+      width?: undefined;
+      tight?: undefined;
+    }
+) &
+  (TType extends UnionExtract<DialogType, 'form'>
+    ? DialogFormData<TFormSchema> & Partial<DialogActionData<TActions>>
+    : TType extends UnionExtract<DialogType, 'content'>
+    ? DialogContentData & Partial<DialogActionData<TActions>>
+    : DialogModalData & DialogActionData<TActions>);
 
 type _DialogCloseFn = () => any;
 

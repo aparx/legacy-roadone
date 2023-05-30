@@ -26,8 +26,11 @@ export const globalMessages = {
     name: 'roadone',
   },
   general: {
+    /** Used for the link "forwarding". */
+    ok_forward: 'Ok, jetzt weiterleiten',
     clipboard_url_success: 'Der Link wurde in die Ablage kopiert',
     load_more: 'Mehr laden',
+    show_less: 'Weniger anzeigen',
     profile_picture: 'Profilbild',
     add: '%s hinzufügen',
     added: '%s hinzugefügt',
@@ -107,6 +110,14 @@ export const globalMessages = {
         error_too_many: 'Das Limit an maximalen Kommentaren wurde erreicht.',
       },
     },
+  },
+  urlReplace: {
+    dialog_title: 'Du verlässt uns',
+    dialog_message_prefix: 'Du wirst zu',
+    dialog_message_suffix: 'weitergeleitet',
+    dialog_warning:
+      'Wir wissen nicht, was sich dort befindet. Wir sind nicht' +
+      ' verantwortlich für jene Inhalte. Auf eigene Gefahr.',
   },
 } as const satisfies TraversableObject<string>;
 

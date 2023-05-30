@@ -1,9 +1,13 @@
 import { HTMLTag } from '../../utils';
-import type { BreakpointName } from 'theme-core';
+import { InternalCardProps } from './Card';
+import { PickOptional } from 'shared-utils';
 
 export module CardConfig {
+  export const defaults = {
+    width: 'md',
+  } as const satisfies Partial<PickOptional<InternalCardProps>>;
+
   export module Defaults {
-    export const width = 'md' satisfies BreakpointName;
     export const tag = 'div' satisfies HTMLTag;
   }
 }

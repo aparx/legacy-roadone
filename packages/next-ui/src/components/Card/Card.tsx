@@ -6,6 +6,7 @@ import {
   propMerge,
   PropsWithoutChildren,
   PropsWithStyleable,
+  StyleableProp,
   useStyleableMerge,
   WithTagRepresentation,
 } from '../../utils';
@@ -20,7 +21,6 @@ import {
   forwardRef,
   ForwardRefExoticComponent,
   HTMLAttributes,
-  PropsWithChildren,
   ReactElement,
   ReactNode,
 } from 'react';
@@ -39,27 +39,44 @@ export type Card = {
   ReactElement
 >;
 
-export type InternalCardProps = PropsWithStyleable<
-  PropsWithChildren<{
-    width?: BreakpointName | false;
-    /** If true, keeps the Card's padding regardless of the device's width. */
-    keepPadding?: boolean;
-  }>
->;
+export type InternalCardProps = (
+  | {
+      width: BreakpointName | false;
+      /** If false, stretches the width to 100%.
+       * @default false */
+      tight?: boolean | undefined;
+    }
+  | {
+      width?: undefined;
+      /** If false, stretches the width to 100%.
+       * @default false */
+      tight?: undefined;
+    }
+) & {
+  /** If true, keeps the Card's padding regardless of the device's width. */
+  keepPadding?: boolean;
+} & PropsWithoutChildren &
+  StyleableProp;
 
 // prettier-ignore
 export type CardProps<TTag extends HTMLTag> =
   WithTagRepresentation<TTag, InternalCardProps>;
 
 export const Card = forwardRef(function CardRenderer<TTag extends HTMLTag>(
-  { as, children, width, keepPadding, ...rest }: CardProps<TTag>,
+  {
+    as,
+    children,
+    width = config.defaults.width,
+    tight,
+    keepPadding,
+    ...rest
+  }: CardProps<TTag>,
   ref: ForwardedRef<HTMLElementFromTag<TTag>>
 ) {
-  width ??= config.Defaults.width;
   return jsx(
     as ?? config.Defaults.tag,
     propMerge(
-      { css: style.card(useTheme(), width, !!keepPadding) },
+      { css: style.card(useTheme(), width, tight ?? true, !!keepPadding) },
       { ref },
       useStyleableMerge(rest)
     ),

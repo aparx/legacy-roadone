@@ -1,6 +1,6 @@
 import { UI } from '../../utils';
 import type { InternalSkeletonProps } from './Skeleton';
-import { PickOptionals } from 'shared-utils';
+import { PickOptional } from 'shared-utils';
 
 export module SkeletonConfig {
   export const defaults = {
@@ -9,5 +9,5 @@ export module SkeletonConfig {
     roundness: UI.generalRoundness,
     baseColor: 'transparent',
     scanColor: (t) => t.sys.color.scheme.primary,
-  } satisfies Partial<PickOptionals<InternalSkeletonProps>>;
+  } satisfies Partial<PickOptional<InternalSkeletonProps>>;
 }

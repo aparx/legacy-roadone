@@ -10,9 +10,13 @@ import { z } from 'zod';
 
 const getRepliesOutputSchema = z.object({
   data: blogReplySchema.array(),
+  cursor: z.number().nullish(),
   nextCursor: z.number().nullish(),
   /** Blog reply that the requesting user owns himself.
-   * This field is only non-null if the cursor is at the beginning. */
+   * This field is only non-null if the cursor is at the beginning.
+   * The limit is affected by `own`. */
+  // We future-proof the application by using an array, even if only up to
+  // one reply is "allowed" and returned at the current moment.
   own: blogReplySchema.array().optional().nullish(),
 });
 
@@ -23,6 +27,7 @@ export const getReplies = procedure
   .output(getRepliesOutputSchema)
   .query(async ({ input, ctx }): Promise<GetReplyOutput> => {
     const { blogId, cursor, limit } = input;
+    let realLimit = limit; // limit subtracted by `own` length
     const userId = ctx.session?.user?.id;
     const parentId = input.parentId ?? null;
     const [own, replies] = await prisma.$transaction(async (tx) => {
@@ -38,6 +43,7 @@ export const getReplies = procedure
         if (ownReply) {
           if (!input.cursor) ownReplies = [ownReply];
           excludes.push(ownReply.id);
+          --realLimit; // since we only fetch up to one reply
         }
       }
       return [
@@ -49,6 +55,7 @@ export const getReplies = procedure
             parentId,
             blog: { repliesDisabled: false },
           },
+          orderBy: { createdAt: 'desc' },
           include: { author: true },
           skip: cursor,
           take: Math.max(1 + limit, 0),
@@ -56,10 +63,10 @@ export const getReplies = procedure
       ];
     });
     let nextCursor: number | undefined;
-    if (replies && replies.length > limit) {
-      replies.splice(limit, replies.length);
-      nextCursor = cursor + limit;
+    if (replies && replies.length > realLimit) {
+      replies.splice(realLimit, replies.length);
+      nextCursor = cursor + realLimit;
     }
-    // Anchor insertion must happen on client side
-    return { data: replies ?? [], nextCursor, own };
+    // Anchor HTML-Tag insertion must happen on client side
+    return { data: replies ?? [], nextCursor, own, cursor: input.cursor };
   });

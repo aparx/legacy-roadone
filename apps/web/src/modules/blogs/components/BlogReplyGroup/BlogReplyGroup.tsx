@@ -46,17 +46,21 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   };
   const {
     data,
-    status,
     isLoading,
     isRefetching,
     refetch,
     isFetchingNextPage,
     hasNextPage,
+    hasPreviousPage,
     fetchNextPage,
   } = api.blog.reply.getReplies.useInfiniteQuery(queryParams, {
     enabled: useSession().status !== 'loading',
     trpc: { abortOnUnmount: true },
     staleTime: Globals.staleTimes.replies,
+    getPreviousPageParam: (firstPage, allPages) => {
+      const lastCursor = allPages.at(-1)?.cursor;
+      return !lastCursor ? undefined : lastCursor - 1;
+    },
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
   });
   const session = useSession();
@@ -89,6 +93,10 @@ export default function BlogReplyGroup(props: BlogCommentGroupProps) {
   const repliesShown = replies?.length ?? 0;
   const isLoadingData = isRefetching || isLoading || deleteEndpoint.isLoading;
   const apiContext = api.useContext();
+  useEffect(() => {
+    if (internalFieldRef?.current?.textField?.field)
+      internalFieldRef.current.textField.field.value = '';
+  }, [hasReplied]);
   return (
     <Stack css={style.blogReplyGroup} spacing={'lg'}>
       {group.path.length < Globals.maxReplyDepth &&
@@ -218,12 +226,17 @@ function useReplyParentNotify(
     (action: (reply: BlogReplyData) => any) => {
       const queryParams = queryParamsRef.current;
       const newQueryParams = { ...queryParams, parentId: group.path.at(-2) };
-      const newData = getReplies.getInfiniteData(newQueryParams);
-      newData?.pages
-        ?.map((page) => page.data.find((v) => v.id === queryParams.parentId))
-        .filter((v) => v != null)
-        .forEach((v) => action(v!));
-      getReplies.setInfiniteData(newQueryParams, newData);
+      getReplies.setInfiniteData(newQueryParams, (state) => {
+        state?.pages
+          ?.map(
+            (page) =>
+              page.own?.find((v) => v.id === queryParams.parentId) ??
+              page.data.find((v) => v.id === queryParams.parentId)
+          )
+          .filter((v) => v != null)
+          .forEach((v) => action(v!));
+        return state;
+      });
     },
     [getReplies, group.path]
   );

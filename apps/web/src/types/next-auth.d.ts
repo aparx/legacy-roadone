@@ -1,13 +1,8 @@
-import type { Role } from '@/modules/schemas/role';
+import { User } from '@/modules/schemas/user';
 import { DefaultSession } from 'next-auth/src/core/types';
 
 declare module 'next-auth' {
   export interface Session extends DefaultSession {
-    user: DefaultSession['user'] & {
-      id: string;
-      role: Role;
-      lastAction?: Date | undefined | null;
-      actionCount?: number | undefined | null;
-    };
+    user: User;
   }
 }

@@ -1,5 +1,5 @@
 import { InternalDividerProps } from './Divider';
-import { PickOptionals } from 'shared-utils';
+import { PickOptional } from 'shared-utils';
 
 export module DividerConfig {
   export const defaults = {
@@ -7,5 +7,5 @@ export module DividerConfig {
     orientation: 'horizontal',
     length: '100%',
     emphasis: 'high',
-  } satisfies PickOptionals<InternalDividerProps>;
+  } satisfies PickOptional<InternalDividerProps>;
 }

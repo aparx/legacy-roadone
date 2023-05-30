@@ -8,6 +8,7 @@ export const publicUserSchema = z.object({
   name: z.string().nullish(),
   image: z.string().url().nullish(),
   createdAt: z.date(),
+  verified: z.boolean().optional().nullish(),
   role: roleSchema,
 });
 

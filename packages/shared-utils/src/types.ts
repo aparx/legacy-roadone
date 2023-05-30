@@ -47,7 +47,7 @@ export type WithArray<TElement> = TElement | TElement[];
  * Returns an object of all properties and values of `TObject`, where property `P` is
  * optional, otherwise omits it.
  */
-export type PickOptionals<TObject extends object> = {
+export type PickOptional<TObject extends object> = {
   [P in _ExtractOptionals<TObject>]: TObject[P];
 };
 
