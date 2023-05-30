@@ -2,7 +2,6 @@
 import { DialogConfig as config } from './Dialog.config';
 import { useIsMobile } from '@/utils/device';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
-import { useTheme } from '@emotion/react';
 import { capitalize } from 'lodash';
 import { Button, Card, useOnClickOutside } from 'next-ui';
 import { ButtonProps } from 'next-ui/src/components/Button/Button';
@@ -103,6 +102,21 @@ export type DialogActionData<TActions extends DialogResponseSource> = {
 
 export type DialogType = 'form' | 'content' | 'modal';
 
+/** Properties that depend on each other regarding the style of the dialog. */
+export type DialogStyleDiscrimination =
+  | {
+      /** The preferred max-width of the dialog. */
+      width: InternalCardProps['width'] | false;
+      /** If true avoids the stretch to max-width (see `width`). */
+      tight?: boolean | undefined;
+    }
+  | {
+      /** The preferred max-width of the dialog. */
+      width?: undefined;
+      /** If true avoids the stretch to max-width (see `width`). */
+      tight?: undefined;
+    };
+
 export type DialogData<
   TType extends DialogType,
   TActions extends DialogResponseSource,
@@ -110,20 +124,7 @@ export type DialogData<
 > = {
   type: TType;
   title?: string;
-} & (
-  | {
-      /** Optional preferred width of the dialog.
-       * @default false */
-      width: InternalCardProps['width'] | false;
-      tight?: boolean | undefined;
-    }
-  | {
-      /** Optional preferred width of the dialog.
-       * @default false */
-      width?: undefined;
-      tight?: undefined;
-    }
-) &
+} & DialogStyleDiscrimination &
   (TType extends UnionExtract<DialogType, 'form'>
     ? DialogFormData<TFormSchema> & Partial<DialogActionData<TActions>>
     : TType extends UnionExtract<DialogType, 'content'>
@@ -160,10 +161,9 @@ export const Dialog = forwardRef(function SoloDialogRenderer<
   TFormSchema extends ZodSchema,
   TProps extends DialogProps<TType, TActions, TFormSchema>
 >(
-  { title, type, close, width, ...restData }: TProps,
+  { title, type, close, width, tight, ...restData }: TProps,
   forwardRef: ForwardedRef<DialogRef<TType, TActions, TFormSchema, TProps>>
 ) {
-  const theme = useTheme();
   const dialogRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const closeRef = useRef<_DialogCloseFn>(close);
@@ -178,7 +178,13 @@ export const Dialog = forwardRef(function SoloDialogRenderer<
   useOnClickOutside(useIsMobile() ? close : () => {}, dialogRef);
   useOnNavigation(() => close());
   return (
-    <Card width={width ?? false} keepPadding role={'dialog'} ref={dialogRef}>
+    <Card
+      width={width ?? false}
+      tight={tight}
+      keepPadding
+      role={'dialog'}
+      ref={dialogRef}
+    >
       <DialogInner
         close={closeRef}
         formRef={formRef}

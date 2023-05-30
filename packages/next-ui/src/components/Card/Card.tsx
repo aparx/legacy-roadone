@@ -21,6 +21,7 @@ import {
   forwardRef,
   ForwardRefExoticComponent,
   HTMLAttributes,
+  PropsWithChildren,
   ReactElement,
   ReactNode,
 } from 'react';
@@ -55,7 +56,7 @@ export type InternalCardProps = (
 ) & {
   /** If true, keeps the Card's padding regardless of the device's width. */
   keepPadding?: boolean;
-} & PropsWithoutChildren &
+} & PropsWithChildren &
   StyleableProp;
 
 // prettier-ignore
@@ -76,7 +77,7 @@ export const Card = forwardRef(function CardRenderer<TTag extends HTMLTag>(
   return jsx(
     as ?? config.Defaults.tag,
     propMerge(
-      { css: style.card(useTheme(), width, tight ?? true, !!keepPadding) },
+      { css: style.card(useTheme(), width, tight, !!keepPadding) },
       { ref },
       useStyleableMerge(rest)
     ),

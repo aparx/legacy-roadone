@@ -11,6 +11,10 @@ datasource db {
   relationMode = "prisma"
 }
 
+// <=====================================>
+//             GENERAL MODELS
+// <=====================================>
+
 /// Enum of all possible roles with different meaning to permission
 enum Role {
   /// Guests are unauthenticated users (default role)
@@ -38,11 +42,8 @@ model User {
   createdAt DateTime @default(now())
   role      Role     @default(USER)
 
-  /// If true ensures authenticity 
+  /// Ensures authenticity of the user (if true)
   verified Boolean @default(false)
-
-  blogPosts    BlogPost[]
-  blogComments BlogReply[]
 
   /// Keeps track of when the last action (i.e. mutation) was performed.
   lastAction DateTime?
@@ -52,6 +53,13 @@ model User {
   /// rate-limited. The number decreases with each action taken outside said
   /// timeframe. Some `Role`s might be immune to rate-limitations.
   actionCount Int @default(0) @db.UnsignedSmallInt
+
+  /// Blog posts created by this user.
+  blogPosts    BlogPost[]
+  /// Blog comments (top-level threads) created by this user.
+  blogComments BlogComment[]
+  /// Blog replies (nested threads) created by this user.
+  blogReplies  BlogReply[]
 
   @@index([role])
   @@map("user")
@@ -92,75 +100,85 @@ model Gig {
   updatedAt DateTime? @updatedAt
 
   @@unique([title, start])
-  @@index([start(sort: Desc)])
+  @@index(start(sort: Desc))
   @@map("gig")
 }
 
+// <=====================================>
+//           BLOG RELATED MODELS
+// <=====================================>
+
 model BlogPost {
-  id      String @id @default(cuid())
-  title   String
-  content String @db.LongText // markdown content
-
-  repliesDisabled Boolean @default(false)
-
-  /// TODO field for the total amount of replies and for the (root) relative,
-  ///      so that skeletons can be shown accordingly on initial load.
-
-  /// Relative (root) reply count
-  replyCount      Int         @default(0) @db.UnsignedInt
-  /// Total (deep) reply count
-  totalReplyCount Int         @default(0) @db.UnsignedInt
-  /// Total (all / deep) replies
-  replies         BlogReply[]
-
-  author   User   @relation(fields: [authorId], references: [id])
-  authorId String
-
+  id        String    @id @default(cuid())
+  title     String    @unique
+  content   String    @db.Text
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  @@index([createdAt(sort: Desc)])
-  @@index([authorId])
-  @@index([id, repliesDisabled])
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  replies  BlogReply[]
+  comments BlogComment[]
+
+  @@index(authorId)
+  @@index(createdAt(sort: Desc))
   @@map("blog_post")
 }
 
-model BlogReply {
-  id     String   @id @default(cuid())
-  blog   BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  blogId String
-
-  content String
-
-  parent   BlogReply? @relation("parent", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  parentId String?
-
-  /// Relative (direct) reply count
-  replyCount Int         @default(0) @db.UnsignedInt
-  /// Relative (directly nested) replies
-  replies    BlogReply[] @relation("parent")
-
-  /// Reply depth. In other words, how many parents there are (blog-post excluded).
-  /// If the depth is zero, `parentId` is null
-  depth Int @db.UnsignedTinyInt
-
-  author   User   @relation(fields: [authorId], references: [id])
-  authorId String
-
+/// Comments are top level replies to a blog post
+model BlogComment {
+  // BEGIN SHARED FIELDS (equal to `BlogReply` [!])
+  id        String    @id @default(cuid())
+  content   String    @db.TinyText // ::= 255
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  // This makes it impossible to post multiple times under the same node.
-  @@unique([parentId, blogId, authorId])
-  @@index([blogId, authorId])
-  @@index([createdAt(sort: Desc)])
-  @@index([blogId])
-  @@index([parentId])
-  @@index([authorId])
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  blog   BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId String
+  // END SHARED FIELDS
+
+  replies BlogReply[]
+
+  // Forces limitation of up to one top-level thread per author per blog post
+  @@unique([blogId, authorId])
+  @@index(blogId)
+  @@index(authorId)
+  @@index(createdAt(sort: Desc))
+  @@map("blog_comment")
+}
+
+/// Replies are comments that continue a `BlogComment` and are thus nested.
+model BlogReply {
+  // BEGIN SHARED FIELDS (equal to `BlogComment` [!])
+  id        String    @id @default(cuid())
+  content   String    @db.TinyText // ::= 255
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  blog   BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId String
+  // END SHARED FIELDS
+
+  parent   BlogComment @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId String
+
+  @@index(blogId)
+  @@index(authorId)
+  @@index(parentId)
+  @@index(createdAt(sort: Desc))
   @@map("blog_reply")
 }
 
-// <===> NextAuth models <===>
+// <=====================================>
+//        NEXT-AUTH SPECIFIC MODELS
+// <=====================================>
 
 model Account {
   id                String  @id @default(cuid())

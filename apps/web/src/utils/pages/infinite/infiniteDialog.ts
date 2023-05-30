@@ -24,11 +24,9 @@ export type DialogInfiniteMutationData<
 > = {
   title?: string;
   endpoint: InfiniteMutationEndpoint<TFormData, TReturnData>;
-  /** @default false */
-  width?: DialogProps<'form', any, any>['width'];
   onSuccess?: (data: TReturnData) => any;
   onError?: (error: any) => any;
-};
+} & Pick<DialogProps<'form', any, any>, 'tight' | 'width'>;
 
 export type InfiniteMutationDialogResult<
   TType extends InfiniteItemMutation,
@@ -69,8 +67,16 @@ export function useDeleteDialog<
 >(
   props: UseDeleteDialogProps<TSchema, TDataItem, TReturnData, TFormData>
 ): InfiniteMutationDialogResult<'delete', TSchema, TDataItem> {
-  const { endpoint, width, content, response, title, onSuccess, onError } =
-    props;
+  const {
+    endpoint,
+    width,
+    tight,
+    content,
+    response,
+    title,
+    onSuccess,
+    onError,
+  } = props;
   const [showDialog, closeDialog] = useDialogHandle((s) => [s.show, s.close]);
   const addToast = useToastHandle((s) => s.add);
   const addErrorToast = useAddErrorToast();
@@ -79,7 +85,8 @@ export function useDeleteDialog<
       title,
       type: 'modal',
       actions: DialogConfig.dialogYesCancelSource,
-      width: width,
+      width,
+      tight,
       content: content?.(dataItem),
       onHandleYes: () => {
         closeDialog();
@@ -170,7 +177,7 @@ export function useMutateDialog<
   const addErrorToast = useAddErrorToast();
   if (typeof props !== 'object') throw new Error();
   const { form, onSuccess, onError, ...restProps } = props;
-  const { type, endpoint, schema, response, width, title } = props;
+  const { type, endpoint, schema, response, width, tight, title } = props;
   return (input?: InfiniteItem<TFormData> | any) => {
     const item = input
       ? (input.item as TType extends 'edit'
@@ -181,7 +188,8 @@ export function useMutateDialog<
       title,
       type: 'form',
       schema,
-      width: width,
+      width,
+      tight,
       actions: DialogConfig.dialogSaveCancelSource,
       content: form(
         type === 'edit' ? { ...restProps, item } : (restProps as any)
