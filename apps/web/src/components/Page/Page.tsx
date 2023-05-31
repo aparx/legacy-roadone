@@ -4,6 +4,7 @@ import { useTheme } from '@emotion/react';
 import { NextSeo } from 'next-seo';
 import { NextSeoProps } from 'next-seo/lib/types';
 import {
+  HTMLTag,
   PageAlign,
   propMerge,
   PropsWithStyleable,
@@ -15,7 +16,12 @@ import { PropsWithChildren } from 'react';
 
 // => we might not even need `PropsWithStyleable` (performance waste?)
 export type PageProps = PropsWithStyleable<
-  PropsWithChildren<{ name: string; pageURL: string; meta?: NextSeoProps }>
+  PropsWithChildren<{
+    name: string;
+    pageURL: string;
+    meta?: NextSeoProps;
+    as?: HTMLTag;
+  }>
 >;
 
 export default function Page({
@@ -23,6 +29,7 @@ export default function Page({
   name,
   pageURL,
   meta,
+  as,
   ...restProps
 }: PageProps) {
   const theme = useTheme();
@@ -44,6 +51,7 @@ export default function Page({
         }}
       />
       <PageAlign
+        as={as}
         {...propMerge(
           usePinpointTextProps({ role: 'body', size: 'md' }),
           useStyleableMerge(restProps)

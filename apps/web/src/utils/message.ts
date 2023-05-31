@@ -69,7 +69,7 @@ export const globalMessages = {
     post: {
       name: 'Blog-Eintrag',
     },
-    reply: {
+    comment: {
       name: 'Antwort',
       alternate: 'Kommentar',
       nameAddSingle: 'Antworten',
@@ -94,21 +94,6 @@ export const globalMessages = {
         'Den Titel mit gegebenem Beginn gibt es bereits!',
       add_success: 'Es kann dauern, bis der neue Auftritt angezeigt wird.',
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
-    },
-    blog: {
-      duplicate_title_start:
-        'Einen Eintrag mit diesem Titel und Startzeit gibt es bereits',
-      not_found: 'Blog konnte nicht gefunden werden  (gelöscht?).',
-      add_success: 'Es kann dauern, bis der neue Blog-Eintrag angezeigt wird.',
-      edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
-      reply: {
-        already_replied: 'Du hast bereits in dieser Ebene kommentiert',
-        add_error_disabled:
-          'Die Kommentarfunktion zu diesem Blog-Eintrag wurde deaktiviert',
-        add_error_notfound:
-          'Der Blog-Post oder Kommentar, auf den du Antworten möchtest, wurde gelöscht.',
-        error_too_many: 'Das Limit an maximalen Kommentaren wurde erreicht.',
-      },
     },
   },
   urlReplace: {

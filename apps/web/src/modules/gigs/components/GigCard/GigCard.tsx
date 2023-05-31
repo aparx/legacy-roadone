@@ -2,7 +2,7 @@
 import * as style from './GigCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
-import { GigProcessedData } from '@/modules/gigs/gig';
+import { ProcessedGigModel } from '@/modules/gigs/gig';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
@@ -26,7 +26,7 @@ import { MdDelete, MdEdit } from 'react-icons/md';
 export type GigRequiringMutationMap = InfiniteItemEvents<RenderableGig>;
 
 // Any `GigEvent` is renderable, but some might include extra (render) data
-export type RenderableGig = GigProcessedData & {
+export type RenderableGig = ProcessedGigModel & {
   /** @default 'upcoming' */
   state?: 'upcoming' | 'next' | 'done';
 };

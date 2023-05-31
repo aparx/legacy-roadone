@@ -5,7 +5,7 @@ import type {
   RenderableGig,
 } from '@/modules/gigs/components/GigCard/GigCard';
 import { GigGroup } from '@/modules/gigs/components/GigGroup';
-import { GigContentData, gigContentSchema, GigData } from '@/modules/gigs/gig';
+import { $gigContent, GigContentData, GigModel } from '@/modules/gigs/gig';
 import { apiRouter } from '@/server/routers/_api';
 import type { GetGigsOutput } from '@/server/routers/gig';
 import { api, queryClient } from '@/utils/api';
@@ -40,7 +40,7 @@ export async function getStaticProps() {
     ctx: { session: null },
     transformer: superjson,
   });
-  await helpers.gig.getGigs.prefetchInfinite({ parseMarkdown: true });
+  await helpers.gig.getGigs.prefetchInfinite({});
   return {
     props: { trpcState: helpers.dehydrate() },
     revalidate: Globals.isrIntervals.gigs,
@@ -50,7 +50,7 @@ export async function getStaticProps() {
 export default function GigsPage() {
   // prettier-ignore
   const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    api.gig.getGigs.useInfiniteQuery({ parseMarkdown: true }, {
+    api.gig.getGigs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
       staleTime: Infinity,
       getNextPageParam: (lastPage) => lastPage?.nextCursor
@@ -62,7 +62,7 @@ export default function GigsPage() {
     type: 'edit',
     endpoint: api.gig.editGig.useMutation(),
     response: { success: getGlobalMessage('responses.gig.edit_success') },
-    schema: gigContentSchema,
+    schema: $gigContent,
     form: (props) => <GigForm {...props} />,
     width: 'sm',
     onSuccess: refreshGigs,
@@ -109,12 +109,12 @@ export default function GigsPage() {
 //       RESTRICTED COMPONENTS
 // <================================>
 
-function AddEventPanel(props: { onSuccess: (data: GigData) => any }) {
+function AddEventPanel(props: { onSuccess: (data: GigModel) => any }) {
   const endpoint = api.gig.addGig.useMutation();
   const addDialog = useMutateDialog({
     title: useMessage('general.add', getGlobalMessage('gig.name')),
     type: 'add',
-    schema: gigContentSchema,
+    schema: $gigContent,
     response: { success: getGlobalMessage('responses.gig.add_success') },
     endpoint,
     form: (props) => <GigForm {...props} />,
@@ -190,7 +190,7 @@ function useRenderGigGroups(
 // <======================================>
 
 function GigForm<TType extends UseMutateType>(
-  props: UseMutateFormInput<TType, typeof gigContentSchema>
+  props: UseMutateFormInput<TType, typeof $gigContent>
 ) {
   const {
     endpoint: { isLoading },

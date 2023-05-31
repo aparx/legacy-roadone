@@ -1,9 +1,4 @@
-import {
-  gigContentSchema,
-  GigData,
-  gigEditSchema,
-  GigProcessedData,
-} from '@/modules/gigs/gig';
+import { $gigContent, $gigEdit, ProcessedGigModel } from '@/modules/gigs/gig';
 import {
   createPermissiveMiddleware,
   rateLimitingMiddleware,
@@ -14,17 +9,17 @@ import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { createErrorFromGlobal } from '@/utils/error';
 import { renderMarkdown } from '@/utils/functional/markdown';
-import { cuidSchema } from '@/utils/schemas/identifierSchema';
-import { infiniteQueryInput } from '@/utils/schemas/infiniteQueryInput';
+import {
+  createGetInfiniteQueryResult,
+  GetInfiniteQueryResult,
+  infiniteQueryInput,
+} from '@/utils/schemas/infiniteQueryInput';
+import { $cuidField } from '@/utils/schemas/sharedSchemas';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
-import { z } from 'zod';
 
 const revalidatePath = '/gigs';
 
-export type GetGigsOutput = {
-  data: GigData[];
-  nextCursor: number | undefined | null;
-};
+export type GetGigsOutput = GetInfiniteQueryResult<ProcessedGigModel>;
 
 async function isGigExisting(id: string): Promise<boolean> {
   return (await prisma.gig.count({ where: { id } })) !== 0;
@@ -56,38 +51,33 @@ export const gigRouter = router({
    * after the `start` field date in descending order.
    */
   getGigs: procedure
-    .input(
-      z
-        .object({ parseMarkdown: z.boolean().default(false) })
-        .extend(infiniteQueryInput.shape)
-    )
+    .input(infiniteQueryInput)
     .query(async ({ input }): Promise<GetGigsOutput> => {
       // console.log('called getGigs endpoint', input);
-      const { cursor: skip, limit: take, parseMarkdown } = input;
       const data = await prisma.gig
-        .findMany({ orderBy: { start: 'desc' }, skip, take: 1 + take })
+        .findMany({
+          orderBy: { start: 'desc' },
+          skip: input.cursor,
+          take: 1 + input.limit,
+        })
         .then((data) => data ?? [])
         .catch(handleAsTRPCError);
       // Parsing markdown every request isn't the most efficient, but only takes a
       // couple milliseconds (usually 1-2) for 30 gigs. This is the most future-proof,
       // since storing HTML in the Database might become an obstacle over time, in case
       // tags or attributes need change.
-      const gigArray = parseMarkdown
-        ? await Promise.all(
-            data.map(async (gig): Promise<GigProcessedData> => {
-              if (!gig.description?.length) return gig;
-              const markdown = await renderMarkdown(gig.description!);
-              (gig as GigProcessedData).htmlDescription = markdown;
-              return gig;
-            })
-          )
-        : data;
-      let nextCursor;
-      if (gigArray.length > take) {
-        gigArray.pop();
-        nextCursor = skip + take;
-      }
-      return { data: gigArray, nextCursor };
+      return createGetInfiniteQueryResult(input, {
+        infiniteData: await Promise.all(
+          data.map(async (gig): Promise<ProcessedGigModel> => {
+            if (!gig.description?.length) return gig;
+            const result = gig as ProcessedGigModel;
+            await renderMarkdown(gig.description).then(
+              (markdown) => (result.htmlDescription = markdown)
+            );
+            return result;
+          })
+        ),
+      });
     }),
 
   /**
@@ -96,7 +86,7 @@ export const gigRouter = router({
    * Required permission: `gig.post`
    */
   addGig: procedure
-    .input(gigContentSchema)
+    .input($gigContent)
     .use(createPermissiveMiddleware('gig.post'))
     .use(rateLimitingMiddleware)
     .use(shallowSanitizationMiddleware)
@@ -110,13 +100,13 @@ export const gigRouter = router({
           code: 'CONFLICT',
           message: {
             summary: 'Title with given start already exists',
-            translate: 'responses.blog.duplicate_title_start',
+            translate: 'responses.gig.add_title_start_duplicate',
           },
         });
       }
       return await prisma.gig
         .create({ data: input })
-        .then((data) => pipePathRevalidate(revalidatePath, res, data))
+        .then(pipePathRevalidate(revalidatePath, res))
         .catch(handleAsTRPCError);
     }),
 
@@ -126,7 +116,7 @@ export const gigRouter = router({
    * Required permission: `gig.edit`
    */
   editGig: procedure
-    .input(gigEditSchema)
+    .input($gigEdit)
     .use(createPermissiveMiddleware('gig.edit'))
     .use(rateLimitingMiddleware)
     .use(shallowSanitizationMiddleware)
@@ -135,7 +125,7 @@ export const gigRouter = router({
       return ensureGigExistence(id).then(() =>
         prisma.gig
           .update({ where: { id }, data: input })
-          .then((data) => pipePathRevalidate(revalidatePath, res, data))
+          .then(pipePathRevalidate(revalidatePath, res))
           .catch(handleAsTRPCError)
       );
     }),
@@ -145,13 +135,13 @@ export const gigRouter = router({
    * Required permission: `gig.delete`
    */
   deleteGig: procedure
-    .input(cuidSchema)
+    .input($cuidField)
     .use(createPermissiveMiddleware('gig.delete'))
     .mutation(({ input, ctx: { res } }) => {
       const { id } = input;
       return ensureGigExistence(id)
         .then(() => prisma.gig.delete({ where: { id } }))
-        .then((data) => pipePathRevalidate(revalidatePath, res, data))
+        .then(pipePathRevalidate(revalidatePath, res))
         .catch(handleAsTRPCError);
     }),
 });

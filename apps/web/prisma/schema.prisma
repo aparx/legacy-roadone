@@ -75,8 +75,8 @@ model Member {
   image     String? // URL to the image in the S3 storage
   biography String  @db.Text
 
-  updatedAt DateTime? @updatedAt
-  createdAt DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 
   user   User?   @relation(fields: [userId], references: [id])
   userId String? @unique
@@ -96,8 +96,8 @@ model Gig {
   /// `start` includes date AND time of the gig
   start       DateTime
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([title, start])
   @@index(start(sort: Desc))
@@ -109,11 +109,14 @@ model Gig {
 // <=====================================>
 
 model BlogPost {
-  id        String    @id @default(cuid())
-  title     String    @unique
-  content   String    @db.Text
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id        String   @id @default(cuid())
+  title     String   @unique
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// If true no one will be able to comment anymore
+  commentsDisabled Boolean @default(false)
 
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
@@ -129,10 +132,10 @@ model BlogPost {
 /// Comments are top level replies to a blog post
 model BlogComment {
   // BEGIN SHARED FIELDS (equal to `BlogReply` [!])
-  id        String    @id @default(cuid())
-  content   String    @db.TinyText // ::= 255
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id        String   @id @default(cuid())
+  content   String   @db.TinyText // ::= 255
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
@@ -154,10 +157,10 @@ model BlogComment {
 /// Replies are comments that continue a `BlogComment` and are thus nested.
 model BlogReply {
   // BEGIN SHARED FIELDS (equal to `BlogComment` [!])
-  id        String    @id @default(cuid())
-  content   String    @db.TinyText // ::= 255
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id        String   @id @default(cuid())
+  content   String   @db.TinyText // ::= 255
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
@@ -208,7 +211,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 
-  @@index([userId])
+  @@index(userId)
   @@map("session")
 }
 

@@ -12,6 +12,17 @@ export type UnionExclude<TUnion, TKeys extends TUnion> = TUnion extends TKeys
   ? never
   : TUnion;
 
+/** Type that picks `TKeys` from `TObject` with values of `TValue`. */
+export type PickAndReplace<
+  TObject extends object,
+  TKeys extends keyof TObject,
+  TValue
+> = Record<UnionExtract<keyof TObject, TKeys>, TValue>;
+
+// prettier-ignore
+export type ValueReplace<TObject extends object, TValue> =
+  PickAndReplace<TObject, keyof TObject, TValue>
+
 // prettier-ignore
 export type TupleContains<TTuple, TElement> =
   TTuple extends [infer A, ...infer B]

@@ -1,4 +1,4 @@
-import { publicUserSchema } from '@/modules/schemas/user';
+import { $publicUser } from '@/modules/schemas/user';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
 import { handleAsTRPCError } from '@/server/utils/trpcError';
@@ -19,6 +19,6 @@ export function userGet(input: z.infer<typeof userGetInput>) {
 export const userRouter = router({
   getUser: procedure
     .input(userGetInput)
-    .output(publicUserSchema)
+    .output($publicUser)
     .query(({ input }) => userGet(input)),
 });

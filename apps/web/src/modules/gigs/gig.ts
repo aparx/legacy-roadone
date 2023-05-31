@@ -1,8 +1,8 @@
-import { cuidSchema } from '@/utils/schemas/identifierSchema';
+import { $cuidField } from '@/utils/schemas/sharedSchemas';
 import { z } from 'zod';
 
 /** The gig schema used to create a new schema client-side */
-export const gigContentSchema = z.object({
+export const $gigContent = z.object({
   title: z.string().min(3).max(128) /* @unique */,
   country: z.string().max(32).optional().nullish(),
   description: z.string().max(256).optional().nullish(),
@@ -13,25 +13,25 @@ export const gigContentSchema = z.object({
 });
 
 /** The gig schema used to edit an existing Gig on the client-side */
-export const gigEditSchema = gigContentSchema.extend(cuidSchema.shape);
+export const $gigEdit = $gigContent.extend($cuidField.shape);
 
 /** The complete gig schema, that exists like this in the database. */
-export const gigSchema = z
+export const $gig = z
   .object({
     createdAt: z.date() /* @default(now()) */,
     updatedAt: z.date().optional().nullish(),
   })
-  .extend(gigContentSchema.shape)
-  .extend(cuidSchema.shape);
+  .extend($gigContent.shape)
+  .extend($cuidField.shape);
 
-export const gigProcessedSchema = z
+export const $gigProcessed = z
   .object({ htmlDescription: z.string().optional().nullish() })
-  .extend(gigSchema.shape);
+  .extend($gig.shape);
 
-export type GigContentData = z.infer<typeof gigContentSchema>;
+export type GigContentData = z.infer<typeof $gigContent>;
 
-export type GigEditData = z.infer<typeof gigEditSchema>;
+export type GigEditData = z.infer<typeof $gigEdit>;
 
-export type GigProcessedData = z.infer<typeof gigProcessedSchema>;
+export type ProcessedGigModel = z.infer<typeof $gigProcessed>;
 
-export type GigData = z.infer<typeof gigSchema>;
+export type GigModel = z.infer<typeof $gig>;

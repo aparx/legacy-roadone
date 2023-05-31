@@ -4,8 +4,8 @@ import { z } from 'zod';
 export const roleArray = ['GUEST', 'USER', 'MEMBER', 'ADMIN'] as const;
 
 /** Enumeration of permission roles */
-export const roleSchema = z.enum(roleArray);
+export const $role = z.enum(roleArray);
 
-export type Role = z.infer<typeof roleSchema>;
+export type Role = z.infer<typeof $role>;
 
 export const defaultRole = 'GUEST' satisfies Role;
