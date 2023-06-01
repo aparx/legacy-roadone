@@ -27,16 +27,18 @@ export const shell = (
     ? t.sys.color.scheme.errorContainer
     : t.sys.color.scheme.surfaceVariant;
   return css`
+    border-radius: ${t.rt.multipliers.roundness(UI.generalRoundness)}px;
+    overflow: hidden;
     & label {
       // actual (visible) field wrapping
       background: transparent;
       color: ${disabled
         ? t.rt.emphasis.emphasize(fgBase, 'disabled')
         : t.rt.emphasis.emphasize(fgBase, 'medium')};
-      border-radius: ${t.rt.multipliers.roundness(UI.generalRoundness)}px;
-      overflow: hidden;
+      border-radius: inherit;
       box-sizing: border-box;
       outline: solid ${bgBase} 1px;
+      outline-offset: -1px;
       transition: background-color ${UI.baseTransitionMs}ms;
       & * {
         transition-property: background-color, outline-color;

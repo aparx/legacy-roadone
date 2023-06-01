@@ -1,4 +1,4 @@
-import { $cuidField } from '@/utils/schemas/sharedSchemas';
+import { $cuidField } from '@/utils/schemas/shared';
 import { z } from 'zod';
 
 /** The gig schema used to create a new schema client-side */

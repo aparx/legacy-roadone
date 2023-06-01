@@ -1,11 +1,17 @@
 import { z, ZodObject, ZodType } from 'zod';
 
-export const infiniteQueryInput = z.object({
-  cursor: z.number().int().default(0),
-  limit: z.number().max(50).default(30),
-});
+export const infiniteQueryInput = createInfiniteQueryInput(50);
 
-export function infiniteQueryOutput<
+export function createInfiniteQueryInput(max: number, def: number = max / 2) {
+  max = Math.round(max);
+  def = Math.round(def);
+  return z.object({
+    cursor: z.number().int().min(0).finite().default(0),
+    limit: z.number().int().positive().max(max).default(def),
+  });
+}
+
+export function createInfiniteQueryOutput<
   TElementSchema extends ZodType,
   TRestSchema extends ZodObject<any>
 >(
@@ -41,7 +47,7 @@ type GetInfiniteQueryInput<
   infiniteData: TDataElement[] | undefined | null;
 };
 
-export function createGetInfiniteQueryResult<
+export function createInfiniteQueryResult<
   TDataElement,
   TRestQueryResult extends object = {}
 >(

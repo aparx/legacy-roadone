@@ -12,11 +12,11 @@ export type UnionExclude<TUnion, TKeys extends TUnion> = TUnion extends TKeys
   ? never
   : TUnion;
 
-/** Type that picks `TKeys` from `TObject` with values of `TValue`. */
+/** Type that picks `TKeys` from `TObject` into a Record with values of `TValue`. */
 export type PickAndReplace<
   TObject extends object,
   TKeys extends keyof TObject,
-  TValue
+  TValue = TObject[TKeys]
 > = Record<UnionExtract<keyof TObject, TKeys>, TValue>;
 
 // prettier-ignore

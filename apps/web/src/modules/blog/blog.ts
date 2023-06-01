@@ -2,13 +2,22 @@ import {
   $authorFields,
   $cuidField,
   $updatedCreatedAtFields,
-} from '@/utils/schemas/sharedSchemas';
-import { PickAndReplace } from 'shared-utils';
+} from '@/utils/schemas/shared';
+import { UnionExtract } from 'shared-utils';
 import { z } from 'zod';
 
 // <================================================>
 //                  BLOG POST SCHEMAS
 // <================================================>
+
+/** Union of all item types (comment and reply) distinguishing between top-level
+ *  comments (named 'comments') and replies nested under these. */
+export type BlogThreadItemType = z.infer<typeof $blogThreadItemType>;
+
+export const $blogThreadItemType = z.union([
+  z.literal('comment'),
+  z.literal('reply'),
+]);
 
 /** Basic data representing the pure content of blog posts. */
 export type BlogPostContentData = z.infer<typeof $blogPostContent>;
@@ -54,51 +63,55 @@ export const $blogPostProcessed = $blogPost.extend({
 // <================================================>
 
 /** Type that defines shared properties between comments and replies. */
-export type BlogPostThreadShared = z.infer<typeof $blogThreadShared>;
+export type BlogThreadShared = z.infer<typeof $blogThreadShared>;
 
 export const $blogThreadShared = $cuidField
   .extend($blogThreadContent.shape)
   .extend($updatedCreatedAtFields.shape)
   .extend($authorFields.shape)
   .extend({
-    blog: $blogPost,
+    blog: $blogPost.optional(),
     blogId: z.string(),
   });
 
-/** General blog thread item, combining `comment` and `reply` for easier usage. */
-export type BlogThreadItem = BlogPostThreadShared & {
-  parent?: BlogThreadItem | undefined | null;
-  parentId?: string | undefined | null;
-  replies?: BlogThreadItem[] | undefined;
+/** Top-level comment, having children (replies) of schema `blogReply`. */
+export type BlogCommentModel = BlogThreadShared & {
+  replies?: BlogReplyModel[] | undefined;
   replyCount?: number;
 };
 
-export const $blogThreadItem: z.ZodType<BlogThreadItem> =
-  $blogThreadShared.extend({
-    // Always optional on this item, since it can represent top-level too
-    parent: z.lazy(() => $blogThreadItem.nullish().optional()),
-    parentId: z.string().nullish().optional(),
-    replies: z.lazy(() => $blogThreadItem.array().optional()),
-    replyCount: z.number().optional(),
-  });
-
-/** Top-level comment, having children (replies) of schema `blogReply`. */
-export type BlogCommentModel = BlogPostThreadShared &
-  PickAndReplace<BlogThreadItem, 'replies', BlogReplyModel[]> &
-  Pick<BlogThreadItem, 'replyCount'>;
-
 export const $blogComment: z.ZodType<BlogCommentModel> =
   $blogThreadShared.extend({
-    replies: z.lazy(() => $blogReply.array()),
+    replies: z.lazy(() => $blogReply.array().optional()),
     replyCount: z.number().optional(),
   });
 
 /** Nested comments (depth: 1) right beneath (top-level) comments. */
-export type BlogReplyModel = BlogPostThreadShared &
-  PickAndReplace<BlogThreadItem, 'parent', BlogCommentModel> &
-  Required<Pick<BlogThreadItem, 'parentId'>>;
+export type BlogReplyModel = BlogThreadShared & {
+  parent?: BlogCommentModel | undefined;
+  parentId: string;
+};
 
 export const $blogReply: z.ZodType<BlogReplyModel> = $blogThreadShared.extend({
-  parent: $blogComment,
+  parent: $blogComment.optional(),
   parentId: z.string(),
 });
+
+/** General blog thread item, combining `comment` and `reply` for easier usage,
+ *  discriminating the two types via a `type` property. */
+export type BlogThreadItem =
+  | ({ type: UnionExtract<BlogThreadItemType, 'comment'> } & BlogCommentModel)
+  | ({ type: UnionExtract<BlogThreadItemType, 'reply'> } & BlogReplyModel);
+
+// prettier-ignore
+export const $blogThreadItem: z.ZodType<BlogThreadItem> =
+  z.discriminatedUnion('type', [
+    z.object({ type: z.literal('comment') }).extend({
+      replies: $blogReply.array().optional(),
+      replyCount: z.number().optional(),
+    }).extend($blogThreadShared.shape),
+    z.object({ type: z.literal('reply') }).extend({
+      parent: $blogComment.optional(),
+      parentId: z.string(),
+    }).extend($blogThreadShared.shape),
+]);

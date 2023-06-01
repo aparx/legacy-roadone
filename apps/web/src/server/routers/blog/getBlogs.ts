@@ -3,10 +3,10 @@ import { prisma } from '@/server/prisma';
 import { BlogPostProcedureData } from '@/server/routers/blog/index';
 import { procedure } from '@/server/trpc';
 import {
-  createGetInfiniteQueryResult,
+  createInfiniteQueryOutput,
+  createInfiniteQueryResult,
   infiniteQueryInput,
-  infiniteQueryOutput,
-} from '@/utils/schemas/infiniteQueryInput';
+} from '@/utils/schemas/infiniteQuery';
 
 /** Creates a new procedure that queries blogs. */
 export const createGetBlogsProcedure = ({
@@ -15,7 +15,7 @@ export const createGetBlogsProcedure = ({
 }: BlogPostProcedureData) =>
   procedure
     .input(infiniteQueryInput)
-    .output(infiniteQueryOutput($blogPostProcessed))
+    .output(createInfiniteQueryOutput($blogPostProcessed))
     .query(async ({ input }) => {
       const queryData = await prisma.blogPost.findMany({
         skip: input.cursor,
@@ -23,7 +23,7 @@ export const createGetBlogsProcedure = ({
         orderBy: { createdAt: 'desc' },
         include: processInclude,
       });
-      return createGetInfiniteQueryResult(input, {
+      return createInfiniteQueryResult(input, {
         infiniteData: await Promise.all(
           queryData.map(({ _count, ...post }) => process(post, _count))
         ),

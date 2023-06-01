@@ -13,6 +13,12 @@ export module Globals {
   //    BLOG CONFIGURATION
   // <======================>
 
+  /** The maximum amount of replies a user can send */
+  export const maxPersonalBlogReplies = 10;
+
+  /** Total amount of blog replies and comments a blog can have. */
+  export const maxTotalBlogComments = 250;
+
   // <======================>
   //  GENERAL CONFIGURATION
   // <======================>
@@ -29,6 +35,9 @@ export module Globals {
     'blog.post': 'ADMIN',
     'blog.edit': 'ADMIN',
     'blog.delete': 'ADMIN',
+
+    'blog.thread.post': 'USER',
+    'blog.thread.delete': 'USER',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */

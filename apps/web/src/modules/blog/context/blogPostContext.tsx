@@ -4,9 +4,9 @@ import { createContext, useContext } from 'react';
 
 export type BlogPostContext = {
   blogPost: ProcessedBlogPostModel;
-  isLoading: boolean;
-  isFetching: boolean;
   showReplies: LocalToggle;
+  isLoading?: boolean;
+  isFetching?: boolean;
 };
 
 export const blogPostContext = createContext<BlogPostContext | null>(null);

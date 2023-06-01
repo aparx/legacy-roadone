@@ -9,7 +9,7 @@ import { forwardRef, HTMLAttributes } from 'react';
 import { ObjectConjunction } from 'shared-utils';
 
 export type InternalAvatarProps = {
-  user?: Session['user'] | undefined | null;
+  user?: Pick<Session['user'], 'name' | 'image'> | undefined | null;
   /** @default 'Avatar' */
   name?: string;
   /** @default 30 */

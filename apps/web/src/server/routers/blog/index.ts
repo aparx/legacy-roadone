@@ -3,10 +3,10 @@ import { createAddBlogProcedure } from '@/server/routers/blog/addBlog';
 import { createDeleteBlogProcedure } from '@/server/routers/blog/deleteBlog';
 import { createEditBlogProcedure } from '@/server/routers/blog/editBlog';
 import { createGetBlogsProcedure } from '@/server/routers/blog/getBlogs';
-import { threadRouter } from '@/server/routers/blog/thread';
+import { blogThreadRouter } from '@/server/routers/blog/thread';
 import { router } from '@/server/trpc';
 import { renderMarkdown } from '@/utils/functional/markdown';
-import { selectAuthorFields } from '@/utils/schemas/sharedSchemas';
+import { selectAuthorFields } from '@/utils/schemas/shared';
 import { ValueReplace } from 'shared-utils';
 
 export interface BlogPostProcedureData {
@@ -35,7 +35,7 @@ const blogProcedureEnvironment = {
 } as const satisfies BlogPostProcedureData;
 
 export const blogRouter = router({
-  threads: threadRouter,
+  threads: blogThreadRouter,
   // Blog post related
   getBlogs: createGetBlogsProcedure(blogProcedureEnvironment),
   addBlog: createAddBlogProcedure(blogProcedureEnvironment),

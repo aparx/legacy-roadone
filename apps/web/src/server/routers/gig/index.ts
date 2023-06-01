@@ -10,11 +10,11 @@ import { handleAsTRPCError } from '@/server/utils/trpcError';
 import { createErrorFromGlobal } from '@/utils/error';
 import { renderMarkdown } from '@/utils/functional/markdown';
 import {
-  createGetInfiniteQueryResult,
+  createInfiniteQueryResult,
   GetInfiniteQueryResult,
   infiniteQueryInput,
-} from '@/utils/schemas/infiniteQueryInput';
-import { $cuidField } from '@/utils/schemas/sharedSchemas';
+} from '@/utils/schemas/infiniteQuery';
+import { $cuidField } from '@/utils/schemas/shared';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
 
 const revalidatePath = '/gigs';
@@ -66,7 +66,7 @@ export const gigRouter = router({
       // couple milliseconds (usually 1-2) for 30 gigs. This is the most future-proof,
       // since storing HTML in the Database might become an obstacle over time, in case
       // tags or attributes need change.
-      return createGetInfiniteQueryResult(input, {
+      return createInfiniteQueryResult(input, {
         infiniteData: await Promise.all(
           data.map(async (gig): Promise<ProcessedGigModel> => {
             if (!gig.description?.length) return gig;

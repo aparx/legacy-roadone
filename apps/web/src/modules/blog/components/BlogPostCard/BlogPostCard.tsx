@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { BlogThreadGroup } from '../BlogThreadGroup';
+import * as style from './BlogPostCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { ProcessedBlogPostModel } from '@/modules/blog/blog';
 import {
@@ -169,10 +171,17 @@ function BlogPostFooter({
 }
 
 function BlogPostComments({ commentSectionId }: InternalSharedProps) {
+  const { blogPost } = useBlogPostContext();
   return (
     <section
+      css={style.commentSection}
       aria-label={getGlobalMessage('translation.comments')}
       id={commentSectionId}
-    ></section>
+    >
+      <BlogThreadGroup
+        blog={blogPost}
+        group={{ type: 'comment', blog: blogPost.id }}
+      />
+    </section>
   );
 }

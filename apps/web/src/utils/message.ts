@@ -21,6 +21,8 @@ export const globalMessages = {
     profilePicture: 'Profilbild',
     signIn: 'Einloggen',
     signOut: 'Ausloggen',
+    verified: 'Verifiziert',
+    verifiedUser: 'Verifizierter Nutzer',
   },
   app: {
     name: 'roadone',
@@ -70,9 +72,9 @@ export const globalMessages = {
       name: 'Blog-Eintrag',
     },
     comment: {
-      name: 'Antwort',
-      alternate: 'Kommentar',
-      nameAddSingle: 'Antworten',
+      reply: 'Antwort',
+      name: 'Kommentar',
+      replyAddSingle: 'Antworten',
       multiShow: 'Antworten anzeigen',
       multiHide: 'Antworten ausblenden',
       already_replied: 'Du hast hier bereits geantwortet',
@@ -94,6 +96,16 @@ export const globalMessages = {
         'Den Titel mit gegebenem Beginn gibt es bereits!',
       add_success: 'Es kann dauern, bis der neue Auftritt angezeigt wird.',
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
+    },
+    blog: {
+      not_found: 'Blog konnte nicht gefunden werden.',
+      replies_disabled: 'Kommentare auf diesen Blog-Eintrag wurden deaktiviert',
+      comment_not_found: 'Kommentar konnte nicht gefunden werden.',
+      reply_limit: 'Du hast bereits zu oft unter diesem Kommentar geantwortet.',
+      reply_success: 'Kommentar erfolgreich hinzugefügt.',
+      total_comment_limit:
+        'Dieser Blog-Eintrag hat bereits zu viele Kommentare.' +
+        ' Versuch es später vielleicht noch einmal.',
     },
   },
   urlReplace: {

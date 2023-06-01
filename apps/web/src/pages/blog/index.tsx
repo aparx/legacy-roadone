@@ -38,18 +38,8 @@ export async function getStaticProps() {
 }
 
 export default function BlogPage() {
-  const { data, isLoading, isFetching, refetch } =
-    api.blog.getBlogs.useInfiniteQuery({});
-  const canAdd = useGlobalPermission('blog.post');
-  const posts = useMemo(
-    () => data?.pages?.flatMap((p) => p.data),
-    [data?.pages]
-  );
-  // TODO dialogs
+  // <===> Mutation Dialogs <===>
 
-  const apiContext = api.useContext();
-
-  // Add dialog that requires `$blogPostContent` and `BlogPostMutateForm`
   const addDialog = useMutateDialog({
     type: 'add',
     endpoint: api.blog.addBlog.useMutation(),
@@ -76,10 +66,23 @@ export default function BlogPage() {
     onSuccess: () => refetch({}),
   });
 
+  // <===> Actual component <===>
+
+  const { data, isLoading, isFetching, refetch } =
+    api.blog.getBlogs.useInfiniteQuery({});
+
+  // If current session can mutate (specifically `post`) a blog post
+  const canMutate = useGlobalPermission('blog.post');
+
+  const posts = useMemo(
+    () => data?.pages?.flatMap((p) => p.data),
+    [data?.pages]
+  );
+
   return (
     <Page name={'blogs'} pageURL={'/blogs'}>
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
-        {canAdd && <AddBlogPostItem onAdd={addDialog} />}
+        {canMutate && <AddBlogPostItem onAdd={addDialog} />}
         {posts?.map((post) => (
           <BlogPostCard
             key={post.id}
