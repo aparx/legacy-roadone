@@ -168,6 +168,9 @@ export const TextField = forwardRef(function TextFieldRenderer<
   ref: ForwardedRef<TextFieldRef>
 ) {
   placeholder ??= capitalize(name);
+  disabled ||=
+    hookform?.methods?.formState?.isSubmitting ||
+    hookform?.methods?.formState?.isLoading;
   const fieldRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   // prettier-ignore
@@ -214,7 +217,7 @@ export const TextField = forwardRef(function TextFieldRenderer<
         {
           css: style.shell(useTheme(), {
             error: isInvalid,
-            showLeading: !!leading,
+            // showLeading: !!leading,
             disabled,
             fontData,
             leadingIconId,

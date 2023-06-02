@@ -188,5 +188,3 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
 );
 
 export default GigCard;
-
-function Dialog() {}

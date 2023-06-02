@@ -101,8 +101,10 @@ export const globalMessages = {
       not_found: 'Blog konnte nicht gefunden werden.',
       replies_disabled: 'Kommentare auf diesen Blog-Eintrag wurden deaktiviert',
       comment_not_found: 'Kommentar konnte nicht gefunden werden.',
+      reply_not_found: 'Antwort konnte nicht gefunden werden.',
       reply_limit: 'Du hast bereits zu oft unter diesem Kommentar geantwortet.',
-      reply_success: 'Kommentar erfolgreich hinzugefügt.',
+      reply_add_success: 'Kommentar erfolgreich hinzugefügt.',
+      reply_delete_success: 'Kommentar erfolgreich gelöscht.',
       total_comment_limit:
         'Dieser Blog-Eintrag hat bereits zu viele Kommentare.' +
         ' Versuch es später vielleicht noch einmal.',

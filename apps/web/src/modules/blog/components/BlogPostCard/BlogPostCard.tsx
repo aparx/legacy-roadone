@@ -61,6 +61,7 @@ export default function BlogPostCard(props: BlogPostCardProps) {
     >
       <article aria-labelledby={labelledBy} {...useStyleableMerge(rest)}>
         <Card
+          keepPadding
           style={{
             borderBottomLeftRadius: borderBottomRadius,
             borderBottomRightRadius: borderBottomRadius,
@@ -113,6 +114,7 @@ function BlogPostFooter({
     <Card.Footer
       {...useStackProps({
         direction: 'row',
+        wrap: true,
         vAlign: true,
       })}
     >
@@ -180,6 +182,7 @@ function BlogPostComments({ commentSectionId }: InternalSharedProps) {
     >
       <BlogThreadGroup
         blog={blogPost}
+        approximation={blogPost.commentCount ?? 0}
         group={{ type: 'comment', blog: blogPost.id }}
       />
     </section>

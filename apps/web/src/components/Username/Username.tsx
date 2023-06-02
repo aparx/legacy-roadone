@@ -3,7 +3,7 @@ import { PublicUser } from '@/modules/schemas/user';
 import { getGlobalMessage } from '@/utils/message';
 import { Icon, PropsWithStyleable, Stack, useStyleableMerge } from 'next-ui';
 import { forwardRef, HTMLAttributes } from 'react';
-import { MdVerified } from 'react-icons/md';
+import { MdVerifiedUser } from 'react-icons/md';
 import { ObjectConjunction } from 'shared-utils';
 
 export type InternalUserFormatProps = {
@@ -40,9 +40,9 @@ export const Username = forwardRef<HTMLDivElement, UserFormatProps>(
         {user.verified ||
           (user.role && Permission.isGreater(user.role, 'USER') && (
             <Icon
+              popover={getGlobalMessage('translation.verifiedUser')}
               sd={{ color: (t) => t.sys.color.scheme.primary }}
-              aria-label={getGlobalMessage('translation.verifiedUser')}
-              icon={<MdVerified style={{ fontSize: '120%' }} />}
+              icon={<MdVerifiedUser style={{ fontSize: '120%' }} />}
             />
           ))}
       </Stack>

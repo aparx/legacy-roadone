@@ -8,7 +8,6 @@ import { ButtonProps } from 'next-ui/src/components/Button/Button';
 import { InternalCardProps } from 'next-ui/src/components/Card/Card';
 import RawForm from 'next-ui/src/components/RawForm/RawForm';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
-import { useAttributes } from 'next-ui/src/hooks/useAttributes';
 import 'next/dist/client/components/react-dev-overlay/internal/components/Dialog';
 import React, {
   ForwardedRef,
@@ -177,6 +176,7 @@ export const Dialog = forwardRef(function SoloDialogRenderer<
   } as DialogRef<TType, TActions, TFormSchema, TProps>), [type]);
   useOnClickOutside(useIsMobile() ? close : () => {}, dialogRef);
   useOnNavigation(() => close());
+  const labelledBy = useId();
   return (
     <Card
       width={width ?? false}
@@ -184,11 +184,12 @@ export const Dialog = forwardRef(function SoloDialogRenderer<
       keepPadding
       role={'dialog'}
       ref={dialogRef}
+      aria-labelledby={labelledBy}
     >
       <DialogInner
         close={closeRef}
         formRef={formRef}
-        dialogRef={dialogRef}
+        labelledBy={labelledBy}
         data={{ title, type, ...restData } as any}
       />
     </Card>
@@ -211,11 +212,9 @@ type DialogInnerProps<
   TFormSchema extends ZodSchema
 > = {
   data: DialogData<TType, TActions, TFormSchema>;
+  labelledBy: string;
   formRef: RefObject<HTMLFormElement> | undefined | null;
   close: RefObject<_DialogCloseFn>;
-  dialogRef: NonNullable<
-    DialogRef<TType, TActions, TFormSchema, any>['element']
-  >;
 };
 
 function DialogInner<
@@ -245,10 +244,9 @@ function DialogHeader<
   TType extends DialogType,
   TActions extends DialogResponseSource,
   TFormSchema extends ZodSchema
->({ data, dialogRef }: DialogInnerProps<TType, TActions, TFormSchema>) {
-  const labeledBy = useId();
-  useAttributes({ 'aria-labelledby': labeledBy }, dialogRef);
-  return <Card.Header title={data.title} id={labeledBy} />;
+>(props: DialogInnerProps<TType, TActions, TFormSchema>) {
+  const { data, labelledBy } = props;
+  return <Card.Header title={data.title} id={labelledBy} />;
 }
 
 function DialogFooter<

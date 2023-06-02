@@ -9,13 +9,11 @@ export const shell = (
     error,
     fontData,
     disabled,
-    showLeading,
     leadingIconId,
   }: {
     error: boolean;
     disabled: boolean | undefined;
     fontData: TypescaleData;
-    showLeading: boolean;
     leadingIconId: string;
     tailingIconId: string;
   }

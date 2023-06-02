@@ -20,6 +20,8 @@ export type InternalIconProps = {
   font?: TypescalePinpoint;
   /** Special attribute applied to the icon's wrapper, identifying the icon. */
   identify?: string;
+  /** Name shown on hover above the icon if hovered. */
+  popover?: string;
 } & IconChildrenDiscrimination &
   IconFontDiscrimination;
 
@@ -37,7 +39,7 @@ export type IconProps = PropsWithStyleable<InternalIconProps> &
   HTMLAttributes<HTMLElement>;
 
 export default function Icon({ fontData, font, ...props }: IconProps) {
-  const { icon, children, identify, ...rest } = props;
+  const { icon, children, identify, popover, ...rest } = props;
   const theme = useTheme();
   fontData ??= typescalePinpoint(theme, font ?? config.Defaults.font);
   return jsx(
@@ -46,7 +48,8 @@ export default function Icon({ fontData, font, ...props }: IconProps) {
       ...propMerge(
         useDataTextProps({ fontData }),
         {
-          css: style.wrapper(fontData),
+          'aria-label': popover,
+          css: style.wrapper(theme, fontData, popover),
           [config.identifyHTMLAttribute]: identify,
         },
         useStyleableMerge(rest)

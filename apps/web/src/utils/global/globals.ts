@@ -13,11 +13,14 @@ export module Globals {
   //    BLOG CONFIGURATION
   // <======================>
 
-  /** The maximum amount of replies a user can send */
-  export const maxPersonalBlogReplies = 10;
+  /** The maximum amount of replies a user can send (inclusive) */
+  export const maxPersonalBlogReplies = 5;
 
-  /** Total amount of blog replies and comments a blog can have. */
+  /** Total amount of blog replies and comments a blog can have (inclusive) */
   export const maxTotalBlogComments = 250;
+
+  /** The limit of possible comments to fetch (and also the default!) */
+  export const commentFetchPageLimit = 3;
 
   // <======================>
   //  GENERAL CONFIGURATION
@@ -38,6 +41,8 @@ export module Globals {
 
     'blog.thread.post': 'USER',
     'blog.thread.delete': 'USER',
+    /** Permission to manage all comments and replies (owning) */
+    'blog.thread.manage': 'ADMIN',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */

@@ -1,18 +1,26 @@
 /** @jsxImportSource @emotion/react */
-import * as style from './BlogThreadItemCard.style';
+import { BlogThreadItemCardConfig as config } from './BlogThreadItemCard.config';
 import { Avatar } from '@/components';
 import { Username } from '@/components/Username';
+import { Permission } from '@/modules/auth/utils/permission';
 import { BlogThreadItem, ProcessedBlogPostModel } from '@/modules/blog/blog';
 import { BlogThreadGroup } from '@/modules/blog/components/BlogThreadGroup';
 import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
-import { useMessage } from '@/utils/hooks/useMessage';
+import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread';
+import { api } from '@/utils/api';
+import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
+import { formatMessage } from '@/utils/format';
 import { useRelativeTime } from '@/utils/hooks/useRelativeTime';
 import { useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
+import { useDeleteDialog } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useRegreplURL } from '@/utils/urlReplace';
+import { scrollInViewIfNeeded } from '@/utils/viewport';
+import { useTheme } from '@emotion/react';
+import { useSession } from 'next-auth/react';
 import type { StyleableProp } from 'next-ui';
-import { Button, Stack, Text, useStyleableMerge } from 'next-ui';
+import { Button, Stack, Text, UI, useStyleableMerge } from 'next-ui';
 import { TextFieldRef } from 'next-ui/src/components/TextField/TextField';
 import {
   HTMLAttributes,
@@ -22,61 +30,109 @@ import {
   useId,
   useRef,
 } from 'react';
-import { MdExpandLess, MdExpandMore } from 'react-icons/md';
-import { ObjectConjunction } from 'shared-utils';
+import { MdDeleteForever, MdExpandLess, MdExpandMore } from 'react-icons/md';
 
 export type InternalBlogThreadItemCardProps = {
   blog: ProcessedBlogPostModel;
   group: BlogThread;
   item: BlogThreadItem;
-  /** If true, hides buttons and removes all interactivity. */
-  visualOnly?: boolean;
   /** Reply field of `group` */
   groupField?: RefObject<TextFieldRef>;
-} & InfiniteItemEvents<BlogThreadItem, 'delete'>;
+} & (
+  | ({
+      /** If true, hides buttons and removes all interactivity. */
+      visualOnly?: false | undefined;
+    } & InfiniteItemEvents<DeleteThreadItemOutput, 'delete'>)
+  | { visualOnly: true }
+);
 
 export type BlogThreadItemCardProps = StyleableProp &
-  ObjectConjunction<
-    HTMLAttributes<HTMLDivElement>,
-    InternalBlogThreadItemCardProps
-  >;
+  HTMLAttributes<HTMLDivElement> &
+  InternalBlogThreadItemCardProps;
 
 export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
-  const { blog, group, item, visualOnly, onDelete, groupField, ...rest } =
-    props;
+  const { blog, group, item, visualOnly, groupField, ...rest } = props;
+  const session = useSession();
   const labelledBy = useId();
   const replyControls = useId();
   const canNestMore = item.type !== 'reply';
   const canShowMore = canNestMore && item.replyCount !== 0;
+  const canDelete =
+    item.authorId == session.data?.user?.id ||
+    Permission.hasGlobalPermission(session.data, 'blog.thread.manage');
   const showReplies = useLocalToggle();
   const fieldRef = useRef<TextFieldRef>(null);
   const groupFieldRef = useRef(groupField);
+  const triggerAutoFocus = useRef(false);
+  const theme = useTheme();
   // prettier-ignore
   useEffect(() => { groupFieldRef.current = groupField });
+  useEffect(() => {
+    if (showReplies.state && triggerAutoFocus.current) {
+      fieldRef.current?.focus();
+      triggerAutoFocus.current = false;
+    }
+  }, [showReplies.state]);
   const openReply = useCallback(() => {
+    triggerAutoFocus.current = true;
     fieldRef.current?.focus();
     const parentField = groupFieldRef.current?.current?.field;
+    let scrollTarget: HTMLElement | undefined | null;
     if (group.type === 'comment') {
       showReplies.set(true);
+      scrollTarget = fieldRef?.current?.field;
     } else if (parentField) {
       if (item.author?.name) parentField.value = `@${item.author.name} `;
       parentField.focus();
+      scrollTarget = parentField;
     }
-  }, [group.type, item.author?.name, showReplies]);
-  useEffect(() => {
-    if (showReplies.state) fieldRef.current?.focus();
-  }, [showReplies.state]);
+    if (scrollTarget) scrollInViewIfNeeded(theme, scrollTarget);
+  }, [group.type, item.author?.name, showReplies, theme]);
+
+  const deleteEndpoint = api.blog.threads.deleteItem.useMutation();
+
+  const deleteDialog = useDeleteDialog({
+    title: formatMessage(
+      getGlobalMessage('general.delete'),
+      getGlobalMessage('blog.comment.name')
+    ),
+    width: 'md',
+    tight: true,
+    response: {
+      successMessage: getGlobalMessage('responses.blog.reply_delete_success'),
+    },
+    endpoint: deleteEndpoint,
+    onSuccess: (item) => !visualOnly && props.onDelete?.({ item }),
+    content: () => (
+      <Stack spacing={'lg'} aria-hidden={true}>
+        <span>Du bist dabei, folgenden Kommentar zu löschen</span>
+        <BlogThreadItemCard
+          blog={blog}
+          group={group}
+          item={item}
+          visualOnly
+          sd={{
+            background: (t) => t.sys.color.surface[4],
+            padding: 'lg',
+            roundness: UI.generalRoundness,
+          }}
+        />
+      </Stack>
+    ),
+  });
+
+  const breakpoint = useWindowBreakpoint();
+
   return (
     <Stack
       as={'article'}
-      css={style.blogThreadItem}
       aria-labelledby={labelledBy}
       {...useStyleableMerge(rest)}
     >
       <Stack direction={'row'}>
-        <Avatar user={item.author} />
+        <Avatar size={config.avatarSize} user={item.author} />
         <Stack spacing={0}>
-          <Stack as={'header'} direction={'row'}>
+          <Stack as={'header'} hSpacing={'md'} direction={'row'} wrap>
             <Text.Title
               size={'sm'}
               id={labelledBy}
@@ -96,16 +152,23 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
           <Text.Body size={'md'} emphasis={'medium'}>
             <>{useRegreplURL(item.content)}</>
           </Text.Body>
-          <Stack direction={'row'} sd={{ emphasis: 'medium' }}>
-            <Button.Text
-              take={{ hPaddingMode: 'oof' }}
-              aria-expanded={canNestMore ? showReplies.state : undefined}
-              aria-controls={canNestMore ? replyControls : undefined}
-              onClick={openReply}
-            >
-              {useMessage('blog.comment.replyAddSingle')}
-            </Button.Text>
-            {canShowMore && (
+          <Stack
+            direction={'row'}
+            hSpacing={'md'}
+            sd={{ emphasis: 'medium' }}
+            wrap
+          >
+            {!visualOnly && (
+              <Button.Text
+                take={{ hPaddingMode: 'oof' }}
+                aria-expanded={canNestMore ? showReplies.state : undefined}
+                aria-controls={canNestMore ? replyControls : undefined}
+                onClick={openReply}
+              >
+                {getGlobalMessage('blog.comment.replyAddSingle')}
+              </Button.Text>
+            )}
+            {!visualOnly && canShowMore && (
               <Button.Text
                 leading={
                   showReplies.state ? <MdExpandLess /> : <MdExpandMore />
@@ -121,13 +184,28 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
                 )}
               </Button.Text>
             )}
+            {!visualOnly && canDelete && (
+              <Button.Text
+                tight
+                sd={{ color: (t) => t.sys.color.scheme.error }}
+                leading={<MdDeleteForever />}
+                onClick={() => deleteDialog({ item })}
+              >
+                {breakpoint?.to?.gte('md') &&
+                  getGlobalMessage('translation.delete')}
+              </Button.Text>
+            )}
           </Stack>
         </Stack>
       </Stack>
       {showReplies.state && (
-        <section aria-label={getGlobalMessage('translation.replies')}>
+        <section
+          id={replyControls}
+          aria-label={getGlobalMessage('translation.replies')}
+        >
           <BlogThreadGroup
             blog={blog}
+            approximation={(item.type === 'comment' && item.replyCount) || 0}
             fieldRef={fieldRef}
             group={{ type: 'reply', blog: blog.id, parent: item.id }}
           />

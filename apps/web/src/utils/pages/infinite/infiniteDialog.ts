@@ -48,6 +48,11 @@ type _ImplicitItem<
 //       `useDeleteDialog` PROPERTIES AND TYPES
 // <==================================================>
 
+export type DialogMutationResponse = {
+  successMessage?: string;
+  successTitle?: string;
+};
+
 export type UseDeleteDialogProps<
   TSchema extends ZodSchema,
   TDataItem extends TFormData = _ImplicitItem<'delete', TSchema>,
@@ -55,7 +60,7 @@ export type UseDeleteDialogProps<
   TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
 > = DialogInfiniteMutationData<TFormData, TReturnData> & {
   content?: (item: InfiniteItem<TDataItem>) => ReactNode;
-  response?: { success?: string };
+  response?: DialogMutationResponse;
 };
 
 /** Dialog that deletes the given infinite-item */
@@ -95,8 +100,10 @@ export function useDeleteDialog<
             onSuccess?.(data);
             addToast({
               type: 'success',
-              title: getGlobalMessage('general.actionSuccess'),
-              message: response?.success,
+              title: response
+                ? response.successTitle
+                : getGlobalMessage('general.actionSuccess'),
+              message: response?.successMessage,
             });
           },
           onError: (error) => {
@@ -142,7 +149,7 @@ type _MutateFormlessProps<
 > = DialogInfiniteMutationData<TFormData, TReturnData> & {
   type: TType;
   schema: TSchema;
-  response?: { success?: string };
+  response?: DialogMutationResponse;
 };
 
 export type UseMutateFormInput<
@@ -204,8 +211,10 @@ export function useMutateDialog<
             closeDialog();
             addToast({
               type: 'success',
-              title: getGlobalMessage('general.actionSuccess'),
-              message: response?.success,
+              title: response
+                ? response.successTitle
+                : getGlobalMessage('general.actionSuccess'),
+              message: response?.successMessage,
             });
           },
           onError: (error) => {

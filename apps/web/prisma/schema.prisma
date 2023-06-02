@@ -148,7 +148,6 @@ model BlogComment {
 
   // Forces limitation of up to one top-level thread per author per blog post
   @@unique([blogId, authorId])
-  @@index(blogId)
   @@index(authorId)
   @@index(createdAt(sort: Desc))
   @@map("blog_comment")
@@ -172,8 +171,8 @@ model BlogReply {
   parent   BlogComment @relation(fields: [parentId], references: [id], onDelete: Cascade)
   parentId String
 
-  @@index([blogId, authorId, parentId])
-  @@index(blogId)
+  // (blogId), (blogId, parentId), (blogId, parentId, authorId)
+  @@index([blogId, parentId, authorId])
   @@index(authorId)
   @@index(parentId)
   @@index(createdAt(sort: Asc))
