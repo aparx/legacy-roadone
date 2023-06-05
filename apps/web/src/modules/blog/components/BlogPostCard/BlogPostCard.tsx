@@ -48,16 +48,11 @@ export default function BlogPostCard(props: BlogPostCardProps) {
   } = props;
   const labelledBy = useId();
   const commentSectionId = useId();
-  const showReplies = useLocalToggle();
+  const showReplies = useLocalToggle(autoShowReply);
   const borderBottomRadius = showReplies.state ? 0 : undefined;
   return (
     <BlogPostContextProvider
-      value={{
-        blogPost,
-        isLoading,
-        isFetching,
-        showReplies,
-      }}
+      value={{ blogPost, isLoading, isFetching, showReplies }}
     >
       <article aria-labelledby={labelledBy} {...useStyleableMerge(rest)}>
         <Card

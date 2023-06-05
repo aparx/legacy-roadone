@@ -24,8 +24,8 @@ export function createInfiniteQueryOutput<
     data: element.array(),
     thisCursor: z.number(),
     nextCursor: z.number().optional(),
-  });
-  if (!rest) return output;
+  }) satisfies z.ZodType<GetInfiniteQueryResult<z.infer<TElementSchema>>>;
+  if (!rest) return output as any;
   return rest.extend(output.shape) as any;
 }
 
@@ -34,7 +34,7 @@ export type InfiniteQueryInput = z.infer<typeof infiniteQueryInput>;
 export type GetInfiniteQueryResult<
   TDataElement,
   TRestQueryResult extends object = {}
-> = Omit<TRestQueryResult, keyof GetInfiniteQueryInput<TDataElement, any>> & {
+> = Omit<TRestQueryResult, keyof GetInfiniteQueryInput<TDataElement>> & {
   data: TDataElement[];
   thisCursor: number;
   nextCursor?: number | undefined;

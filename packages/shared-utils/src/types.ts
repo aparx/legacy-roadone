@@ -216,3 +216,26 @@ type _DeepSelf_Nullish<TObject, TOptions extends DeepCircularOptions> =
   | TObject
   | (TOptions['nullable'] extends true ? null : never)
   | (TOptions['undefinable'] extends true ? undefined : never);
+
+/**
+ * Removes the first element of `TArray` type-wise.
+ */
+export type ArrayShift<TArray extends any[]> = TArray extends [
+  infer TFirst,
+  ...infer TRest
+]
+  ? TRest
+  : [];
+
+/**
+ * Removes the last element of `TArray` type-wise.
+ */
+export type ArrayPop<TArray extends any[]> = _ArrayPop<TArray, []>;
+
+type _ArrayPop<TArray extends any[], TBuilt extends any[]> = TArray extends [
+  infer TFirst,
+  infer TSecond,
+  ...infer TRest
+]
+  ? _ArrayPop<[TSecond, ...TRest], [...TBuilt, TFirst]>
+  : TBuilt;

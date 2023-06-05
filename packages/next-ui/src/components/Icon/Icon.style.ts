@@ -25,6 +25,7 @@ export const wrapper = (
     '&:hover': {
       '&::before': {
         content: `"${popup}"`,
+        pointerEvents: 'none',
         position: 'absolute',
         display: 'block',
         whiteSpace: 'nowrap',

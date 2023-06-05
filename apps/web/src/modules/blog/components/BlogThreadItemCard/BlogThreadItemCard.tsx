@@ -6,7 +6,7 @@ import { Permission } from '@/modules/auth/utils/permission';
 import { BlogThreadItem, ProcessedBlogPostModel } from '@/modules/blog/blog';
 import { BlogThreadGroup } from '@/modules/blog/components/BlogThreadGroup';
 import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
-import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread';
+import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
 import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
 import { formatMessage } from '@/utils/format';
@@ -32,6 +32,10 @@ import {
 } from 'react';
 import { MdDeleteForever, MdExpandLess, MdExpandMore } from 'react-icons/md';
 
+// prettier-ignore
+type InternalEventCallbacks =
+  InfiniteItemEvents<DeleteThreadItemOutput, 'delete'>;
+
 export type InternalBlogThreadItemCardProps = {
   blog: ProcessedBlogPostModel;
   group: BlogThread;
@@ -39,11 +43,8 @@ export type InternalBlogThreadItemCardProps = {
   /** Reply field of `group` */
   groupField?: RefObject<TextFieldRef>;
 } & (
-  | ({
-      /** If true, hides buttons and removes all interactivity. */
-      visualOnly?: false | undefined;
-    } & InfiniteItemEvents<DeleteThreadItemOutput, 'delete'>)
-  | { visualOnly: true }
+  | ({ visualOnly?: false | undefined } & InternalEventCallbacks)
+  | ({ visualOnly: true } & Partial<Record<keyof InternalEventCallbacks, null>>)
 );
 
 export type BlogThreadItemCardProps = StyleableProp &
@@ -51,12 +52,14 @@ export type BlogThreadItemCardProps = StyleableProp &
   InternalBlogThreadItemCardProps;
 
 export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
-  const { blog, group, item, visualOnly, groupField, ...rest } = props;
+  const { blog, group, item, visualOnly, groupField, onDelete, ...rest } =
+    props;
   const session = useSession();
   const labelledBy = useId();
   const replyControls = useId();
   const canNestMore = item.type !== 'reply';
-  const canShowMore = canNestMore && item.replyCount !== 0;
+  const canShowMore =
+    canNestMore && item.replyCount != null && item.replyCount !== 0;
   const canDelete =
     item.authorId == session.data?.user?.id ||
     Permission.hasGlobalPermission(session.data, 'blog.thread.manage');
@@ -69,7 +72,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
   useEffect(() => { groupFieldRef.current = groupField });
   useEffect(() => {
     if (showReplies.state && triggerAutoFocus.current) {
-      fieldRef.current?.focus();
+      fieldRef.current?.field?.focus();
       triggerAutoFocus.current = false;
     }
   }, [showReplies.state]);
@@ -98,11 +101,11 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
     ),
     width: 'md',
     tight: true,
-    response: {
-      successMessage: getGlobalMessage('responses.blog.reply_delete_success'),
+    successResponse: {
+      message: getGlobalMessage('responses.blog.reply_delete_success'),
     },
     endpoint: deleteEndpoint,
-    onSuccess: (item) => !visualOnly && props.onDelete?.({ item }),
+    onSuccess: (item) => !visualOnly && onDelete?.({ item }),
     content: () => (
       <Stack spacing={'lg'} aria-hidden={true}>
         <span>Du bist dabei, folgenden Kommentar zu löschen</span>
@@ -127,6 +130,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
     <Stack
       as={'article'}
       aria-labelledby={labelledBy}
+      data-reply-count={item.type === 'comment' ? item.replyCount : undefined}
       {...useStyleableMerge(rest)}
     >
       <Stack direction={'row'}>
@@ -173,6 +177,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
                 leading={
                   showReplies.state ? <MdExpandLess /> : <MdExpandMore />
                 }
+                data-reply-count={item.replyCount}
                 aria-expanded={canNestMore ? showReplies.state : undefined}
                 aria-controls={canNestMore ? replyControls : undefined}
                 onClick={showReplies.toggle}

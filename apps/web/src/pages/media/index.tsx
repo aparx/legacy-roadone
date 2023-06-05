@@ -1,14 +1,12 @@
 import { Page } from '@/components';
 import { toastTypeArray } from '@/components/Toast/Toast';
 import { useToastHandle } from '@/handles';
-import { urlReplace } from '@/utils/urlReplace';
 import { capitalize } from 'lodash';
 import { Button, Skeleton, Spinner, Stack, TextField } from 'next-ui';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function MediaPage() {
   const showToast = useToastHandle((s) => s.add);
-  console.log(urlReplace('Hey https://google.com !'));
   return (
     <Page name={'Medien'} pageURL={'media'}>
       <Spinner />

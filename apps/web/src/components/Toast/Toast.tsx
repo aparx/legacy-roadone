@@ -81,7 +81,7 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
     return (
       <Stack
         direction={'row'}
-        spacing={'lg'}
+        hSpacing={'lg'}
         ref={ref}
         {...propMerge(
           {
@@ -95,7 +95,7 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
         )}
       >
         <Icon key={'leading'} icon={toastIconMap[type]()} />
-        <Stack spacing={0}>
+        <Stack spacing={0} wrap>
           {title && (
             <Text.Title as={'div'} size={'md'}>
               {title}

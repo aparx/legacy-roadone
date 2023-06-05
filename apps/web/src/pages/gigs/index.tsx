@@ -61,7 +61,10 @@ export default function GigsPage() {
     title: useMessage('general.edit', getGlobalMessage('gig.name')),
     type: 'edit',
     endpoint: api.gig.editGig.useMutation(),
-    response: { success: getGlobalMessage('responses.gig.edit_success') },
+    successResponse: {
+      title: getGlobalMessage('responses.gig.edit_success_title'),
+      message: getGlobalMessage('responses.gig.edit_success'),
+    },
     schema: $gigContent,
     form: (props) => <GigForm {...props} />,
     width: 'sm',
@@ -115,7 +118,10 @@ function AddEventPanel(props: { onSuccess: (data: GigModel) => any }) {
     title: useMessage('general.add', getGlobalMessage('gig.name')),
     type: 'add',
     schema: $gigContent,
-    response: { success: getGlobalMessage('responses.gig.add_success') },
+    successResponse: {
+      title: getGlobalMessage('responses.gig.add_success_title'),
+      message: getGlobalMessage('responses.gig.add_success'),
+    },
     endpoint,
     form: (props) => <GigForm {...props} />,
     width: 'sm',

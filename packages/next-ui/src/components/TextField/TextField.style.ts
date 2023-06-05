@@ -38,6 +38,7 @@ export const shell = (
       outline: solid ${bgBase} 1px;
       outline-offset: -1px;
       transition: background-color ${UI.baseTransitionMs}ms;
+      overflow: inherit;
       & * {
         transition-property: background-color, outline-color;
         transition-duration: ${UI.baseTransitionMs}ms;

@@ -2,6 +2,7 @@ import * as style from './BlogThreadGroup.style';
 import { useToastHandle } from '@/handles';
 import {
   $blogThreadContent,
+  BlogCommentModel,
   BlogThreadContentData,
   BlogThreadItem,
   ProcessedBlogPostModel,
@@ -9,7 +10,7 @@ import {
 import BlogThreadItemCard from '@/modules/blog/components/BlogThreadItemCard/BlogThreadItemCard';
 import { BlogThreadItemCardConfig } from '@/modules/blog/components/BlogThreadItemCard/BlogThreadItemCard.config';
 import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
-import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread';
+import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
 import { formatMessage } from '@/utils/format';
 import { Globals } from '@/utils/global/globals';
@@ -18,6 +19,7 @@ import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItem } from '@/utils/pages/infinite/infiniteItem';
 import { useAddErrorToast } from '@/utils/toast';
 import { Theme } from '@emotion/react';
+import { useSession } from 'next-auth/react';
 import { Button, Skeleton, Spinner, Stack, TextField } from 'next-ui';
 import RawForm from 'next-ui/src/components/RawForm/RawForm';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
@@ -52,6 +54,7 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
   const ensuredFieldRef = useRef<TextFieldRef>(null);
   // prettier-ignore
   useEffect(() => { queryParamsRef.current = queryParams });
+  const session = useSession();
   const {
     data,
     isFetching,
@@ -63,25 +66,40 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
   } = api.blog.threads.getThread.useInfiniteQuery(queryParams, {
     // getPreviousPageParam: (lastPage) => lastPage?.thisCursor,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
+    enabled: session.status !== 'loading',
   });
+
   const apiContext = api.useContext();
   const items = data?.pages?.flatMap((page) => page.data) ?? [];
-  const addThreadItem = () => refetch({ type: 'all' });
+  const addThreadItem = () => {
+    const group = queryParamsRef.current.group;
+    refetch({ type: 'all' }).then(() => {
+      const field = ensuredFieldRef.current?.field;
+      if (field) field.value = '';
+      changeParentsCounters(apiContext, group, 1, 1);
+    });
+  };
   const removeThreadItem = useCallback(
-    ({ item }: InfiniteItem<DeleteThreadItemOutput>) => {
+    ({ item: { item, affected } }: InfiniteItem<DeleteThreadItemOutput>) => {
       apiContext.blog.threads.getThread.setInfiniteData(
         queryParamsRef.current,
         (state) => ({
           // prettier-ignore
-          pages: state?.pages?.map(({ data, ...rest }) => ({
-            data: data.filter((itr) => itr.id !== item.item.id),
-            ...rest,
+          pages: state?.pages?.map((page) => ({
+            ...page,
+            data: page.data.filter((c) => c.id !== item.id),
           })) ?? [],
           pageParams: state?.pageParams ?? [],
         })
       );
+      changeParentsCounters(
+        apiContext,
+        queryParamsRef.current.group,
+        -affected,
+        -1
+      );
     },
-    [apiContext.blog.threads.getThread]
+    [apiContext]
   );
 
   return (
@@ -129,6 +147,82 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
     </Stack>
   );
 }
+
+// <===========================================>
+//       NOTIFY PARENT (COUNTER) UTILITIES
+// <===========================================>
+
+function changeParentsCounters(
+  context: ReturnType<typeof api.useContext>,
+  group: BlogThread,
+  totalIncrease: number,
+  localIncrease: number
+) {
+  return notifyParent(
+    context,
+    group,
+    (blog) => ({
+      ...blog,
+      totalCommentCount: Math.max(blog.totalCommentCount + totalIncrease, 0),
+      commentCount:
+        blog.commentCount && group.type === 'comment'
+          ? Math.max(blog.commentCount + localIncrease, 0)
+          : blog.commentCount,
+    }),
+    (parent) => ({
+      ...parent,
+      replyCount:
+        parent.replyCount != null
+          ? parent.replyCount + localIncrease
+          : undefined,
+    })
+  );
+}
+
+function notifyParent(
+  context: ReturnType<typeof api.useContext>,
+  group: BlogThread,
+  updateBlog: (
+    blog: Readonly<ProcessedBlogPostModel>
+  ) => ProcessedBlogPostModel,
+  updateComment?: (parent: Readonly<BlogCommentModel>) => BlogCommentModel
+) {
+  context.blog.getBlogs.setInfiniteData({}, (state) => {
+    if (!state?.pages) return { pages: [], pageParams: [] };
+    // Call `updateBlog` on fetched blog post
+    return {
+      ...state,
+      pages: state.pages.map((page) => ({
+        ...page,
+        data: page.data.map((blog) => {
+          if (blog.id !== group.blog) return blog;
+          return updateBlog(blog);
+        }),
+      })),
+    };
+  });
+  if (group.type === 'reply' && updateComment)
+    context.blog.threads.getThread.setInfiniteData(
+      { group: { type: 'comment', blog: group.blog } },
+      (state) => {
+        if (!state?.pages) return { pages: [], pageParams: [] };
+        return {
+          ...state,
+          pages: state.pages.map((page) => ({
+            ...page,
+            data: page.data.map((comment) => {
+              if (comment.id !== group.parent) return comment;
+              return { ...updateComment(comment), type: 'comment' };
+            }),
+          })),
+        };
+      }
+    );
+}
+
+// <===========================================>
+//   REPLY TEXTFIELDS & THREAD ITEM SKELETONS
+// <===========================================>
 
 type ReplyFieldProps = InternalBlogThreadGroupProps & {
   disabled?: boolean;
@@ -209,7 +303,6 @@ type ThreadSkeletonGroupProps = {
 function ThreadSkeletonGroup(props: ThreadSkeletonGroupProps) {
   const { totalCount, displayCount, limit } = props;
   let count = Math.max(Math.min(totalCount - displayCount, limit), 0);
-  console.log(count, totalCount, displayCount, limit);
   const skeletons: ReactElement[] = new Array(count);
   while (count-- !== 0) skeletons.push(<ThreadItemSkeleton key={count} />);
   return <>{skeletons}</>;

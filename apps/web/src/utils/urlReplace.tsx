@@ -19,7 +19,10 @@ const regreplConfig: RegreplConfig<ReactElement> = {
     // Performance of this regex is pretty good actually, getting 0.003ms/parse.
     /((?<protocol>http|https):\/\/)?(www\.)?(?<root>\S+)\.(?<domain>[A-z]{2,6})((?<appendix>\/[-a-zA-Z0-9()@:%_+.~#?&\/=]+[^.\s:;])?)?/gm,
   decorator: (m, i, result) => (
-    <RedirectingLink url={m ? { full: m, ...result!.groups } : undefined} />
+    <RedirectingLink
+      key={`${m}_${i}`}
+      url={m ? { full: m, ...result!.groups } : undefined}
+    />
   ),
 };
 

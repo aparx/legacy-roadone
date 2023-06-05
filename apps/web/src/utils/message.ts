@@ -94,7 +94,9 @@ export const globalMessages = {
       not_found: 'Gig konnte nicht gefunden werden (gelöscht?).',
       add_title_start_duplicate:
         'Den Titel mit gegebenem Beginn gibt es bereits!',
+      add_success_title: 'Gig erfolgreich hinzugefügt',
       add_success: 'Es kann dauern, bis der neue Auftritt angezeigt wird.',
+      edit_success_title: 'Gig erfolgreich bearbeitet',
       edit_success: 'Es kann dauern, bis die Überarbeitung angezeigt wird.',
     },
     blog: {

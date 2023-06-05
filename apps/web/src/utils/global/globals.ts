@@ -14,7 +14,7 @@ export module Globals {
   // <======================>
 
   /** The maximum amount of replies a user can send (inclusive) */
-  export const maxPersonalBlogReplies = 5;
+  export const maxPersonalBlogReplies = 3;
 
   /** Total amount of blog replies and comments a blog can have (inclusive) */
   export const maxTotalBlogComments = 250;

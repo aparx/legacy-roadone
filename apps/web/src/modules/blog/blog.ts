@@ -80,11 +80,10 @@ export type BlogCommentModel = BlogThreadShared & {
   replyCount?: number;
 };
 
-export const $blogComment: z.ZodType<BlogCommentModel> =
-  $blogThreadShared.extend({
-    replies: z.lazy(() => $blogReply.array().optional()),
-    replyCount: z.number().optional(),
-  });
+export const $blogComment = $blogThreadShared.extend({
+  replies: z.lazy(() => $blogReply.array().optional()),
+  replyCount: z.number().optional(),
+}) satisfies z.ZodType<BlogCommentModel>;
 
 /** Nested comments (depth: 1) right beneath (top-level) comments. */
 export type BlogReplyModel = BlogThreadShared & {
@@ -92,10 +91,10 @@ export type BlogReplyModel = BlogThreadShared & {
   parentId: string;
 };
 
-export const $blogReply: z.ZodType<BlogReplyModel> = $blogThreadShared.extend({
+export const $blogReply = $blogThreadShared.extend({
   parent: $blogComment.optional(),
   parentId: z.string(),
-});
+}) satisfies z.ZodType<BlogReplyModel>;
 
 /** General blog thread item, combining `comment` and `reply` for easier usage,
  *  discriminating the two types via a `type` property. */
@@ -104,7 +103,7 @@ export type BlogThreadItem =
   | ({ type: UnionExtract<BlogThreadItemType, 'reply'> } & BlogReplyModel);
 
 // prettier-ignore
-export const $blogThreadItem: z.ZodType<BlogThreadItem> =
+export const $blogThreadItem =
   z.discriminatedUnion('type', [
     z.object({ type: z.literal('comment') }).extend({
       replies: $blogReply.array().optional(),
@@ -114,4 +113,4 @@ export const $blogThreadItem: z.ZodType<BlogThreadItem> =
       parent: $blogComment.optional(),
       parentId: z.string(),
     }).extend($blogThreadShared.shape),
-]);
+]) satisfies z.ZodType<BlogThreadItem>;

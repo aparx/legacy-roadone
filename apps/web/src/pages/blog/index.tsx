@@ -83,10 +83,11 @@ export default function BlogPage() {
     <Page name={'blogs'} pageURL={'/blogs'}>
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {canMutate && <AddBlogPostItem onAdd={addDialog} />}
-        {posts?.map((post) => (
+        {posts?.map((post, index) => (
           <BlogPostCard
             key={post.id}
             blogPost={post}
+            autoShowReply={index === 0}
             isLoading={isLoading}
             isFetching={isFetching}
             onDelete={deleteDialog}

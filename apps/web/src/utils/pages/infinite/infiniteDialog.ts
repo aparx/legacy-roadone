@@ -48,10 +48,13 @@ type _ImplicitItem<
 //       `useDeleteDialog` PROPERTIES AND TYPES
 // <==================================================>
 
-export type DialogMutationResponse = {
-  successMessage?: string;
-  successTitle?: string;
-};
+export type DialogMutationResponse = Partial<
+  Record<`${DialogMutationResponseTypes}Response`, DialogMutationResponseData>
+>;
+
+export type DialogMutationResponseTypes = 'success';
+
+export type DialogMutationResponseData = { message?: string; title?: string };
 
 export type UseDeleteDialogProps<
   TSchema extends ZodSchema,
@@ -60,8 +63,7 @@ export type UseDeleteDialogProps<
   TFormData extends _InfiniteItemTarget = _ImplicitItem<'delete', TSchema>
 > = DialogInfiniteMutationData<TFormData, TReturnData> & {
   content?: (item: InfiniteItem<TDataItem>) => ReactNode;
-  response?: DialogMutationResponse;
-};
+} & DialogMutationResponse;
 
 /** Dialog that deletes the given infinite-item */
 export function useDeleteDialog<
@@ -77,7 +79,7 @@ export function useDeleteDialog<
     width,
     tight,
     content,
-    response,
+    successResponse,
     title,
     onSuccess,
     onError,
@@ -100,10 +102,10 @@ export function useDeleteDialog<
             onSuccess?.(data);
             addToast({
               type: 'success',
-              title: response
-                ? response.successTitle
+              title: successResponse
+                ? successResponse.title
                 : getGlobalMessage('general.actionSuccess'),
-              message: response?.successMessage,
+              message: successResponse?.message,
             });
           },
           onError: (error) => {
@@ -149,8 +151,7 @@ type _MutateFormlessProps<
 > = DialogInfiniteMutationData<TFormData, TReturnData> & {
   type: TType;
   schema: TSchema;
-  response?: DialogMutationResponse;
-};
+} & DialogMutationResponse;
 
 export type UseMutateFormInput<
   TType extends UseMutateType,
@@ -184,7 +185,8 @@ export function useMutateDialog<
   const addErrorToast = useAddErrorToast();
   if (typeof props !== 'object') throw new Error();
   const { form, onSuccess, onError, ...restProps } = props;
-  const { type, endpoint, schema, response, width, tight, title } = props;
+  const { type, endpoint, schema, successResponse, width, tight, title } =
+    props;
   return (input?: InfiniteItem<TFormData> | any) => {
     const item = input
       ? (input.item as TType extends 'edit'
@@ -211,10 +213,10 @@ export function useMutateDialog<
             closeDialog();
             addToast({
               type: 'success',
-              title: response
-                ? response.successTitle
+              title: successResponse
+                ? successResponse.title
                 : getGlobalMessage('general.actionSuccess'),
-              message: response?.successMessage,
+              message: successResponse?.message,
             });
           },
           onError: (error) => {

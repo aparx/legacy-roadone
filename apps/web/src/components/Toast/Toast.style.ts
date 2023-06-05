@@ -25,6 +25,8 @@ export const toast = (
   }
 ) =>
   css({
+    maxWidth: 500,
+    wordWrap: 'break-word',
     boxShadow: `${
       theme.sys.color.elevation[1]
     } 0 0 ${theme.rt.multipliers.spacing('lg')}px`,
