@@ -17,12 +17,7 @@ export const authOptions = {
     session: async ({ session, user }) => {
       const data = await prisma.user.findUnique({
         where: { email: user.email },
-        select: {
-          role: true,
-          actionCount: true,
-          lastAction: true,
-          verified: true,
-        },
+        select: { role: true, verified: true },
       });
       return {
         user: {

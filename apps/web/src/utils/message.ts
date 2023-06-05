@@ -47,6 +47,8 @@ export const globalMessages = {
     actionFailed: 'Aktion fehlgeschlagen!',
     actionSuccess: 'Aktion erfolgreich!',
     signInToReply: 'Einloggen um zu antworten',
+    too_many_requests:
+      'Du hast zu oft versucht, eine Aktion auszuführen. Bitte warte etwas...',
   },
   auth: {
     signIn: 'Einloggen',

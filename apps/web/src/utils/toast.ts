@@ -18,7 +18,7 @@ export function useAddErrorToast() {
         o = parseGlobalFromClientError(error);
       } else if (typeof error === 'object' && 'message' in error)
         o.message = { summary: String(error.message) };
-      const message = o.message?.translate
+      let message = o.message?.translate
         ? getGlobalMessage(o.message?.translate, o.message?.summary)
         : o.message?.summary;
       addToast({

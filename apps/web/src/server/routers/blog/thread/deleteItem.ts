@@ -2,7 +2,7 @@ import { Permission } from '@/modules/auth/utils/permission';
 import { $blogThreadItemType, BlogThreadItem } from '@/modules/blog/blog';
 import {
   createPermissiveMiddleware,
-  rateLimitingMiddleware,
+  sharedRateLimiterMiddlewareFactory,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure } from '@/server/trpc';
@@ -18,10 +18,10 @@ const $deleteThreadItemOutput = z.object({
 });
 
 export const deleteItem = procedure
+  .use(sharedRateLimiterMiddlewareFactory(15))
   .use(createPermissiveMiddleware('blog.thread.delete'))
   .input($cuidField.extend({ type: $blogThreadItemType }))
   .output($deleteThreadItemOutput)
-  .use(rateLimitingMiddleware)
   .mutation(async ({ input, ctx }) => {
     // 1. Authorization
     //    a) Ensure same comment author & existence of comment

@@ -1,10 +1,12 @@
 import { Permission } from '@/modules/auth/utils/permission';
 import { Role } from '@/modules/schemas/role';
 import { ServerGlobals } from '@/server/globals';
-import { prisma } from '@/server/prisma';
 import { middleware } from '@/server/trpc';
+import { rateLimiter, RateLimitOptions } from '@/server/utils/rateLimiter';
+import { createErrorFromGlobal } from '@/utils/error';
 import { Globals } from '@/utils/global/globals';
 import { TRPCError } from '@trpc/server';
+import requestIp from 'request-ip';
 import * as sanitizeHtml from 'sanitize-html';
 
 /**
@@ -50,41 +52,55 @@ export function sanitizeObject<T extends object>(object: T): T {
 }
 
 /**
- * Middleware that implements rate limitation using `ServerGlobals.RateLimitation` as
- * the primary configuration source, that provides all necessary (global) options.
- * This middleware might end up mutating or querying the database, which is why this
- * middleware shouldn't be used too frequently and only for mutations.
+ * Returns a middleware function factory, that when executed uses LRU-cache to store rate
+ * limitations. The returning function takes in `limit` which represents the amount of
+ * requests allowed for the in the `options` declared configurations.
+ *
+ * @param options the options for rate limitations.
  */
-export const rateLimitingMiddleware = middleware(async ({ ctx, next }) => {
-  if (!ctx.session) return next({ ctx });
-  const role = Permission.getRoleOfSession(ctx.session);
-  if (Permission.isGreaterOrEqual(role, ServerGlobals.RateLimitation.immunity))
-    return next({ ctx });
-  let { lastAction, actionCount, id } = ctx.session.user;
-  actionCount ??= 0;
-  const actionDelta = lastAction && Date.now() - lastAction.getTime();
-  if (actionDelta && actionDelta <= ServerGlobals.RateLimitation.timeframe) {
-    if (actionCount > ServerGlobals.RateLimitation.consecutiveRequests)
-      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
-    await prisma.user.update({
-      where: { id },
-      data: {
-        lastAction: new Date(),
-        actionCount: { increment: 1 },
-      },
+export function createRateLimiterMiddlewareFactory(options?: RateLimitOptions) {
+  const limiter = rateLimiter(options);
+  return (limit: number = 20) =>
+    middleware(async ({ ctx, next }) => {
+      if (!ctx.req)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Context request missing',
+        });
+      const role = Permission.getRoleOfSession(ctx.session);
+      if (Permission.isGreaterOrEqual(role, ServerGlobals.rateLimitImmunity))
+        return next({ ctx });
+      const token = ctx.session?.user?.id || requestIp.getClientIp(ctx.req!);
+      if (!token || !ctx.res) throw new TRPCError({ code: 'BAD_REQUEST' });
+      await limiter.check(ctx.res, limit, token).catch((err) => {
+        throw createErrorFromGlobal({
+          code: 'TOO_MANY_REQUESTS',
+          message: {
+            summary: 'Too many requests within a small time window',
+            translate: 'general.too_many_requests',
+          },
+          cause: err,
+        });
+      });
+      return next({ ctx });
     });
-  } else {
-    const subtrahend = actionDelta
-      ? actionDelta / ServerGlobals.RateLimitation.countDecrementInterval
-      : 1;
-    await prisma.user.update({
-      where: { id },
-      data: {
-        lastAction: new Date(),
-        // This is a non-atomic operation and might lead to issues in the future (?)
-        actionCount: Math.max(Math.round(actionCount - subtrahend), 0),
-      },
-    });
-  }
-  return next({ ctx });
-});
+}
+
+/**
+ * One shared rate limiter, using the same cache. This means, that one endpoint using
+ * this (named 'a') has an effect on the other endpoint using this (named 'b').
+ */
+export const sharedRateLimiterMiddlewareFactory =
+  createRateLimiterMiddlewareFactory();
+
+/**
+ * One shared rate limiter with one middleware instance, having a default limit of `20`.
+ * This means that 20 requests per minute per token are allowed.
+ *
+ * Should be used with caution, since queries should be available to all roles most of
+ * the time and should not be rate limited or if, then with a separate cache.
+ *
+ * @see sharedRateLimiterMiddlewareFactory
+ */
+export const sharedRateLimitingMiddleware =
+  sharedRateLimiterMiddlewareFactory();

@@ -1,8 +1,8 @@
 import { $gigContent, $gigEdit, ProcessedGigModel } from '@/modules/gigs/gig';
 import {
   createPermissiveMiddleware,
-  rateLimitingMiddleware,
   shallowSanitizationMiddleware,
+  sharedRateLimitingMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
@@ -86,9 +86,9 @@ export const gigRouter = router({
    * Required permission: `gig.post`
    */
   addGig: procedure
-    .input($gigContent)
+    .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('gig.post'))
-    .use(rateLimitingMiddleware)
+    .input($gigContent)
     .use(shallowSanitizationMiddleware)
     .mutation(async ({ input, ctx: { res } }) => {
       if (
@@ -116,9 +116,9 @@ export const gigRouter = router({
    * Required permission: `gig.edit`
    */
   editGig: procedure
-    .input($gigEdit)
+    .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('gig.edit'))
-    .use(rateLimitingMiddleware)
+    .input($gigEdit)
     .use(shallowSanitizationMiddleware)
     .mutation(({ input, ctx: { res } }) => {
       const { id } = input;

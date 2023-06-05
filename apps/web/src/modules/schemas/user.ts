@@ -15,8 +15,6 @@ export const $publicUser = z.object({
 /** Private user schema that may be redacted when given to third parties */
 export const $privateUser = z.object({
   email: z.string() /* @unique */,
-  lastAction: z.date().nullish().optional(),
-  actionCount: z.number().nullish().optional(),
 });
 
 /** Public user schema extended by `privateUserSchema` (as partial) */

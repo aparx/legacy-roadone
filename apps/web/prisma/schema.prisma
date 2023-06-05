@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["filteredRelationCount"]
 }
 
 datasource db {
@@ -44,15 +45,6 @@ model User {
 
   /// Ensures authenticity of the user (if true)
   verified Boolean @default(false)
-
-  /// Keeps track of when the last action (i.e. mutation) was performed.
-  lastAction DateTime?
-
-  /// Count that increments when an action was performed after another within a
-  /// certain timeframe. If the count exceeds a certain threshold, this user is
-  /// rate-limited. The number decreases with each action taken outside said
-  /// timeframe. Some `Role`s might be immune to rate-limitations.
-  actionCount Int @default(0) @db.UnsignedSmallInt
 
   /// Blog posts created by this user.
   blogPosts    BlogPost[]
