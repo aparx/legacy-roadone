@@ -13,6 +13,7 @@ export default function Portal({ children, key }: PortalProps) {
   const [mounted, setMounted] = useState(false);
   const ref = useRef<Element>(null);
   useEffect(() => {
+    // @ts-ignore
     ref.current = document.getElementById(portalId);
     setMounted(true);
   }, []);

@@ -10,6 +10,6 @@ export const deepWrapper = (theme: Theme) =>
 export const list = (theme: Theme) => {
   const { rt } = theme;
   return css({
-    padding: rt.multipliers.spacing('md'),
+    paddingLeft: rt.multipliers.spacing('md'),
   });
 };

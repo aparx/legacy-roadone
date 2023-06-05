@@ -1,3 +1,3 @@
 export module BlogThreadItemCardConfig {
-  export const avatarSize = 30;
+  export const avatarSize: number = 30;
 }

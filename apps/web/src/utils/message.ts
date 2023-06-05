@@ -47,6 +47,7 @@ export const globalMessages = {
     actionFailed: 'Aktion fehlgeschlagen!',
     actionSuccess: 'Aktion erfolgreich!',
     signInToReply: 'Einloggen um zu antworten',
+    signInToComment: 'Einloggen um zu kommentieren',
     too_many_requests:
       'Du hast zu oft versucht, eine Aktion auszuführen. Bitte warte etwas...',
   },
@@ -79,7 +80,7 @@ export const globalMessages = {
       replyAddSingle: 'Antworten',
       multiShow: 'Antworten anzeigen',
       multiHide: 'Antworten ausblenden',
-      already_replied: 'Du hast hier bereits geantwortet',
+      already_commented: 'Du hast hier bereits kommentiert',
       dialog: {
         message_delete_zero: 'Es werden keine weiteren Antworten gelöscht.',
         message_delete_multiple:

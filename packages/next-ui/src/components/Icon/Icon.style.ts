@@ -22,7 +22,8 @@ export const wrapper = (
     alignItems: 'center',
     position: 'relative',
     cursor: popup ? 'help' : undefined,
-    '&:hover': {
+    // prettier-ignore
+    '&:hover': popup ? {
       '&::before': {
         content: `"${popup}"`,
         pointerEvents: 'none',
@@ -40,6 +41,6 @@ export const wrapper = (
         borderRadius: theme.rt.multipliers.roundness(UI.generalRoundness),
         animation: `.75s ${popoverKeyframes} ease-in forwards`,
       },
-    },
+    } : undefined,
   }),
 ];

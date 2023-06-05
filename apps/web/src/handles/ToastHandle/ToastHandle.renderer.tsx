@@ -19,6 +19,7 @@ export default function ToastHandle(props: PropsWithStyleable) {
   return (
     <Portal>
       <PageAlign
+        role={'alert'}
         {...propMerge(
           {
             css: {

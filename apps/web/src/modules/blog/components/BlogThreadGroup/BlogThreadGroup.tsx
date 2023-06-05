@@ -1,5 +1,6 @@
 import * as style from './BlogThreadGroup.style';
 import { useToastHandle } from '@/handles';
+import { logIn } from '@/modules/auth/utils/logInOut';
 import {
   $blogThreadContent,
   BlogCommentModel,
@@ -18,9 +19,9 @@ import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItem } from '@/utils/pages/infinite/infiniteItem';
 import { useAddErrorToast } from '@/utils/toast';
-import { Theme } from '@emotion/react';
+import { Theme, useTheme } from '@emotion/react';
 import { useSession } from 'next-auth/react';
-import { Button, Skeleton, Spinner, Stack, TextField } from 'next-ui';
+import { Button, Icon, Skeleton, Spinner, Stack, TextField, UI } from 'next-ui';
 import RawForm from 'next-ui/src/components/RawForm/RawForm';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { TextFieldRef } from 'next-ui/src/components/TextField/TextField';
@@ -33,6 +34,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import { MdLock, MdLogin, MdSend } from 'react-icons/md';
 
 /** @jsxImportSource @emotion/react */
 export type InternalBlogThreadGroupProps = {
@@ -102,15 +104,32 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
     [apiContext]
   );
 
+  const textFieldLockMode =
+    session.status === 'unauthenticated'
+      ? 'auth'
+      : group.type === 'comment' &&
+        session.data?.user?.id &&
+        items?.find((i) => i.authorId === session.data?.user?.id)
+      ? 'other'
+      : undefined;
+
   return (
-    <Stack css={group.type !== 'comment' && style.deepWrapper}>
-      <BlogThreadReplyField
-        {...props}
-        fieldRef={multiRef(fieldRef, ensuredFieldRef)}
-        loading={isLoading || isFetching}
-        onError={() => refetch({})}
-        onSuccess={addThreadItem}
-      />
+    <Stack css={group.type !== 'comment' && style.deepWrapper} spacing={'lg'}>
+      {(!textFieldLockMode || group.type !== 'reply') && (
+        <BlogThreadReplyField
+          {...props}
+          lockMode={textFieldLockMode}
+          lockMessage={
+            textFieldLockMode === 'other'
+              ? getGlobalMessage('blog.comment.already_commented')
+              : getGlobalMessage('general.signInToComment')
+          }
+          fieldRef={multiRef(fieldRef, ensuredFieldRef)}
+          loading={isLoading || isFetching}
+          onError={() => refetch({})}
+          onSuccess={addThreadItem}
+        />
+      )}
       {(items.length !== 0 || approximation !== 0) && (
         <Stack css={style.list} spacing={'lg'}>
           {items.length !== 0 &&
@@ -228,17 +247,60 @@ type ReplyFieldProps = InternalBlogThreadGroupProps & {
   disabled?: boolean;
   loading?: boolean;
   lockMode?: 'auth' | 'other';
+  lockMessage?: string;
   onSuccess?: (data: BlogThreadItem) => any;
   onError?: (error: any) => any;
 };
 
 function BlogThreadReplyField(props: ReplyFieldProps) {
-  const { lockMode, ...rest } = props;
-  return lockMode ? <ReplyFieldInactive /> : <ReplyFieldActive {...rest} />;
+  const { lockMode, lockMessage, ...rest } = props;
+  return lockMode ? (
+    <ReplyFieldInactive lockMode={lockMode} lockMessage={lockMessage} />
+  ) : (
+    <ReplyFieldActive {...rest} />
+  );
 }
 
-function ReplyFieldInactive() {
-  return <div>Locked</div>;
+function ReplyFieldInactive(
+  props: Pick<ReplyFieldProps, 'lockMode' | 'lockMessage'>
+) {
+  const { lockMode, lockMessage } = props;
+  const theme = useTheme();
+  return (
+    <Stack
+      onClick={lockMode === 'auth' ? logIn : undefined}
+      direction={'row'}
+      hAlign={'space-between'}
+      sd={{
+        paddingH: 'md',
+        paddingV: 'md',
+        roundness: UI.generalRoundness,
+      }}
+      style={{
+        cursor: lockMode === 'auth' ? 'pointer' : 'default',
+        border: `1px solid ${theme.sys.color.scheme.surfaceVariant}`,
+      }}
+    >
+      <Stack direction={'row'} sd={{ emphasis: 'medium' }}>
+        <Icon
+          icon={<MdLock />}
+          aria-hidden={true}
+          style={{ width: BlogThreadItemCardConfig.avatarSize }}
+        />
+        <span>{lockMessage}</span>
+      </Stack>
+      {lockMode === 'auth' && (
+        <Button.Text
+          leading={<MdLogin />}
+          take={{ vPaddingMode: 'oof' }}
+          sd={{ color: (t) => t.sys.color.scheme.primary }}
+          onClick={logIn}
+        >
+          {getGlobalMessage('translation.signIn')}
+        </Button.Text>
+      )}
+    </Stack>
+  );
 }
 
 function ReplyFieldActive(props: Omit<ReplyFieldProps, 'lockMode'>) {
@@ -281,7 +343,13 @@ function InnerReplyFieldForm(props: Omit<ReplyFieldProps, 'lockMode'>) {
       ref={props.fieldRef}
       name={'content'}
       disabled={props.disabled || props.loading}
-      tailing={props.loading && <Spinner size={20} />}
+      tailing={
+        props.loading ? (
+          <Spinner size={20} />
+        ) : (
+          <Button.Text tight icon={<MdSend />} take={{ vPaddingMode: 'oof' }} />
+        )
+      }
       required
       field={{ autoComplete: 'off' }}
       hookform={useRawForm<BlogThreadContentData>()}
