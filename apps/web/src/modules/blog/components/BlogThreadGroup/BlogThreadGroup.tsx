@@ -71,6 +71,12 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
     enabled: session.status !== 'loading',
   });
 
+  // The real count of comments independent of the displayed comments
+  const countQuery = api.blog.threads.count.useQuery(
+    { group: queryParams.group },
+    { enabled: session.status === 'authenticated' }
+  );
+
   const apiContext = api.useContext();
   const items = data?.pages?.flatMap((page) => page.data) ?? [];
   const addThreadItem = async (item: BlogThreadItem) => {
@@ -78,20 +84,24 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
     // Add client side without refetching to immediately show the comment.
     apiContext.blog.threads.getThread.setInfiniteData({ group }, (state) => {
       const targetPage = state?.pages?.at(0);
+      // prettier-ignore
       if (targetPage) targetPage.data.unshift(item);
-      else
-        return {
-          pages: [{ data: [item], thisCursor: 0, nextCursor: 1 }],
-          pageParams: [],
-        };
+      else return {
+        pages: [{ data: [item], thisCursor: 0, nextCursor: 1 }],
+        pageParams: [],
+      };
       return state;
     });
     const field = ensuredFieldRef.current?.field;
     if (field) field.value = '';
-    changeParentsCounters(apiContext, group, 1, 1);
+    incrementCountsOfParents(apiContext, group, /* total */ 1, /* local */ 1);
+    await countQuery.refetch();
   };
   const removeThreadItem = useCallback(
-    ({ item: { item, affected } }: InfiniteItem<DeleteThreadItemOutput>) => {
+    async ({
+      item: { item, affected },
+    }: InfiniteItem<DeleteThreadItemOutput>) => {
+      await countQuery.refetch();
       apiContext.blog.threads.getThread.setInfiniteData(
         queryParamsRef.current,
         (state) => ({
@@ -103,35 +113,48 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
           pageParams: state?.pageParams ?? [],
         })
       );
-      changeParentsCounters(
+      incrementCountsOfParents(
         apiContext,
         queryParamsRef.current.group,
-        -affected,
-        -1
+        /* total */ -affected,
+        /* local */ -1
       );
     },
-    [apiContext]
+    [apiContext, countQuery]
   );
 
-  const textFieldLockMode =
+  const isOwningComment =
+    group.type === 'comment' &&
+    session.data?.user?.id &&
+    ((countQuery.data ?? 0) > 0 ||
+      items.find((x) => x.authorId === session.data.user.id));
+
+  const hitReplyLimit =
+    group.type === 'reply' &&
+    session.data?.user?.id &&
+    ((countQuery.data ?? 0) >= Globals.maxPersonalBlogReplies ||
+      items.filter((i) => i.authorId === session.data.user.id).length >=
+        Globals.maxPersonalBlogReplies);
+
+  const textFieldLockMode: ReplyFieldProps['lockMode'] =
     session.status === 'unauthenticated'
       ? 'auth'
-      : group.type === 'comment' &&
-        session.data?.user?.id &&
-        items?.find((i) => i.authorId === session.data?.user?.id)
+      : isOwningComment || hitReplyLimit
       ? 'other'
       : undefined;
 
   return (
     <Stack css={group.type !== 'comment' && style.deepWrapper} spacing={'lg'}>
-      {(!textFieldLockMode || group.type !== 'reply') && (
+      {(!textFieldLockMode || group.type !== 'reply' || hitReplyLimit) && (
         <BlogThreadReplyField
           {...props}
           lockMode={textFieldLockMode}
           lockMessage={
-            textFieldLockMode === 'other'
+            textFieldLockMode === 'auth'
+              ? getGlobalMessage('general.signInToComment')
+              : isOwningComment
               ? getGlobalMessage('blog.comment.already_commented')
-              : getGlobalMessage('general.signInToComment')
+              : getGlobalMessage('blog.comment.already_replied')
           }
           fieldRef={multiRef(fieldRef, ensuredFieldRef)}
           loading={isLoading || isFetching}
@@ -180,13 +203,13 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
 //       NOTIFY PARENT (COUNTER) UTILITIES
 // <===========================================>
 
-function changeParentsCounters(
+function incrementCountsOfParents(
   context: ReturnType<typeof api.useContext>,
   group: BlogThread,
   totalIncrease: number,
   localIncrease: number
 ) {
-  return notifyParent(context, group, {
+  return traverseUpdateParents(context, group, {
     updateBlog: (blog) => ({
       ...blog,
       totalCommentCount: Math.max(blog.totalCommentCount + totalIncrease, 0),
@@ -205,7 +228,7 @@ function changeParentsCounters(
   });
 }
 
-function notifyParent(
+function traverseUpdateParents(
   context: ReturnType<typeof api.useContext>,
   group: BlogThread,
   handlers: {
@@ -399,6 +422,7 @@ function ThreadItemSkeleton() {
         width={BlogThreadItemCardConfig.avatarSize}
         height={BlogThreadItemCardConfig.avatarSize}
         sd={{ roundness: 'full' }}
+        style={{ flexShrink: 0 }}
       />
       <Stack spacing={'sm'} sd={{ width: '100%' }}>
         <Skeleton
