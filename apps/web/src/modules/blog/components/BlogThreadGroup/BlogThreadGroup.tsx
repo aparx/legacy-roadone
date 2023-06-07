@@ -11,6 +11,7 @@ import {
 import BlogThreadItemCard from '@/modules/blog/components/BlogThreadItemCard/BlogThreadItemCard';
 import { BlogThreadItemCardConfig } from '@/modules/blog/components/BlogThreadItemCard/BlogThreadItemCard.config';
 import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
+import type { GetBlogsOutput } from '@/server/routers/blog/getBlogs';
 import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
 import { formatMessage } from '@/utils/format';
@@ -41,6 +42,8 @@ export type InternalBlogThreadGroupProps = {
   fieldRef?: Ref<TextFieldRef>;
   blog: ProcessedBlogPostModel;
   group: BlogThread;
+  /** If true showcases a loading state */
+  loading?: boolean;
   /** Approximate number of replies or comments in this thread. */
   approximation: number;
 };
@@ -50,7 +53,7 @@ export type InternalBlogThreadGroupProps = {
  * `group` given. Data relative to `group` is fetched automatically.
  */
 export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
-  const { blog, group, approximation, fieldRef } = props;
+  const { blog, group, approximation, fieldRef, loading } = props;
   const queryParams = { group } as const;
   const queryParamsRef = useRef(queryParams);
   const ensuredFieldRef = useRef<TextFieldRef>(null);
@@ -143,6 +146,8 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
       ? 'other'
       : undefined;
 
+  const loadingState = isLoading || isFetching || loading;
+
   return (
     <Stack css={group.type !== 'comment' && style.deepWrapper} spacing={'lg'}>
       {(!textFieldLockMode || group.type !== 'reply' || hitReplyLimit) && (
@@ -157,9 +162,19 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
               : getGlobalMessage('blog.comment.already_replied')
           }
           fieldRef={multiRef(fieldRef, ensuredFieldRef)}
-          loading={isLoading || isFetching}
-          onError={() => refetch({})}
+          loading={loadingState}
           onSuccess={addThreadItem}
+          onError={() => {
+            apiContext.blog.getBlogs
+              .refetch(
+                {},
+                {
+                  refetchPage: ({ data }: GetBlogsOutput) =>
+                    data.findIndex((x) => x.id === group.blog) !== -1,
+                }
+              )
+              .then(() => refetch({}));
+          }}
         />
       )}
       {(items.length !== 0 || approximation !== 0) && (
@@ -170,6 +185,7 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
                 key={item.id}
                 blog={blog}
                 group={group}
+                loading={loadingState}
                 item={item}
                 groupField={ensuredFieldRef}
                 onDelete={removeThreadItem}
@@ -216,14 +232,14 @@ function incrementCountsOfParents(
       commentCount:
         blog.commentCount && group.type === 'comment'
           ? Math.max(blog.commentCount + localIncrease, 0)
-          : blog.commentCount,
+          : Math.max(localIncrease, 0),
     }),
     updateComment: (parent) => ({
       ...parent,
       replyCount:
         parent.replyCount != null
-          ? parent.replyCount + localIncrease
-          : undefined,
+          ? Math.max(parent.replyCount + localIncrease, 0)
+          : Math.max(localIncrease, 0),
     }),
   });
 }
@@ -289,16 +305,20 @@ type ReplyFieldProps = InternalBlogThreadGroupProps & {
 function BlogThreadReplyField(props: ReplyFieldProps) {
   const { lockMode, lockMessage, ...rest } = props;
   return lockMode ? (
-    <ReplyFieldInactive lockMode={lockMode} lockMessage={lockMessage} />
+    <ReplyFieldInactive
+      lockMode={lockMode}
+      lockMessage={lockMessage}
+      loading={rest.loading}
+    />
   ) : (
     <ReplyFieldActive {...rest} />
   );
 }
 
 function ReplyFieldInactive(
-  props: Pick<ReplyFieldProps, 'lockMode' | 'lockMessage'>
+  props: Pick<ReplyFieldProps, 'lockMode' | 'lockMessage' | 'loading'>
 ) {
-  const { lockMode, lockMessage } = props;
+  const { lockMode, lockMessage, loading } = props;
   const theme = useTheme();
   return (
     <Stack
@@ -309,6 +329,7 @@ function ReplyFieldInactive(
         paddingH: 'md',
         paddingV: 'md',
         roundness: UI.generalRoundness,
+        emphasis: loading ? 'low' : 'high',
       }}
       style={{
         cursor: lockMode === 'auth' ? 'pointer' : 'default',
@@ -333,6 +354,7 @@ function ReplyFieldInactive(
           {getGlobalMessage('translation.signIn')}
         </Button.Text>
       )}
+      {lockMode !== 'auth' && loading && <Spinner size={20} />}
     </Stack>
   );
 }

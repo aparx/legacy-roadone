@@ -6,7 +6,6 @@ import { createGetBlogsProcedure } from '@/server/routers/blog/getBlogs';
 import { blogThreadRouter } from '@/server/routers/blog/thread';
 import { router } from '@/server/trpc';
 import { renderMarkdown } from '@/utils/functional/markdown';
-import { selectAuthorFields } from '@/utils/schemas/shared';
 import { ValueReplace } from 'shared-utils';
 
 export interface BlogPostProcedureData {
@@ -24,7 +23,8 @@ export interface BlogPostProcedureData {
 const processBlogInclude = {
   // we include the count of `replies` and `comments` (0 row-reads)
   _count: { select: { replies: true, comments: true } },
-  author: { select: selectAuthorFields },
+  // // `author` not needed as of now
+  // author: { select: selectAuthorFields },
 } as const;
 
 const blogProcedureEnvironment = {

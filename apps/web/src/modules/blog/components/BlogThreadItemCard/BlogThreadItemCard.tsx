@@ -40,6 +40,8 @@ export type InternalBlogThreadItemCardProps = {
   blog: ProcessedBlogPostModel;
   group: BlogThread;
   item: BlogThreadItem;
+  /** If true shows a deep loading state. */
+  loading?: boolean;
   /** Reply field of `group` */
   groupField?: RefObject<TextFieldRef>;
 } & (
@@ -52,8 +54,17 @@ export type BlogThreadItemCardProps = StyleableProp &
   InternalBlogThreadItemCardProps;
 
 export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
-  const { blog, group, item, visualOnly, groupField, onDelete, ...rest } =
-    props;
+  const {
+    blog,
+    group,
+    item,
+    visualOnly,
+    groupField,
+    onDelete,
+    loading,
+    ...rest
+  } = props;
+  let loadingState = loading;
   const session = useSession();
   const labelledBy = useId();
   const replyControls = useId();
@@ -93,6 +104,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
   }, [group.type, item.author?.name, showReplies, theme]);
 
   const deleteEndpoint = api.blog.threads.deleteItem.useMutation();
+  loadingState ||= deleteEndpoint.isLoading;
 
   const deleteDialog = useDeleteDialog({
     title: formatMessage(
@@ -210,6 +222,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
         >
           <BlogThreadGroup
             blog={blog}
+            loading={loadingState}
             approximation={(item.type === 'comment' && item.replyCount) || 0}
             fieldRef={fieldRef}
             group={{ type: 'reply', blog: blog.id, parent: item.id }}

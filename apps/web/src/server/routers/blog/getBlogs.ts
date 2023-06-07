@@ -7,6 +7,10 @@ import {
   createInfiniteQueryResult,
   infiniteQueryInput,
 } from '@/utils/schemas/infiniteQuery';
+import { z } from 'zod';
+
+export type GetBlogsOutput = z.infer<typeof $getBlogsOutput>;
+const $getBlogsOutput = createInfiniteQueryOutput($blogPostProcessed);
 
 /** Creates a new procedure that queries blogs. */
 export const createGetBlogsProcedure = ({
@@ -15,7 +19,7 @@ export const createGetBlogsProcedure = ({
 }: BlogPostProcedureData) =>
   procedure
     .input(infiniteQueryInput)
-    .output(createInfiniteQueryOutput($blogPostProcessed))
+    .output($getBlogsOutput)
     .query(async ({ input }) => {
       const queryData = await prisma.blogPost.findMany({
         skip: input.cursor,
