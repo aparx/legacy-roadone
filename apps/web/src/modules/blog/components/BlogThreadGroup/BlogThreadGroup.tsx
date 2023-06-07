@@ -73,13 +73,22 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
 
   const apiContext = api.useContext();
   const items = data?.pages?.flatMap((page) => page.data) ?? [];
-  const addThreadItem = () => {
+  const addThreadItem = async (item: BlogThreadItem) => {
     const group = queryParamsRef.current.group;
-    refetch({ type: 'all' }).then(() => {
-      const field = ensuredFieldRef.current?.field;
-      if (field) field.value = '';
-      changeParentsCounters(apiContext, group, 1, 1);
+    // Add client side without refetching to immediately show the comment.
+    apiContext.blog.threads.getThread.setInfiniteData({ group }, (state) => {
+      const targetPage = state?.pages?.at(0);
+      if (targetPage) targetPage.data.unshift(item);
+      else
+        return {
+          pages: [{ data: [item], thisCursor: 0, nextCursor: 1 }],
+          pageParams: [],
+        };
+      return state;
     });
+    const field = ensuredFieldRef.current?.field;
+    if (field) field.value = '';
+    changeParentsCounters(apiContext, group, 1, 1);
   };
   const removeThreadItem = useCallback(
     ({ item: { item, affected } }: InfiniteItem<DeleteThreadItemOutput>) => {
@@ -177,10 +186,8 @@ function changeParentsCounters(
   totalIncrease: number,
   localIncrease: number
 ) {
-  return notifyParent(
-    context,
-    group,
-    (blog) => ({
+  return notifyParent(context, group, {
+    updateBlog: (blog) => ({
       ...blog,
       totalCommentCount: Math.max(blog.totalCommentCount + totalIncrease, 0),
       commentCount:
@@ -188,38 +195,42 @@ function changeParentsCounters(
           ? Math.max(blog.commentCount + localIncrease, 0)
           : blog.commentCount,
     }),
-    (parent) => ({
+    updateComment: (parent) => ({
       ...parent,
       replyCount:
         parent.replyCount != null
           ? parent.replyCount + localIncrease
           : undefined,
-    })
-  );
+    }),
+  });
 }
 
 function notifyParent(
   context: ReturnType<typeof api.useContext>,
   group: BlogThread,
-  updateBlog: (
-    blog: Readonly<ProcessedBlogPostModel>
-  ) => ProcessedBlogPostModel,
-  updateComment?: (parent: Readonly<BlogCommentModel>) => BlogCommentModel
+  handlers: {
+    updateBlog?: (
+      blog: Readonly<ProcessedBlogPostModel>
+    ) => ProcessedBlogPostModel;
+    updateComment?: (parent: Readonly<BlogCommentModel>) => BlogCommentModel;
+  }
 ) {
-  context.blog.getBlogs.setInfiniteData({}, (state) => {
-    if (!state?.pages) return { pages: [], pageParams: [] };
-    // Call `updateBlog` on fetched blog post
-    return {
-      ...state,
-      pages: state.pages.map((page) => ({
-        ...page,
-        data: page.data.map((blog) => {
-          if (blog.id !== group.blog) return blog;
-          return updateBlog(blog);
-        }),
-      })),
-    };
-  });
+  const { updateBlog, updateComment } = handlers;
+  if (updateBlog)
+    context.blog.getBlogs.setInfiniteData({}, (state) => {
+      if (!state?.pages) return { pages: [], pageParams: [] };
+      // Call `updateBlog` on fetched blog post
+      return {
+        ...state,
+        pages: state.pages.map((page) => ({
+          ...page,
+          data: page.data.map((blog) => {
+            if (blog.id !== group.blog) return blog;
+            return updateBlog(blog) || blog;
+          }),
+        })),
+      };
+    });
   if (group.type === 'reply' && updateComment)
     context.blog.threads.getThread.setInfiniteData(
       { group: { type: 'comment', blog: group.blog } },

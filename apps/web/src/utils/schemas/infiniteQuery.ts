@@ -52,7 +52,8 @@ export function createInfiniteQueryResult<
   TRestQueryResult extends object = {}
 >(
   { cursor, limit }: InfiniteQueryInput,
-  data: GetInfiniteQueryInput<TDataElement, TRestQueryResult>
+  data: GetInfiniteQueryInput<TDataElement, TRestQueryResult>,
+  nextCursorMapper?: (nextCursor: number | undefined) => number | undefined
 ): GetInfiniteQueryResult<TDataElement, TRestQueryResult> {
   const { infiniteData, ...rest } = data;
   let nextCursor: GetInfiniteQueryResult<any>['nextCursor'];
@@ -60,6 +61,8 @@ export function createInfiniteQueryResult<
     infiniteData.splice(limit);
     nextCursor = cursor + limit;
   }
+  if (nextCursorMapper) nextCursor = nextCursorMapper(nextCursor);
+  if (nextCursor && nextCursor <= 0) nextCursor = undefined;
   return {
     thisCursor: cursor,
     nextCursor,

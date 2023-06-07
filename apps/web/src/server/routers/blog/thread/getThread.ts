@@ -33,9 +33,9 @@ export const getThread = procedure
     const userId = ctx.session?.user?.id;
     let { cursor, limit, group } = input;
     let infiniteData: BlogThreadItem[];
-    let queried: BlogReplyModel[] | BlogCommentModel[] = [];
+    let queried: BlogReplyModel[] | BlogCommentModel[];
+    let own: BlogCommentModel[] | BlogReplyModel[] = [];
     if (group.type === 'comment') {
-      let own: BlogCommentModel[] = [];
       let exclude: string[] = [];
       if (userId) {
         let self: any;
@@ -61,39 +61,81 @@ export const getThread = procedure
           own = [{ ...data, replyCount: _count.replies }];
         }
       }
-      queried = (
-        await prisma.blogComment.findMany({
-          where: { blogId: group.blog, id: { notIn: exclude } },
-          orderBy: { createdAt: 'desc' },
-          include: {
-            author: { select: selectAuthorFields },
-            _count: { select: { replies: true } },
-          },
-          skip: (cursor && Math.max(cursor - exclude.length, 0)) || 0,
-          take: 1 + limit,
-        })
-      ).map(
-        ({ _count, ...data }): BlogCommentModel => ({
-          replyCount: _count.replies,
-          ...data,
-        })
-      );
-      queried.push(...own);
+      queried = [
+        ...own,
+        ...(
+          await prisma.blogComment.findMany({
+            where: { blogId: group.blog, id: { notIn: exclude } },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              author: { select: selectAuthorFields },
+              _count: { select: { replies: true } },
+            },
+            skip: (cursor && Math.max(cursor - exclude.length, 0)) || 0,
+            take: 1 + limit - own.length,
+          })
+        ).map(
+          ({ _count, ...data }): BlogCommentModel => ({
+            replyCount: _count.replies,
+            ...data,
+          })
+        ),
+      ];
     } else {
-      queried = await prisma.blogReply.findMany({
-        where: { blogId: group.blog, parentId: group.parent },
-        orderBy: { createdAt: 'asc' },
-        include: { author: { select: selectAuthorFields } },
-        skip: cursor,
-        take: 1 + limit,
-      });
+      let ownExclude: string[] = [];
+      if (userId) {
+        let self: any[];
+        if (cursor) {
+          // `self` must only contain id to reduce unnecessary reads
+          self = await prisma.blogReply.findMany({
+            where: {
+              blogId: group.blog,
+              authorId: userId,
+              parentId: group.parent,
+            },
+            select: { id: true },
+            take: Globals.maxPersonalBlogReplies,
+          });
+        } else {
+          // `self` must be applicable to `BlogCommentModel` & _count
+          self = await prisma.blogReply.findMany({
+            where: {
+              blogId: group.blog,
+              authorId: userId,
+              parentId: group.parent,
+            },
+            orderBy: { createdAt: 'asc' },
+            include: { author: { select: selectAuthorFields } },
+            take: Globals.maxPersonalBlogReplies,
+          });
+        }
+        if (self) ownExclude = self.map((i) => i.id);
+        if (self && !cursor) own = self;
+      }
+      queried = own;
+      queried.push(
+        ...(await prisma.blogReply.findMany({
+          where: {
+            blogId: group.blog,
+            parentId: group.parent,
+            id: { notIn: ownExclude },
+          },
+          orderBy: { createdAt: 'asc' },
+          include: { author: { select: selectAuthorFields } },
+          skip: Math.max(cursor - ownExclude.length, 0),
+          take: 1 + limit,
+        }))
+      );
     }
     queried.forEach((x) => ((x as BlogThreadItem).type = group.type));
-    if (userId)
-      queried.sort((a, b) =>
-        a.authorId === userId ? -1 : b.authorId === userId ? 0 : 1
-      );
     infiniteData = queried as BlogThreadItem[];
-    // possible logging logic might be inserted here for `infiniteData`
-    return createInfiniteQueryResult({ cursor, limit }, { infiniteData });
+    const queryResult = createInfiniteQueryResult(
+      { cursor, limit },
+      { infiniteData }
+    );
+    // sort after (possible) splicing
+    queryResult.data.sort((a, b) =>
+      a.authorId === userId ? -1 : b.authorId === userId ? 0 : 1
+    );
+    return queryResult;
   });
