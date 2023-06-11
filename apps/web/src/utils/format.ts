@@ -1,5 +1,5 @@
-export function formatMessage(message: string, ...args: any[]) {
-  if (!args.length) return message;
+export function formatString(string: string, ...args: any[]) {
+  if (!args.length) return string;
   let i = 0;
-  return message.replaceAll(/%s/g, () => args[i++]);
+  return string.replaceAll(/%s/g, () => args[i++]);
 }

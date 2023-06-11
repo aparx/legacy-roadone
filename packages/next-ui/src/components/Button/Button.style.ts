@@ -53,6 +53,8 @@ export const button = (
     text-decoration: none;
     user-select: none;
 
+    position: relative;
+
     & > div {
       // state-layer
       padding-top: ${realPaddingV};

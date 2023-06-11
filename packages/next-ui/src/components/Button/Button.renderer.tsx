@@ -55,6 +55,7 @@ export function createButtonRenderer<TType extends ButtonType>(
       tailing,
       tight,
       icon,
+      iconName,
       ...restProps
     }: TProps,
     ref: ForwardedRef<HTMLElementFromButtonProps<TProps>>
@@ -83,8 +84,12 @@ export function createButtonRenderer<TType extends ButtonType>(
           {icon && (
             <Icon
               fontData={fontData}
+              popover={iconName}
               icon={icon}
-              style={{ fontSize: '105%' }}
+              style={{
+                fontSize: '105%',
+                cursor: disabled ? 'default' : 'pointer',
+              }}
             />
           )}
           {children && <div>{children}</div>}

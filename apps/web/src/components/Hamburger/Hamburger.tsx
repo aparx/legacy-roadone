@@ -2,7 +2,7 @@
 import { HamburgerConfig as config } from './Hamburger.config';
 import { LocalState } from '@/utils/localState';
 import { useTheme } from '@emotion/react';
-import { Button, propMerge } from 'next-ui';
+import { Button } from 'next-ui';
 import {
   ButtonHTMLAttributes,
   forwardRef,
@@ -44,12 +44,10 @@ export const Hamburger = forwardRef<HamburgerRef, HamburgerProps>(
         onClick={() => stateOpen.set((b) => !b)}
         take={{
           roundness: 'full',
-          vPadding: newPadding,
+          vPadding: 0,
           hPadding: newPadding,
         }}
-        {...propMerge(restProps, {
-          style: { padding: `0 ${multipliers.spacing(newPadding)}px` },
-        })}
+        {...restProps}
       >
         {stateOpen.state ? <MdClose size={size} /> : <MdMenu size={size} />}
       </Button.Text>

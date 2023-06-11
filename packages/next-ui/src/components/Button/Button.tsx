@@ -60,6 +60,8 @@ export type InternalButtonProps = PropsWithStyleable<{
   size?: ButtonSize;
   tight?: boolean;
   icon?: false | ReactElement<IconBaseProps>;
+  /** Will add aria-label and introduce a popover for `icon` */
+  iconName?: string;
   leading?: ReactNode;
   tailing?: ReactNode;
   [UI.customStylePropKey]?: Partial<ButtonOptions>;

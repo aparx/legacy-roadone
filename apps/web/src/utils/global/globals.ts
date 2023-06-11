@@ -23,6 +23,15 @@ export module Globals {
   export const commentFetchPageLimit = 3;
 
   // <======================>
+  //  SETLIST CONFIGURATION
+  // <======================>
+
+  /** The time in milliseconds that setlist items (songs) are considered "fresh" or
+   *  "new" and being displayed as such. This is purely visual, thus only affects
+   *  frontend! */
+  export const setlistItemFreshTime = 14 * 24 * 60 * 60 * 1000; /* 14 days */
+
+  // <======================>
   //  GENERAL CONFIGURATION
   // <======================>
 
@@ -43,17 +52,21 @@ export module Globals {
     'blog.thread.delete': 'USER',
     /** Permission to manage all comments and replies (owning) */
     'blog.thread.manage': 'ADMIN',
+
+    'setlist.add': 'ADMIN',
+    'setlist.edit': 'ADMIN',
+    'setlist.delete': 'ADMIN',
   } as const satisfies Record<string, Role>;
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
     gigs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
     blogs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
+    setlist: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
   } as const satisfies Record<string, number>;
 
   /** Stale times (in milliseconds) for Tanstack-Query caching purposes */
   export const staleTimes = {
-    blogs: 60 * 60 * 1000 /* 1h */,
-    replies: 5 * 60 * 1000 /* 5m */,
+    /* TODO */
   } as const satisfies Record<string, number | undefined>;
 }

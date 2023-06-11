@@ -2,6 +2,7 @@ import { LeafObjectPath, resolvePath, TraversableObject } from 'shared-utils';
 
 export const globalMessages = {
   translation: {
+    new: 'Neu',
     warning: 'Warnung',
     success: 'Erfolg',
     info: 'Info',
@@ -88,6 +89,11 @@ export const globalMessages = {
           'Es werden alle Antworten zu diesem Kommentar gelöscht.',
       },
     },
+  },
+  setlist: {
+    new_song: 'Neuer Song',
+    song_name: 'Song',
+    song_name_artist_divider: 'vom Künstler',
   },
   modal: {
     sureTitle: 'Bist du sicher?',

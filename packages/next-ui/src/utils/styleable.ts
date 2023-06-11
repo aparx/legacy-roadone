@@ -118,10 +118,13 @@ export type StyleableNumericProps = {
 };
 
 /** Properties used on custom components to apply basic style per usage. */
-export type StyleableData = StyleableColorProps &
-  StyleableNumericProps &
-  StyleableDimensionProps &
-  StyleableSpacingProps;
+export type StyleableData = ObjectConjunction<
+  CSSProperties,
+  StyleableColorProps &
+    StyleableNumericProps &
+    StyleableDimensionProps &
+    StyleableSpacingProps
+>;
 
 /** Object with the `styleablePropKey` and `StyleableData` as value. */
 export type StyleableProp = { [UI.styleablePropKey]?: StyleableData };
@@ -153,21 +156,34 @@ export function useStyleableMerge({ sd, ...rest }: StyleableProp & object) {
 }
 
 function createInlineStyle(theme: Theme, data: StyleableData) {
-  const { multipliers, emphasis } = theme.rt;
-  const mapper = (v: MultiplierValueInput<'spacing'>) => multipliers.spacing(v);
+  const {
+    background,
+    paddingH,
+    paddingV,
+    marginH,
+    marginV,
+    emphasis,
+    childLength,
+    roundness,
+    ...cssInitials
+  } = data;
+  const mapper = (v: MultiplierValueInput<'spacing'>) =>
+    theme.rt.multipliers.spacing(v);
   const fg = (data.color && resolveSource(data.color, theme)) ?? undefined;
   return {
+    ...cssInitials,
     background:
       (data.background && resolveSource(data.background, theme)) ?? undefined,
-    color: fg && data.emphasis ? emphasis.emphasize(fg, data.emphasis) : fg,
+    color:
+      fg && data.emphasis ? theme.rt.emphasis.emphasize(fg, data.emphasis) : fg,
     border: data.border && resolveSource(data.border, theme),
     opacity: data.opacity
       ? resolveSource(data.opacity, theme)
       : !fg && data.emphasis
-      ? emphasis.alpha(data.emphasis)
+      ? theme.rt.emphasis.alpha(data.emphasis)
       : undefined,
     borderRadius: data.roundness
-      ? multipliers.roundness(data.roundness ?? 0)
+      ? theme.rt.multipliers.roundness(data.roundness ?? 0)
       : undefined,
     width: data.fit ? 'fit-content' : resolveSource(data.width, theme),
     height: data.fit ? 'fit-content' : resolveSource(data.height, theme),

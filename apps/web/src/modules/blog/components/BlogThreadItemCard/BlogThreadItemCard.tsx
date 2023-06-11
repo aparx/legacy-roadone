@@ -9,7 +9,7 @@ import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
 import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
 import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
-import { formatMessage } from '@/utils/format';
+import { formatString } from '@/utils/format';
 import { useRelativeTime } from '@/utils/hooks/useRelativeTime';
 import { useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
@@ -107,7 +107,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
   loadingState ||= deleteEndpoint.isLoading;
 
   const deleteDialog = useDeleteDialog({
-    title: formatMessage(
+    title: formatString(
       getGlobalMessage('general.delete'),
       getGlobalMessage('blog.comment.name')
     ),
@@ -150,6 +150,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
         <Stack spacing={0}>
           <Stack as={'header'} hSpacing={'md'} direction={'row'} wrap>
             <Text.Title
+              as={'address'}
               size={'sm'}
               id={labelledBy}
               take={{ fontWeight: 'strong' }}

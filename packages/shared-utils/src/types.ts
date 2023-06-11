@@ -19,6 +19,11 @@ export type PickAndReplace<
   TValue = TObject[TKeys]
 > = Record<UnionExtract<keyof TObject, TKeys>, TValue>;
 
+export type WithValues<
+  TObject extends object,
+  TValue = undefined | null
+> = Record<keyof TObject, TValue>;
+
 // prettier-ignore
 export type ValueReplace<TObject extends object, TValue> =
   PickAndReplace<TObject, keyof TObject, TValue>

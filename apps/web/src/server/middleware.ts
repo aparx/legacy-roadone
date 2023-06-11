@@ -13,8 +13,8 @@ import * as sanitizeHtml from 'sanitize-html';
  * Allocates a new middleware that throws an error if the user has a role less
  * equivalent to `gte`.
  */
-export const createRoleMiddleware = (gte: Role, errorMessage?: string) =>
-  middleware((opts) => {
+export function createRoleMiddleware(gte: Role, errorMessage?: string) {
+  return middleware((opts) => {
     const userRole = Permission.getRoleOfSession(opts.ctx.session);
     if (!opts.ctx.session || Permission.isLess(userRole, gte))
       throw new TRPCError({
@@ -23,6 +23,7 @@ export const createRoleMiddleware = (gte: Role, errorMessage?: string) =>
       });
     return opts.next({ ctx: opts.ctx });
   });
+}
 
 export const createPermissiveMiddleware = (
   permission: keyof typeof Globals.permissions,
@@ -44,10 +45,10 @@ export const shallowSanitizationMiddleware = middleware((opts) => {
  * @param object the object to sanitize shallowly
  * @return the sanitized object (so simply `object`)
  */
-export function sanitizeObject<T extends object>(object: T): T {
-  Object.keys(object as object)
-    .filter((k) => typeof object![k] === 'string')
-    .forEach((k) => (object![k] = sanitizeHtml(object![k])));
+function sanitizeObject<T extends object>(object: T): T {
+  Object.keys(object)
+    .filter((k) => typeof object[k] === 'string')
+    .forEach((k) => (object[k] = sanitizeHtml(object[k])));
   return object;
 }
 

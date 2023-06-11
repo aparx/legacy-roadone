@@ -9,18 +9,16 @@ import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import {
   Button,
-  propMerge,
   PropsWithoutChildren,
   PropsWithStyleable,
   Stack,
   Text,
   UI,
-  useStyleableMerge,
 } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
-import { MdDelete, MdEdit } from 'react-icons/md';
+import { MdDeleteForever, MdEdit } from 'react-icons/md';
 
 /** Events that handle mutation ('edit' and 'delete') on Gigs. */
 export type GigRequiringMutationMap = InfiniteItemEvents<RenderableGig>;
@@ -68,10 +66,9 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             isNext
               ? t.sys.color.scheme.onPrimaryContainer
               : t.sys.color.scheme.onSurface,
+          overflow: 'hidden',
         }}
-        {...propMerge(useStyleableMerge(restProps), {
-          style: { overflow: 'hidden' },
-        })}
+        {...restProps}
       >
         {/* prefix box (day-month-box) */}
         <Stack
@@ -135,11 +132,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
                     tight
                     aria-label={getGlobalMessage('translation.delete')}
                     onClick={() => onDelete({ item: gig })}
-                    icon={<MdDelete />}
-                    sd={{
-                      color: (t) => t.sys.color.scheme.error,
-                      emphasis: 'medium',
-                    }}
+                    icon={<MdDeleteForever />}
+                    sd={{ emphasis: 'medium' }}
                   />
                 )}
               </Stack>

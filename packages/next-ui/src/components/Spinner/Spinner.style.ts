@@ -32,13 +32,13 @@ export const spinner = (theme: Theme, data: SpinnerData) => {
       borderRadius: '50%',
       animation: `${spinnerKeyframes} 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite`,
     },
-    '& div:nth-child(1)': {
+    '& div:nth-of-type(1)': {
       animationDelay: '-.45s',
     },
-    '& div:nth-child(2)': {
+    '& div:nth-of-type(2)': {
       animationDelay: '-.3s',
     },
-    '& div:nth-child(3)': {
+    '& div:nth-of-type(3)': {
       animationDelay: '-.15s',
     },
   });

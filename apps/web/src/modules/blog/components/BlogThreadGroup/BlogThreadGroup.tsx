@@ -14,7 +14,7 @@ import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
 import type { GetBlogsOutput } from '@/server/routers/blog/getBlogs';
 import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
-import { formatMessage } from '@/utils/format';
+import { formatString } from '@/utils/format';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
@@ -205,7 +205,7 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
           take={{ vPaddingMode: 'oof' }}
           onClick={() => fetchNextPage()}
         >
-          {formatMessage(
+          {formatString(
             getGlobalMessage('general.load_more'),
             getGlobalMessage('blog.comment.reply')
           )}
@@ -330,8 +330,6 @@ function ReplyFieldInactive(
         paddingV: 'md',
         roundness: UI.generalRoundness,
         emphasis: loading ? 'low' : 'high',
-      }}
-      style={{
         cursor: lockMode === 'auth' ? 'pointer' : 'default',
         border: `1px solid ${theme.sys.color.scheme.surfaceVariant}`,
       }}
@@ -443,8 +441,7 @@ function ThreadItemSkeleton() {
         scanColor={scanColor}
         width={BlogThreadItemCardConfig.avatarSize}
         height={BlogThreadItemCardConfig.avatarSize}
-        sd={{ roundness: 'full' }}
-        style={{ flexShrink: 0 }}
+        sd={{ roundness: 'full', flexShrink: 0 }}
       />
       <Stack spacing={'sm'} sd={{ width: '100%' }}>
         <Skeleton
