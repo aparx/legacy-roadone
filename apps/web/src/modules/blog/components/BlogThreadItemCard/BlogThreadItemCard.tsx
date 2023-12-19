@@ -74,26 +74,28 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
   const canDelete =
     item.authorId == session.data?.user?.id ||
     Permission.hasGlobalPermission(session.data, 'blog.thread.manage');
-  const showReplies = useLocalToggle();
+  const replyState = useLocalToggle();
   const fieldRef = useRef<TextFieldRef>(null);
   const groupFieldRef = useRef(groupField);
   const triggerAutoFocus = useRef(false);
   const theme = useTheme();
   // prettier-ignore
-  useEffect(() => { groupFieldRef.current = groupField });
   useEffect(() => {
-    if (showReplies.state && triggerAutoFocus.current) {
+    groupFieldRef.current = groupField;
+  });
+  useEffect(() => {
+    if (replyState.state && triggerAutoFocus.current) {
       fieldRef.current?.field?.focus();
       triggerAutoFocus.current = false;
     }
-  }, [showReplies.state]);
+  }, [replyState.state]);
   const openReply = useCallback(() => {
     triggerAutoFocus.current = true;
     fieldRef.current?.focus();
     const parentField = groupFieldRef.current?.current?.field;
     let scrollTarget: HTMLElement | undefined | null;
     if (group.type === 'comment') {
-      showReplies.set(true);
+      replyState.set(true);
       scrollTarget = fieldRef?.current?.field;
     } else if (parentField) {
       if (item.author?.name) parentField.value = `@${item.author.name} `;
@@ -101,7 +103,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
       scrollTarget = parentField;
     }
     if (scrollTarget) scrollInViewIfNeeded(theme, scrollTarget);
-  }, [group.type, item.author?.name, showReplies, theme]);
+  }, [group.type, item.author?.name, replyState, theme]);
 
   const deleteEndpoint = api.blog.threads.deleteItem.useMutation();
   loadingState ||= deleteEndpoint.isLoading;
@@ -137,6 +139,8 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
   });
 
   const breakpoint = useWindowBreakpoint();
+
+  const canReply = session.status === 'authenticated';
 
   return (
     <Stack
@@ -175,10 +179,10 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
             sd={{ emphasis: 'medium' }}
             wrap
           >
-            {!visualOnly && (
+            {!visualOnly && canReply && (
               <Button.Text
                 take={{ hPaddingMode: 'oof' }}
-                aria-expanded={canNestMore ? showReplies.state : undefined}
+                aria-expanded={canNestMore ? replyState.state : undefined}
                 aria-controls={canNestMore ? replyControls : undefined}
                 onClick={openReply}
               >
@@ -187,16 +191,14 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
             )}
             {!visualOnly && canShowMore && (
               <Button.Text
-                leading={
-                  showReplies.state ? <MdExpandLess /> : <MdExpandMore />
-                }
+                leading={replyState.state ? <MdExpandLess /> : <MdExpandMore />}
                 data-reply-count={item.replyCount}
-                aria-expanded={canNestMore ? showReplies.state : undefined}
+                aria-expanded={canNestMore ? replyState.state : undefined}
                 aria-controls={canNestMore ? replyControls : undefined}
-                onClick={showReplies.toggle}
+                onClick={replyState.toggle}
               >
                 {getGlobalMessage(
-                  showReplies.state
+                  replyState.state
                     ? 'blog.comment.multiHide'
                     : 'blog.comment.multiShow'
                 )}
@@ -216,7 +218,7 @@ export default function BlogThreadItemCard(props: BlogThreadItemCardProps) {
           </Stack>
         </Stack>
       </Stack>
-      {showReplies.state && (
+      {replyState.state && (
         <section
           id={replyControls}
           aria-label={getGlobalMessage('translation.replies')}

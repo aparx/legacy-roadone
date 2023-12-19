@@ -268,8 +268,9 @@ function DialogFooter<
     },
     [close, data]
   );
-  return (
-    <Card.Footer {...useStackProps({ direction: 'row', hAlign: true })}>
+  const footerProps = useStackProps({ direction: 'row', hAlign: true });
+  return actions.length !== 0 ? (
+    <Card.Footer {...footerProps}>
       {actions.map((action) => {
         const props = {
           key: action.id,
@@ -284,7 +285,7 @@ function DialogFooter<
         );
       })}
     </Card.Footer>
-  );
+  ) : null;
 }
 
 function DialogForm<

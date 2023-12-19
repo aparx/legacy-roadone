@@ -41,7 +41,7 @@ export async function getStaticProps() {
 
 const dialogWidth = 'sm' satisfies BreakpointName;
 
-// <==> /setlist <==>
+// <==> /media <==>
 export default function SetlistPage() {
   const { data, isLoading, isFetching, fetchNextPage, refetch, hasNextPage } =
     api.setlist.getSetlist.useInfiniteQuery(
@@ -56,7 +56,7 @@ export default function SetlistPage() {
 
   const addTitle = useMessage(
     'general.add',
-    getGlobalMessage('setlist.song_name')
+    getGlobalMessage('media.song_name')
   );
 
   const addDialog = useMutateDialog({
@@ -72,7 +72,7 @@ export default function SetlistPage() {
   const editDialog = useMutateDialog({
     type: 'edit',
     schema: $songContent,
-    title: useMessage('general.edit', getGlobalMessage('setlist.song_name')),
+    title: useMessage('general.edit', getGlobalMessage('media.song_name')),
     width: dialogWidth,
     endpoint: api.setlist.editSong.useMutation(),
     form: (props) => <SongCardForm {...props} />,
@@ -81,7 +81,7 @@ export default function SetlistPage() {
 
   const deleteDialog = useDeleteDialog({
     width: dialogWidth,
-    title: useMessage('general.delete', getGlobalMessage('setlist.song_name')),
+    title: useMessage('general.delete', getGlobalMessage('media.song_name')),
     endpoint: api.setlist.deleteSong.useMutation(),
     content: ({ item }) => {
       return <SongCard aria-hidden={true} song={item} visualOnly={true} />;
@@ -94,14 +94,14 @@ export default function SetlistPage() {
   return (
     <Page
       name={'Setlist'}
-      pageURL={'/setlist'}
+      page={'setlist'}
       {...useStackProps({ hAlign: true, spacing: 'xxl' })}
     >
       <Card width={'md'} keepPadding>
         <Card.Header
           {...useStackProps({ direction: 'row', hAlign: 'space-between' })}
         >
-          <Card.Header.Title>Unsere Setlist</Card.Header.Title>
+          <Card.Header.Title>Songs, die wir spielen</Card.Header.Title>
           {canAdd && (
             <Button.Primary
               onClick={addDialog}

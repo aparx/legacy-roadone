@@ -7,7 +7,7 @@ export module SkeletonConfig {
     width: '100%',
     height: 50,
     roundness: UI.generalRoundness,
-    baseColor: 'transparent',
-    scanColor: (t) => t.sys.color.scheme.primary,
+    baseColor: (t) => t.sys.color.surface[3],
+    scanColor: (t) => t.sys.color.scheme.surfaceVariant,
   } satisfies Partial<PickOptional<InternalSkeletonProps>>;
 }

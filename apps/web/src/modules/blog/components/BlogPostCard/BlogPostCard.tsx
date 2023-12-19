@@ -49,7 +49,8 @@ export default function BlogPostCard(props: BlogPostCardProps) {
   const labelledBy = useId();
   const commentSectionId = useId();
   const showReplies = useLocalToggle(autoShowReply);
-  const borderBottomRadius = showReplies.state ? 0 : undefined;
+  const borderBottomRadius =
+    showReplies.state && !blogPost.commentsDisabled ? 0 : undefined;
   return (
     <BlogPostContextProvider
       value={{ blogPost, isLoading, isFetching, showReplies }}
@@ -83,7 +84,7 @@ export default function BlogPostCard(props: BlogPostCardProps) {
             onDelete={onDelete}
           />
         </Card>
-        {showReplies.state && (
+        {showReplies.state && !blogPost.commentsDisabled && (
           <BlogPostComments commentSectionId={commentSectionId} />
         )}
       </article>
@@ -141,6 +142,7 @@ function BlogPostFooter({
         />
       )}
       <Button.Secondary
+        space={'md'}
         onClick={showReplies.toggle}
         disabled={commentsDisabled}
         leading={

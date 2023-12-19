@@ -97,11 +97,14 @@ export default function SongCard(props: SongCardProps) {
         wrap
       >
         <Stack direction={'row'} vAlign spacing={'lg'}>
-          <Icon icon={<MdMusicNote />} aria-hidden={true} />
+          <Icon
+            icon={<MdMusicNote color={theme.sys.color.scheme.primary} />}
+            aria-hidden={true}
+          />
           <Text.Title size={'md'}>{song.name}</Text.Title>
         </Stack>
         <ScreenReaderFeed>
-          {useMessage('setlist.song_name_artist_divider')}
+          {useMessage('media.song_name_artist_divider')}
         </ScreenReaderFeed>
         <Stack
           direction={'row'}
@@ -135,7 +138,7 @@ export default function SongCard(props: SongCardProps) {
               icon={<MdEdit />}
               aria-label={formatString(
                 getGlobalMessage('general.edit'),
-                getGlobalMessage('setlist.song_name')
+                getGlobalMessage('media.song_name')
               )}
               onClick={() => onEdit?.({ item: song })}
             />
@@ -146,7 +149,7 @@ export default function SongCard(props: SongCardProps) {
               icon={<MdDeleteForever />}
               aria-label={formatString(
                 getGlobalMessage('general.delete'),
-                getGlobalMessage('setlist.song_name')
+                getGlobalMessage('media.song_name')
               )}
               onClick={() => onDelete?.({ item: song })}
             />

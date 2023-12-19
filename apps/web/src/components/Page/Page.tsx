@@ -18,16 +18,18 @@ import { PropsWithChildren } from 'react';
 export type PageProps = PropsWithStyleable<
   PropsWithChildren<{
     name: string;
-    pageURL: string;
+    page: string;
     meta?: NextSeoProps;
     as?: HTMLTag;
   }>
 >;
 
+export const CONTENT_TOP_MARGIN = 'xxl';
+
 export default function Page({
   children,
   name,
-  pageURL,
+  page,
   meta,
   as,
   ...restProps
@@ -45,7 +47,7 @@ export default function Page({
       <OpenGraphMetadata
         openGraph={{
           type: 'website',
-          url: `https://${process.env.NEXT_PUBLIC_SELF_URL}/${pageURL}`,
+          url: `https://${process.env.NEXT_PUBLIC_SELF_URL}/${page}`,
           description: meta?.description,
           locale: Globals.siteLocale,
         }}
@@ -53,6 +55,11 @@ export default function Page({
       <PageAlign
         as={as}
         {...propMerge(
+          {
+            style: {
+              marginTop: theme.rt.multipliers.spacing(CONTENT_TOP_MARGIN),
+            },
+          },
           usePinpointTextProps({ role: 'body', size: 'md' }),
           useStyleableMerge(restProps)
         )}

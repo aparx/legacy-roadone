@@ -14,6 +14,7 @@ import { BlogThread } from '@/modules/blog/utils/thread/blogThread';
 import type { GetBlogsOutput } from '@/server/routers/blog/getBlogs';
 import type { DeleteThreadItemOutput } from '@/server/routers/blog/thread/deleteItem';
 import { api } from '@/utils/api';
+import { useIsMobile } from '@/utils/device';
 import { formatString } from '@/utils/format';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
@@ -320,6 +321,7 @@ function ReplyFieldInactive(
 ) {
   const { lockMode, lockMessage, loading } = props;
   const theme = useTheme();
+  const isMobile = useIsMobile();
   return (
     <Stack
       onClick={lockMode === 'auth' ? logIn : undefined}
@@ -349,7 +351,7 @@ function ReplyFieldInactive(
           sd={{ color: (t) => t.sys.color.scheme.primary }}
           onClick={logIn}
         >
-          {getGlobalMessage('translation.signIn')}
+          {!isMobile && getGlobalMessage('translation.signIn')}
         </Button.Text>
       )}
       {lockMode !== 'auth' && loading && <Spinner size={20} />}
@@ -432,13 +434,11 @@ function ThreadSkeletonGroup(props: ThreadSkeletonGroupProps) {
 
 function ThreadItemSkeleton() {
   const baseColor = (t: Theme) => t.sys.color.surface[4];
-  const scanColor = (t: Theme) => t.sys.color.scheme.surfaceVariant;
   const maxWidth = useMemo(() => Math.round(150 + Math.random() * 100), []);
   return (
     <Stack direction={'row'} aria-hidden={true}>
       <Skeleton
         baseColor={baseColor}
-        scanColor={scanColor}
         width={BlogThreadItemCardConfig.avatarSize}
         height={BlogThreadItemCardConfig.avatarSize}
         sd={{ roundness: 'full', flexShrink: 0 }}
@@ -446,16 +446,13 @@ function ThreadItemSkeleton() {
       <Stack spacing={'sm'} sd={{ width: '100%' }}>
         <Skeleton
           baseColor={baseColor}
-          scanColor={scanColor}
           height={20}
-          style={{ maxWidth: maxWidth, width: '100%' }}
+          style={{
+            maxWidth: maxWidth,
+            width: '100%',
+          }}
         />
-        <Skeleton
-          baseColor={baseColor}
-          scanColor={scanColor}
-          height={40}
-          style={{ width: '75%' }}
-        />
+        <Skeleton baseColor={baseColor} height={40} style={{ width: '75%' }} />
       </Stack>
     </Stack>
   );

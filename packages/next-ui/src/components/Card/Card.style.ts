@@ -16,9 +16,9 @@ export const card = (
     width: width !== false && !tight ? '100%' : undefined,
     boxSizing: 'border-box',
     // prettier-ignore
-    [theme.rt.breakpoints.lte('md')]: !keepPadding ? {
+    [theme.rt.breakpoints.lte('md')]: {
       padding: theme.rt.multipliers.spacing(1.75),
-    } : undefined,
+    },
     // prettier-ignore
     [theme.rt.breakpoints.lte('sm')]: !keepPadding ? {
       padding: theme.rt.multipliers.spacing(1),

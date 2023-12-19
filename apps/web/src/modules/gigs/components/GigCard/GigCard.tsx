@@ -3,12 +3,15 @@ import * as style from './GigCard.style';
 import { Permission } from '@/modules/auth/utils/permission';
 import { address } from '@/modules/gigs/components/GigCard/GigCard.style';
 import { ProcessedGigModel } from '@/modules/gigs/gig';
+import { mobileMediaQuery } from '@/utils/device';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
+import { useTheme } from '@emotion/react';
 import {
   Button,
+  propMerge,
   PropsWithoutChildren,
   PropsWithStyleable,
   Stack,
@@ -97,8 +100,8 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             emphasis: isDone ? 'disabled' : 'high',
           })}
         >
-          <div>{day}.</div>
-          <div>{month}</div>
+          <span>{day}.</span>
+          <span>{month}</span>
         </Stack>
         {/* address and time */}
         <Stack spacing={0} sd={{ padding: 'xl', width: '100%' }}>
@@ -143,7 +146,20 @@ export const GigCard = forwardRef<HTMLDivElement, GigProps>(
             as={'section'}
             size={'md'}
             emphasis={isDone ? 'disabled' : 'high'}
-            {...useStackProps({ direction: 'row', spacing: 'md', wrap: true })}
+            {...propMerge(
+              useStackProps({
+                direction: 'row',
+                spacing: 'md',
+                wrap: true,
+              }),
+              {
+                css: {
+                  [mobileMediaQuery(useTheme())]: {
+                    justifyContent: 'space-between !important',
+                  },
+                },
+              }
+            )}
           >
             <address css={style.address}>
               {address.map((info, i) => {

@@ -59,11 +59,12 @@ export type InternalButtonProps = PropsWithStyleable<{
   /** @default 'sm' */
   size?: ButtonSize;
   tight?: boolean;
+  space?: MultiplierValueInput<'spacing'>;
   icon?: false | ReactElement<IconBaseProps>;
   /** Will add aria-label and introduce a popover for `icon` */
   iconName?: string;
-  leading?: ReactNode;
-  tailing?: ReactNode;
+  leading?: ReactNode | ReactElement;
+  tailing?: ReactNode | ReactElement;
   [UI.customStylePropKey]?: Partial<ButtonOptions>;
 }>;
 

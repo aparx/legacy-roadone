@@ -1,5 +1,7 @@
 import { blogRouter } from '@/server/routers/blog';
 import { gigRouter } from '@/server/routers/gig';
+import { mediaRouter } from '@/server/routers/media';
+import { memberRouter } from '@/server/routers/member';
 import { setlistRouter } from '@/server/routers/setlist';
 import { userRouter } from '@/server/routers/user';
 import { procedure, router } from '@/server/trpc';
@@ -9,7 +11,9 @@ export const apiRouter = router({
   user: userRouter,
   gig: gigRouter,
   setlist: setlistRouter,
+  media: mediaRouter,
   blog: blogRouter,
+  member: memberRouter,
 });
 
 export type ApiRouter = typeof apiRouter;

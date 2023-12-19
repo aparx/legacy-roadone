@@ -26,10 +26,19 @@ export module Globals {
   //  SETLIST CONFIGURATION
   // <======================>
 
-  /** The time in milliseconds that setlist items (songs) are considered "fresh" or
+  /** The time in milliseconds that media items (songs) are considered "fresh" or
    *  "new" and being displayed as such. This is purely visual, thus only affects
    *  frontend! */
   export const setlistItemFreshTime = 14 * 24 * 60 * 60 * 1000; /* 14 days */
+
+  // <======================>
+  //    MEDIA CONFIGURATION
+  // <======================>
+
+  export const mediaUploadMediaFiles = 'media';
+  export const mediaUploadGroupField = 'group';
+
+  export const mediaMaxFileSize = 2.5e8; /* 250MB */
 
   // <======================>
   //  GENERAL CONFIGURATION
@@ -56,13 +65,20 @@ export module Globals {
     'setlist.add': 'ADMIN',
     'setlist.edit': 'ADMIN',
     'setlist.delete': 'ADMIN',
+
+    'media.upload': 'ADMIN',
+    'media.group.manage': 'ADMIN',
   } as const satisfies Record<string, Role>;
+
+  const onDemandRevalidationISR = 60 * 60 * 6; /* 6h */
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
-    gigs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
-    blogs: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
-    setlist: 60 * 60 * 6 /* 6h; due to on-demand revalidation */,
+    gigs: onDemandRevalidationISR,
+    blogs: onDemandRevalidationISR,
+    setlist: onDemandRevalidationISR,
+    mediaGroups: onDemandRevalidationISR,
+    home: onDemandRevalidationISR,
   } as const satisfies Record<string, number>;
 
   /** Stale times (in milliseconds) for Tanstack-Query caching purposes */

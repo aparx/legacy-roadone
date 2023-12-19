@@ -37,7 +37,6 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  member        Member?
 
   // Custom fields (additionally)
   createdAt DateTime @default(now())
@@ -46,12 +45,13 @@ model User {
   /// Ensures authenticity of the user (if true)
   verified Boolean @default(false)
 
-  /// Blog posts created by this user.
-  blogPosts    BlogPost[]
   /// Blog comments (top-level threads) created by this user.
   blogComments BlogComment[]
   /// Blog replies (nested threads) created by this user.
   blogReplies  BlogReply[]
+
+  /// Blog posts created by this user (restricted)
+  blogPosts BlogPost[]
 
   @@index([role])
   @@map("user")
@@ -65,15 +65,12 @@ model Member {
   /// Role of the member within the music-group
   role      String
   image     String? // URL to the image in the S3 storage
-  biography String  @db.Text
+  biography String? @db.Text
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String? @unique
-
-  @@index([firstName, lastName])
+  @@unique([firstName, lastName])
   @@map("member")
 }
 
@@ -107,6 +104,55 @@ model Song {
   @@unique([name, artist])
   @@index(artist(sort: Asc))
   @@map("song")
+}
+
+model MediaGroup {
+  id          String  @id @default(cuid())
+  title       String  @db.TinyText
+  description String?
+
+  /// If true, the group will appear at the top on the media page (ASC)
+  pinned Boolean @default(false)
+
+  items MediaItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(createdAt(orderBy: Desc))
+  @@index(pinned)
+}
+
+model MediaItem {
+  id       String  @id @default(cuid())
+  /// Mimetype of the actual target file, if given at all
+  mimetype String?
+
+  /// The name of the item (i.e. alt for images)
+  name String?
+
+  /// Optional URL that leads to the item using a public link and is optional.
+  /// It is strongly advised *against* putting the S3 URL here, since the bucket or
+  /// URL reference may change during the lifespan of a media-item.
+  url String?
+
+  /// The type of the media item that ensures its mimetype as well
+  type MediaItemType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   MediaGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupId String?
+
+  @@index([groupId, type])
+  @@index(createdAt(sort: Desc))
+}
+
+enum MediaItemType {
+  AUDIO
+  IMAGE
+  VIDEO
 }
 
 // <=====================================>

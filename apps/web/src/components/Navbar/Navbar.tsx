@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import * as style from './Navbar.style';
-import { Avatar, Hamburger } from '@/components';
+import { Avatar, Hamburger, Logo } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
+import { logOut } from '@/modules/auth/utils/logInOut';
 import { hiddenIfDesktop, hiddenIfMobile } from '@/utils/css';
 import { useIsMobile } from '@/utils/device';
-import { useMessage } from '@/utils/hooks/useMessage';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
 import { useLocalToggle } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
@@ -48,10 +48,22 @@ export type NavbarProps = PropsWithStyleable<{
 
 /** Logo component; for Navbar use only */
 const NavLogo = () => (
-  <Link href={'/'} css={{ all: 'unset', cursor: 'pointer' }}>
-    <Text.Title as={'div'} size={'md'} take={{ fontWeight: 'strong' }}>
-      {useMessage('app.name')}
-    </Text.Title>
+  <Link
+    aria-hidden
+    href={'/'}
+    css={{
+      all: 'unset',
+      cursor: 'pointer',
+      '&:hover > svg': {
+        fill: useTheme().ref.palette.neutral[90],
+      },
+    }}
+  >
+    <Logo
+      variant={'spread'}
+      height={14}
+      fill={(t) => t.sys.color.scheme.onSurface}
+    />
   </Link>
 );
 
@@ -150,6 +162,7 @@ function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
             user={session.data.user}
             size={30}
             name={getGlobalMessage('general.profile_picture')}
+            onClick={() => logOut()}
           />
         )}
         {asDrawer && session.data?.user?.name}
@@ -162,16 +175,19 @@ function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
 export type NavbarPageProps = PropsWithStyleable<{
   link: string;
   name: string;
+  icon?: ReactElement;
 }>;
 
 Navbar.Page = forwardRef<HTMLAnchorElement, NavbarPageProps>(
-  function NavbarPageRenderer({ link, name, ...restProps }, ref) {
-    const isDrawerItem = useIsMobile();
+  function NavbarPageRenderer({ link, name, icon, ...restProps }, ref) {
+    const isDrawer = useIsMobile();
     return (
       <Button.Primary
+        tight={isDrawer}
         link={link}
         ref={ref}
-        alignContent={isDrawerItem ? 'left' : 'center'}
+        leading={isDrawer && icon}
+        alignContent={isDrawer ? 'left' : 'center'}
         {...propMerge(
           { css: style.pageButton(useTheme(), usePathname() === link) },
           restProps

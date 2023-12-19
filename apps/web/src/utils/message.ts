@@ -1,3 +1,4 @@
+import { MediaItemType } from '@/modules/media/media';
 import { LeafObjectPath, resolvePath, TraversableObject } from 'shared-utils';
 
 export const globalMessages = {
@@ -24,6 +25,7 @@ export const globalMessages = {
     signOut: 'Ausloggen',
     verified: 'Verifiziert',
     verifiedUser: 'Verifizierter Nutzer',
+    pinned: 'Angepinnt',
   },
   app: {
     name: 'roadone',
@@ -47,8 +49,8 @@ export const globalMessages = {
     error: 'Oops, ein Fehler ist aufgetreten. Versuche es doch gleich erneut.',
     actionFailed: 'Aktion fehlgeschlagen!',
     actionSuccess: 'Aktion erfolgreich!',
-    signInToReply: 'Einloggen um zu antworten',
-    signInToComment: 'Einloggen um zu kommentieren',
+    signInToReply: 'Einloggen zum antworten',
+    signInToComment: 'Einloggen zum kommentieren',
     too_many_requests:
       'Du hast zu oft versucht, eine Aktion auszuführen. Bitte warte etwas...',
   },
@@ -98,6 +100,22 @@ export const globalMessages = {
   modal: {
     sureTitle: 'Bist du sicher?',
     sureYes: 'Ja, ich bin mir sicher',
+  },
+  media: {
+    song_name: 'Song',
+    group_name: 'Medien-Gruppe',
+    song_name_artist_divider: 'vom Künstler ',
+    filter: {
+      type: {
+        IMAGE: 'Fotos',
+        AUDIO: 'Audio',
+        VIDEO: 'Videos',
+      } satisfies Record<MediaItemType, string>,
+    },
+    manage: {
+      upload: '%s hochladen',
+      add: '%s als URL hinzufügen',
+    },
   },
   responses: {
     gig: {

@@ -5,6 +5,7 @@ export const infiniteQueryInput = createInfiniteQueryInput(50);
 export function createInfiniteQueryInput(max: number, def: number = max / 2) {
   max = Math.round(max);
   def = Math.round(def);
+  if (def > max) def = max;
   return z.object({
     cursor: z.number().int().min(0).finite().default(0),
     limit: z.number().int().positive().max(max).default(def),

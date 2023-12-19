@@ -1,51 +1,141 @@
 import { Page } from '@/components';
-import { toastTypeArray } from '@/components/Toast/Toast';
-import { useToastHandle } from '@/handles';
-import { capitalize } from 'lodash';
-import { Button, Skeleton, Spinner, Stack, TextField } from 'next-ui';
-import { v4 as uuidv4 } from 'uuid';
+import { Permission } from '@/modules/auth/utils/permission';
+import { MediaGroup } from '@/modules/media/components/MediaGroup';
+import { MediaSwitch } from '@/modules/media/components/MediaSwitch';
+import {
+  $mediaGroupContent,
+  MediaGroupContentData,
+  MediaItemType,
+  mediaItemTypeArray,
+  ProcessedMediaGroupModel,
+} from '@/modules/media/media';
+import { api } from '@/utils/api';
+import { formatString } from '@/utils/format';
+import { useMessage } from '@/utils/hooks/useMessage';
+import { LocalState } from '@/utils/localState';
+import { getGlobalMessage } from '@/utils/message';
+import {
+  useDeleteDialog,
+  useMutateDialog,
+  UseMutateFormInput,
+  UseMutateType,
+} from '@/utils/pages/infinite/infiniteDialog';
+import { Button, Stack, TextField } from 'next-ui';
+import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
+import { useId, useMemo } from 'react';
+import { MdAdd } from 'react-icons/md';
+import { create } from 'zustand';
+
+import useGlobalPermission = Permission.useGlobalPermission;
+
+export const useFilterMediaType = create<LocalState<MediaItemType>>((set) => ({
+  state: mediaItemTypeArray[0],
+  set: (type: MediaItemType) => set({ state: type }),
+}));
 
 export default function MediaPage() {
-  const showToast = useToastHandle((s) => s.add);
+  const filter = useFilterMediaType();
+  const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
+    api.media.getGroups.useInfiniteQuery({ type: filter.state });
+  const canManageGroup = useGlobalPermission('media.group.manage');
+  const groups: ProcessedMediaGroupModel[] = useMemo(() => {
+    const groupArray = data?.pages?.flatMap((page) => page.data) as
+      | ProcessedMediaGroupModel[]
+      | undefined;
+    if (groupArray && !canManageGroup)
+      return groupArray.filter((x) => x.typeItemCount);
+    return groupArray || [];
+  }, [canManageGroup, data?.pages]);
+  const controls = useId();
+
+  // <===================================>
+  //     MEDIA GROUP DIALOGS & EVENTS
+  // <===================================>
+
+  const addGroupDialog = useMutateDialog({
+    type: 'add',
+    width: 'sm',
+    endpoint: api.media.addGroup.useMutation(),
+    schema: $mediaGroupContent,
+    title: useMessage('general.add', getGlobalMessage('media.group_name')),
+    form: (props) => <MediaGroupForm {...props} />,
+  });
+
+  const editGroupDialog = useMutateDialog({
+    type: 'edit',
+    width: 'sm',
+    endpoint: api.media.editGroup.useMutation(),
+    schema: $mediaGroupContent,
+    title: useMessage('general.edit', getGlobalMessage('media.group_name')),
+    form: (props) => <MediaGroupForm {...props} />,
+  });
+
+  const deleteGroupDialog = useDeleteDialog({
+    width: 'sm',
+    title: useMessage('general.delete', getGlobalMessage('media.group_name')),
+    endpoint: api.media.deleteGroup.useMutation(),
+  });
+
   return (
-    <Page name={'Medien'} pageURL={'media'}>
-      <Spinner />
-      <Skeleton
-        width={200}
-        height={200}
-        baseColor={'black'}
-        roundness={'full'}
-        scanColor={(t) => t.sys.color.scheme.primaryContainer}
-      />
-      <Stack
-        direction={'row'}
-        style={{ position: 'fixed', right: 50, marginTop: 15 }}
-      >
-        {toastTypeArray.map((type) => (
-          <Button.Primary
-            key={type}
-            onClick={() =>
-              showToast({
-                type,
-                title: `${type}`,
-                message: `Lorem ipsum dolor sit amet ${uuidv4()}`,
-                duration: 'short',
-              })
-            }
-          >
-            {capitalize(type)}
-          </Button.Primary>
-        ))}
-      </Stack>
-      <Stack>
-        <Button.Secondary>Click</Button.Secondary>
-        <TextField
-          name={'test'}
-          type={'textarea'}
-          placeholder={'Placeholder'}
-          required
+    <Page name={'Medien'} page={'media'}>
+      <Stack hAlign sd={{ childLength: 'xl' }}>
+        <MediaSwitch
+          state={filter}
+          // disabled={isLoading || isFetching}
+          aria-controls={controls}
         />
+        <Stack as={'main'} sd={{ marginTop: 'md' }} id={controls}>
+          {canManageGroup && (
+            <Button.Primary leading={<MdAdd />} onClick={addGroupDialog}>
+              {formatString(
+                getGlobalMessage('general.add'),
+                getGlobalMessage('media.group_name')
+              )}
+            </Button.Primary>
+          )}
+          {groups.map((group: ProcessedMediaGroupModel) => (
+            <MediaGroup
+              key={group.id}
+              type={filter.state}
+              group={group}
+              onDelete={deleteGroupDialog}
+              onEdit={editGroupDialog}
+            />
+          ))}
+        </Stack>
       </Stack>
     </Page>
+  );
+}
+
+function MediaGroupForm<TType extends UseMutateType>(
+  props: UseMutateFormInput<TType, typeof $mediaGroupContent>
+) {
+  const form = useRawForm<MediaGroupContentData>();
+  const item = props.type === 'edit' ? props.item : undefined;
+  return (
+    <Stack>
+      <TextField
+        placeholder={getGlobalMessage('translation.title')}
+        name={'title'}
+        hookform={form}
+        field={{ defaultValue: item?.title }}
+      />
+      <TextField
+        placeholder={getGlobalMessage('translation.description')}
+        name={'description'}
+        hookform={form}
+        field={{ defaultValue: item?.description }}
+      />
+      <label>
+        {/* TODO replace with checkbox */}
+        {getGlobalMessage('translation.pinned')}
+        <input
+          type={'checkbox'}
+          defaultChecked={item?.pinned}
+          {...form.methods.register('pinned')}
+        />
+      </label>
+    </Stack>
   );
 }

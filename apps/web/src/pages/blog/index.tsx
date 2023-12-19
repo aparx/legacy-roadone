@@ -80,7 +80,7 @@ export default function BlogPage() {
   );
 
   return (
-    <Page name={'blogs'} pageURL={'/blogs'}>
+    <Page name={'blogs'} page={'blogs'}>
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {canMutate && <AddBlogPostItem onAdd={addDialog} />}
         {posts?.map((post, index) => (

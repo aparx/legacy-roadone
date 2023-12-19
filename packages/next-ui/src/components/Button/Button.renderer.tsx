@@ -54,6 +54,7 @@ export function createButtonRenderer<TType extends ButtonType>(
       alignContent = config.Defaults.alignContent,
       tailing,
       tight,
+      space,
       icon,
       iconName,
       ...restProps
@@ -79,8 +80,15 @@ export function createButtonRenderer<TType extends ButtonType>(
           useStyleableMerge(restProps)
         )}
       >
-        <Stack direction={'row'} hAlign={alignContent} spacing={0.5}>
-          {leading && <Icon fontData={fontData}>{leading}</Icon>}
+        <Stack direction={'row'} hAlign={alignContent} spacing={space || 0.5}>
+          {leading && (
+            <Icon
+              fontData={{ ...fontData, fontSize: 1.3 * fontData.fontSize }}
+              className={'leading'}
+            >
+              {leading}
+            </Icon>
+          )}
           {icon && (
             <Icon
               fontData={fontData}
@@ -93,7 +101,11 @@ export function createButtonRenderer<TType extends ButtonType>(
             />
           )}
           {children && <div>{children}</div>}
-          {tailing && <Icon fontData={fontData}>{tailing}</Icon>}
+          {tailing && (
+            <Icon fontData={fontData} className={'tailing'}>
+              {tailing}
+            </Icon>
+          )}
         </Stack>
       </ButtonLink>
     );

@@ -82,7 +82,7 @@ export default function GigsPage() {
     <Page
       name={'Auftritte'}
       meta={{ description: 'Alle Auftritte von roadone' }}
-      pageURL={'gigs'}
+      page={'gigs'}
     >
       {Permission.useGlobalPermission('gig.post') && (
         <AddEventPanel onSuccess={refreshGigs} />

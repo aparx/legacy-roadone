@@ -16,6 +16,13 @@ import {
   TypefaceStyleClassProvider,
 } from 'next-ui';
 import { useRef } from 'react';
+import {
+  MdArticle,
+  MdHome,
+  MdImage,
+  MdLocalActivity,
+  MdRadio,
+} from 'react-icons/md';
 
 function App({ Component, pageProps: { session, ...pageProps } }) {
   const appRootRef = useRef<HTMLDivElement>(null);
@@ -33,11 +40,31 @@ function App({ Component, pageProps: { session, ...pageProps } }) {
               >
                 <WindowBreakpointProvider>
                   <Navbar>
-                    <Navbar.Page link={'/home'} name={'Home'} />
-                    <Navbar.Page link={'/gigs'} name={'Auftritte'} />
-                    <Navbar.Page link={'/blog'} name={'Blog'} />
-                    <Navbar.Page link={'/setlist'} name={'Setlist'} />
-                    <Navbar.Page link={'/media'} name={'Media'} />
+                    <Navbar.Page
+                      link={'/home'}
+                      name={'Home'}
+                      icon={<MdHome />}
+                    />
+                    <Navbar.Page
+                      link={'/gigs'}
+                      name={'Auftritte'}
+                      icon={<MdLocalActivity />}
+                    />
+                    <Navbar.Page
+                      link={'/blog'}
+                      name={'Blog'}
+                      icon={<MdArticle />}
+                    />
+                    <Navbar.Page
+                      link={'/setlist'}
+                      name={'Setlist'}
+                      icon={<MdRadio />}
+                    />
+                    <Navbar.Page
+                      link={'/media'}
+                      name={'Media'}
+                      icon={<MdImage />}
+                    />
                   </Navbar>
                   <ScrimRoot>
                     <Component {...pageProps} />

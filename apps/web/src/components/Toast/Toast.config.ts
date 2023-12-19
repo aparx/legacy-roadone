@@ -7,5 +7,5 @@ export module ToastConfig {
 
   export const defaults = {
     duration: 'normal',
-  } as const satisfies PickOptional<ToastData>;
+  } as const satisfies Partial<PickOptional<ToastData>>;
 }

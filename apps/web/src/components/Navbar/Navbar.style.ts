@@ -10,7 +10,7 @@ export const navbar = (theme: Theme) =>
     width: '100%',
     display: 'flex',
     position: 'sticky',
-    marginBottom: theme.rt.multipliers.spacing('xl'),
+    // marginBottom: theme.rt.multipliers.spacing('xl'),
     background: theme.sys.color.surface[1],
     zIndex: config.zBaseIndex,
     height: config.height,
@@ -38,8 +38,8 @@ export const items = (theme: Theme) =>
       position: 'fixed',
       inset: 0,
       left: 'unset',
-      width: 'min(60%, 200px)',
-      padding: theme.rt.multipliers.spacing(6),
+      width: 'min(60%, 225px)',
+      padding: theme.rt.multipliers.spacing('xxl'),
       paddingTop: config.height,
       flexDirection: 'column',
       background: theme.sys.color.surface[2],
@@ -80,9 +80,15 @@ export const pageButton = (theme: Theme, active: boolean) =>
       ? `${theme.sys.color.scheme.onSurface} !important`
       : undefined,
     transition: `background ${UI.baseTransitionMs}ms`,
+    fontWeight: active ? theme.ref.typeface.weights.medium : undefined,
     /* Within Drawer */
     [mobileMediaQuery(theme)]: {
       width: '100% !important',
+      fontWeight: theme.ref.typeface.weights.medium,
+      '& .leading': {
+        color: active ? theme.sys.color.scheme.primary : undefined,
+        marginRight: theme.rt.multipliers.spacing('lg'),
+      },
     },
   });
 
