@@ -121,6 +121,7 @@ model MediaGroup {
 
   @@index(createdAt(orderBy: Desc))
   @@index(pinned)
+  @@map("media_group")
 }
 
 model MediaItem {
@@ -147,6 +148,7 @@ model MediaItem {
 
   @@index([groupId, type])
   @@index(createdAt(sort: Desc))
+  @@map("media_item")
 }
 
 enum MediaItemType {
@@ -176,6 +178,7 @@ model Event {
 
   @@unique([refId, type])
   @@index(updatedAt(sort: Desc))
+  @@map("event")
 }
 
 // <=====================================>

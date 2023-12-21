@@ -10,7 +10,8 @@
     "@commander-js/extra-typings": "^10.0.3",
     "commander": "^10.0.1",
     "theme-core": "workspace:*",
-    "theme-generator": "workspace:*"
+    "theme-generator": "workspace:*",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.45",
