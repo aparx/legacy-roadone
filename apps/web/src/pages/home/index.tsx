@@ -2,11 +2,14 @@ import { MemberItem } from '../../modules/home/components/MemberItem';
 import imageBackground from '../../public/images/background.png';
 import { Logo, NavbarConfig, Page } from '@/components';
 import { CONTENT_TOP_MARGIN } from '@/components/Page/Page';
+import { EventModel } from '@/modules/event/event';
+import LatestContentCard from '@/modules/home/components/LatestContentCard/LatestContentCard';
 import { MemberModel } from '@/modules/home/member';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
-import { keyframes, useTheme } from '@emotion/react';
+import { getGlobalMessage } from '@/utils/message';
+import { css, keyframes, useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { signIn, signOut } from 'next-auth/react';
 import { Button, Card, Stack } from 'next-ui';
@@ -23,6 +26,7 @@ export async function getStaticProps() {
     transformer: superjson,
   });
   await helpers.member.get.prefetch();
+  await helpers.event.get.prefetchInfinite({ limit: 2 });
   return {
     props: { trpcState: helpers.dehydrate() },
     revalidate: Globals.isrIntervals.home,
@@ -31,21 +35,41 @@ export async function getStaticProps() {
 
 export default function HomePage() {
   const { data: memberData } = api.member.get.useQuery();
+  const { data: eventData } = api.event.get.useInfiniteQuery({ limit: 2 });
+  const events: EventModel[] | undefined = useMemo(
+    () => eventData?.pages?.flatMap((p) => p.data),
+    [eventData?.pages]
+  );
 
   const t = useTheme();
+
+  const dynamicCardProps = css({
+    minWidth: 400,
+    maxWidth: 600,
+    flex: '1 1 0',
+    [t.rt.breakpoints.lte('sm')]: {
+      minWidth: 200,
+    },
+  });
 
   return (
     <Page name={'Startseite'} page={'home'} sd={{ marginTop: 0 }}>
       <HomeHeader height={375} />
       <Stack
         as={'main'}
-        style={{
+        spacing={'xxl'}
+        aria-flowto={'info members updates'}
+        css={{
           marginTop: t.rt.multipliers.spacing(CONTENT_TOP_MARGIN),
+          [t.rt.breakpoints.lte('lg')]: {
+            flexDirection: 'column-reverse',
+            gap: `${t.rt.multipliers.spacing('xxl')}px !important`,
+          },
         }}
       >
         <MemberList members={memberData} />
-        <Stack direction={'row'} spacing={'md'} sd={{ width: '100%' }}>
-          <Card width={'md'}>
+        <Stack direction={'row'} hAlign sd={{ width: '100%' }} wrap>
+          <Card id={'info'} tight css={dynamicCardProps} keepPadding>
             <Card.Header>
               <Card.Header.Title>Wir sind Mowtown!</Card.Header.Title>
             </Card.Header>
@@ -57,8 +81,25 @@ export default function HomePage() {
               sanctus.
             </Card.Content>
           </Card>
-          <Card width={'md'}>
-            <Card.Content>Latest content</Card.Content>
+          <Card
+            id={'updates'}
+            tight
+            css={dynamicCardProps}
+            sd={{ padding: 'md' }}
+          >
+            <Card.Content style={{ height: '100%' }}>
+              <Stack
+                spacing={'sm'}
+                css={{
+                  height: '100%',
+                  '> *': { height: '100%' },
+                }}
+              >
+                {events?.map((event) => (
+                  <LatestContentCard key={event.id} {...event} />
+                ))}
+              </Stack>
+            </Card.Content>
           </Card>
         </Stack>
       </Stack>
@@ -72,9 +113,17 @@ export default function HomePage() {
 function MemberList(props: { members: MemberModel[] | undefined }) {
   const { members } = props;
   return (
-    <Stack as={'ul'} hAlign direction={'row'} spacing={'md'} wrap>
-      {members?.slice(0, 4).map((x) => (
-        <MemberItem key={x.id} member={x} />
+    <Stack
+      id={'members'}
+      as={'ul'}
+      hAlign
+      direction={'row'}
+      spacing={'md'}
+      wrap
+      aria-label={getGlobalMessage('aria.home.memberList')}
+    >
+      {members?.map((x, index) => (
+        <MemberItem key={x.id} index={index} member={x} />
       ))}
     </Stack>
   );

@@ -28,6 +28,24 @@ export const createEditBlogProcedure = ({
             data: updatedData,
             include: processInclude,
           })
+          .then(async (post) => {
+            const found = await prisma.event.findFirst({
+              where: { refId: post.id, type: 'BLOG' },
+              select: { title: true, content: true },
+            });
+            if (
+              found != null &&
+              (found.content != post.content || found.title != post.title)
+            )
+              await prisma.event.update({
+                where: { refId_type: { refId: post.id, type: 'BLOG' } },
+                data: {
+                  content: `${input.content.split('\n')[0]}`,
+                  title: input.title,
+                },
+              });
+            return post;
+          })
           .then(pipePathRevalidate(revalidatePath, res))
       );
     });

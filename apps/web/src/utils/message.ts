@@ -9,6 +9,7 @@ export const globalMessages = {
     info: 'Info',
     error: 'Fehler',
     title: 'Titel',
+    country: 'Land',
     city: 'Stadt',
     street: 'Straße',
     postcode: 'Postleitzahl',
@@ -66,6 +67,9 @@ export const globalMessages = {
       name: 'Auftritt',
       card: 'Auftritt am %s',
       group: 'Auftritte in %s',
+    },
+    home: {
+      memberList: 'Liste unserer Band-Mitglieder',
     },
   },
   gig: {

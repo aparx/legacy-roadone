@@ -12,7 +12,7 @@ export default async function handler(
   const session = await getServerSession(req, res, authOptions);
   if (!Permission.hasGlobalPermission(session, 'media.upload'))
     return res.status(401);
-
   // TODO parse w/ formidable, upload to S3 storage bucket and create database object.
   //  If failed -> delete item from storage bucket and delete database object
+  return res.status(404);
 }

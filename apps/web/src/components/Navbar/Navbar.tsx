@@ -2,7 +2,7 @@
 import * as style from './Navbar.style';
 import { Avatar, Hamburger, Logo } from '@/components';
 import { HamburgerRef } from '@/components/Hamburger/Hamburger';
-import { logOut } from '@/modules/auth/utils/logInOut';
+import { logIn, logOut } from '@/modules/auth/utils/logInOut';
 import { hiddenIfDesktop, hiddenIfMobile } from '@/utils/css';
 import { useIsMobile } from '@/utils/device';
 import { useOnNavigation } from '@/utils/hooks/useOnNavigation';
@@ -35,6 +35,7 @@ import {
   useId,
   useRef,
 } from 'react';
+import { MdLogin } from 'react-icons/md';
 import type { WithArray } from 'shared-utils';
 
 export type Navbar = {
@@ -153,22 +154,31 @@ function NavPages({ pages }: { pages: NavbarProps['children'] }) {
 function NavProfile({ asDrawer }: { asDrawer: boolean | undefined }) {
   const session = useSession();
   const stackProps = useStackProps({ direction: 'row', vAlign: true });
-  return session.status === 'authenticated' ? (
+  return (
     <>
       {asDrawer && <Divider />}
       <Text.Body size={'md'} take={{ fontWeight: 'medium' }} {...stackProps}>
-        {session.data?.user?.image && (
+        {session.data?.user?.image ? (
           <Avatar
             user={session.data.user}
             size={30}
             name={getGlobalMessage('general.profile_picture')}
             onClick={() => logOut()}
           />
+        ) : (
+          <Button.Text
+            icon={<MdLogin />}
+            style={{ opacity: 0.75 }}
+            tight
+            onClick={() => logIn()}
+          >
+            Login
+          </Button.Text>
         )}
         {asDrawer && session.data?.user?.name}
       </Text.Body>
     </>
-  ) : null;
+  );
 }
 
 // prettier-ignore

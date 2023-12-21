@@ -13,7 +13,7 @@ export module TextConfig {
     Record<TypescaleRole, Record<TypescaleSize, HTMLTag>>
   >;
 
-  /** Map of HTML tags associated to typescale role and sizes */
+  /** Level map */
   export const tagMap: TagMap = {
     headline: {
       lg: 'h1',

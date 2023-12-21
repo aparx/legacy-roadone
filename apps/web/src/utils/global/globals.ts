@@ -70,15 +70,15 @@ export module Globals {
     'media.group.manage': 'ADMIN',
   } as const satisfies Record<string, Role>;
 
-  const onDemandRevalidationISR = 60 * 60 * 6; /* 6h */
+  const ON_DEMAND_EVAL_INTERVAL = 60 * 60 * 6; /* 6h */
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
-    gigs: onDemandRevalidationISR,
-    blogs: onDemandRevalidationISR,
-    setlist: onDemandRevalidationISR,
-    mediaGroups: onDemandRevalidationISR,
-    home: onDemandRevalidationISR,
+    gigs: ON_DEMAND_EVAL_INTERVAL,
+    blogs: ON_DEMAND_EVAL_INTERVAL,
+    setlist: ON_DEMAND_EVAL_INTERVAL,
+    mediaGroups: ON_DEMAND_EVAL_INTERVAL,
+    home: ON_DEMAND_EVAL_INTERVAL,
   } as const satisfies Record<string, number>;
 
   /** Stale times (in milliseconds) for Tanstack-Query caching purposes */

@@ -42,13 +42,27 @@ export type MediaItemContentData = z.infer<typeof $mediaItemContent>;
 export const $mediaItemContent = z.object({
   name: z.string().max(255).optional().nullish(),
   type: $mediaItemType,
-  url: z.string().url().min(3).max(800).optional().nullish(),
+  url: z
+    .union([
+      z.string().startsWith('/').min(3).max(800),
+      z.string().url().min(3).max(800),
+    ])
+    .optional()
+    .nullish(),
   groupId: z.string(),
 });
 
 export type MediaURLItemContentData = z.infer<typeof $mediaUrlItemContent>;
 
 export const $mediaUrlItemContent = $mediaItemContent.required({ url: true });
+
+export const $mediaUrlItemContentMultiples = z.object({
+  items: $mediaUrlItemContent.array(),
+});
+
+export type MediaUrlItemContentMultiples = z.infer<
+  typeof $mediaUrlItemContentMultiples
+>;
 
 export type MediaItemModel = z.infer<typeof $mediaItem>;
 

@@ -68,6 +68,10 @@ typescaleRoleArray.forEach((rawRole) => {
 export const Text = _text as Readonly<Text>;
 export default Text;
 
+function getHeadingLevel(role: TypescaleRole, size: TypescaleSize) {
+  return;
+}
+
 function createTextRenderer(role: TypescaleRole) {
   return forwardRef(function TextRenderer<TTag extends HTMLTag>(
     props: TextTypeProps<TTag>,

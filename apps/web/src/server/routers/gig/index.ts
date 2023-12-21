@@ -1,4 +1,9 @@
-import { $gigContent, $gigEdit, ProcessedGigModel } from '@/modules/gigs/gig';
+import {
+  $gigContent,
+  $gigEdit,
+  GigModel,
+  ProcessedGigModel,
+} from '@/modules/gigs/gig';
 import {
   createPermissiveMiddleware,
   shallowSanitizationMiddleware,
@@ -38,6 +43,13 @@ async function ensureGigExistence(id: string, complement: boolean = true) {
         translate: 'responses.gig.not_found',
       },
     });
+}
+
+export function createGigEventContent(gig: GigModel) {
+  return (
+    gig.description ||
+    `${gig.country}, ${gig.postcode} ${gig.city} ${gig.street}`
+  );
 }
 
 /**
@@ -106,6 +118,17 @@ export const gigRouter = router({
       }
       return await prisma.gig
         .create({ data: input })
+        .then(async (gig) => {
+          await prisma.event.create({
+            data: {
+              refId: gig.id,
+              type: 'GIG',
+              title: gig.title,
+              content: createGigEventContent(gig),
+            },
+          });
+          return gig;
+        })
         .then(pipePathRevalidate(revalidatePath, res))
         .catch(handleAsTRPCError);
     }),
@@ -125,6 +148,25 @@ export const gigRouter = router({
       return ensureGigExistence(id).then(() =>
         prisma.gig
           .update({ where: { id }, data: input })
+          .then(async (gig) => {
+            const found = await prisma.event.findFirst({
+              where: { refId: gig.id, type: 'GIG' },
+              select: { title: true, content: true },
+            });
+            const newContent = createGigEventContent(gig);
+            if (
+              found != null &&
+              (found.title != gig.title || found.content != newContent)
+            )
+              await prisma.event.update({
+                where: { refId_type: { refId: gig.id, type: 'GIG' } },
+                data: {
+                  content: newContent,
+                  title: input.title,
+                },
+              });
+            return gig;
+          })
           .then(pipePathRevalidate(revalidatePath, res))
           .catch(handleAsTRPCError)
       );

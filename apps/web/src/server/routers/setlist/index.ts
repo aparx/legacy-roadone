@@ -40,6 +40,17 @@ export const setlistRouter = router({
     .mutation(async ({ input, ctx: { res } }) => {
       return await prisma.song
         .create({ data: input })
+        .then(async (song) => {
+          await prisma.event.create({
+            data: {
+              type: 'SONG',
+              refId: song.id,
+              title: song.name,
+              content: song.artist,
+            },
+          });
+          return song;
+        })
         .then(pipePathRevalidate(path, res));
     }),
 
@@ -52,6 +63,24 @@ export const setlistRouter = router({
     .mutation(async ({ input: { id, ...data }, ctx: { res } }) => {
       return await prisma.song
         .update({ where: { id: id }, data })
+        .then(async (song) => {
+          const found = await prisma.event.findFirst({
+            where: { refId: song.id, type: 'SONG' },
+            select: { title: true, content: true },
+          });
+          if (
+            found != null &&
+            (found.content != song.artist || found.title != song.name)
+          )
+            await prisma.event.update({
+              where: { refId_type: { refId: song.id, type: 'SONG' } },
+              data: {
+                content: song.artist,
+                title: song.name,
+              },
+            });
+          return song;
+        })
         .then(pipePathRevalidate(path, res));
     }),
 

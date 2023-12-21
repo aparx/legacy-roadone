@@ -16,9 +16,10 @@ import {
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { Button, Stack, TextField } from 'next-ui';
+import { Button, Stack, Text, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { useMemo } from 'react';
+import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
 
 import useGlobalPermission = Permission.useGlobalPermission;
@@ -85,6 +86,7 @@ export default function BlogPage() {
         {canMutate && <AddBlogPostItem onAdd={addDialog} />}
         {posts?.map((post, index) => (
           <BlogPostCard
+            id={post.id}
             key={post.id}
             blogPost={post}
             autoShowReply={index === 0}
@@ -105,7 +107,7 @@ const AddBlogPostItem = <TItem extends object>(
 ) => (
   // applying a wrapper mainly because of styling and additional margin
   <div style={{ marginBottom: useTheme().rt.multipliers.spacing('md') }}>
-    <Button.Primary onClick={props.onAdd}>
+    <Button.Primary onClick={props.onAdd} icon={<MdAdd />}>
       {useMessage('general.add', getGlobalMessage('blog.post.name'))}
     </Button.Primary>
   </div>
@@ -138,6 +140,11 @@ function BlogPostMutateForm<TType extends UseMutateType>(
         disabled={isLoading}
         hookform={form}
       />
+      <Text.Label size={'md'} as={'p'}>
+        Hinweis: Markdown wird unterstützt. Die erste Zeile wird allerdings für
+        die Startseite als Beschreibung verwendet (also am besten kein Markdown
+        dort!)
+      </Text.Label>
       <label>
         {/* TODO replace with checkbox */}
         Kommentare verbieten

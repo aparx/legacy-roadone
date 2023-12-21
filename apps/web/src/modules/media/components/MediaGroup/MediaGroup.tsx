@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { FileUploadArea } from '@/components/FileUploadArea';
-import { useDialogHandle } from '@/handles';
 import { Permission } from '@/modules/auth/utils/permission';
 import { MediaItem } from '@/modules/media/components/MediaItem';
 import type {
@@ -9,8 +7,8 @@ import type {
   ProcessedMediaGroupModel,
 } from '@/modules/media/media';
 import {
-  $mediaUrlItemContent,
-  MediaItemContentData,
+  $mediaUrlItemContentMultiples,
+  MediaUrlItemContentMultiples,
 } from '@/modules/media/media';
 import { api } from '@/utils/api';
 import { useIsMobile } from '@/utils/device';
@@ -23,23 +21,24 @@ import {
   UseMutateFormInput,
   UseMutateType,
 } from '@/utils/pages/infinite/infiniteDialog';
-import {
-  InfiniteItem,
-  InfiniteItemEvents,
-} from '@/utils/pages/infinite/infiniteItem';
+import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
-import { Button, Card, Icon, Skeleton, Stack, Text, TextField } from 'next-ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Skeleton,
+  Spinner,
+  Stack,
+  Text,
+  TextField,
+} from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { createStackProps } from 'next-ui/src/components/Stack/Stack';
-import { ReactElement, ReactNode, useState } from 'react';
+import { ReactElement, useEffect } from 'react';
+import { useFieldArray } from 'react-hook-form';
 import { BsPinFill } from 'react-icons/bs';
-import {
-  MdAdd,
-  MdAttachFile,
-  MdDeleteForever,
-  MdEdit,
-  MdUpload,
-} from 'react-icons/md';
+import { MdAdd, MdDelete, MdDeleteForever, MdEdit } from 'react-icons/md';
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
@@ -54,12 +53,13 @@ export default function MediaGroup(props: MediaGroupProps) {
   const { group, type, onDelete, onEdit } = props;
   const theme = useTheme();
   const isMobile = useIsMobile();
+  // prettier-ignore
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
     api.media.getItems.useInfiniteQuery({
       group: group.id,
       type,
-      // TODO: limit: isMobile ? 4 : 6,
-    });
+      limit: isMobile ? 2 : 4
+    }, { getNextPageParam: (lastPage) => lastPage?.nextCursor });
 
   const canManage = useGlobalPermission('media.group.manage');
 
@@ -69,9 +69,9 @@ export default function MediaGroup(props: MediaGroupProps) {
 
   const addURLItemDialog = useMutateDialog({
     type: 'add',
-    width: 'sm',
+    width: 'md',
     endpoint: api.media.addURLItem.useMutation(),
-    schema: $mediaUrlItemContent,
+    schema: $mediaUrlItemContentMultiples,
     form: (props) => (
       <MediaURLItemForm {...props} group={group} mediaType={type} />
     ),
@@ -82,8 +82,6 @@ export default function MediaGroup(props: MediaGroupProps) {
     title: useMessage('general.delete', 'Element'),
     endpoint: api.media.deleteItem.useMutation(),
   });
-
-  const dialogHandle = useDialogHandle();
 
   const items = data?.pages?.flatMap((page) => page.data);
   return items?.length || isLoading || isFetching || canManage ? (
@@ -139,31 +137,12 @@ export default function MediaGroup(props: MediaGroupProps) {
       <Card.Content {...createStackProps(theme, { spacing: 'xl' })}>
         {canManage && (
           <Stack direction={'row'} wrap>
-            <Button.Secondary
-              leading={<MdUpload />}
-              onClick={() =>
-                dialogHandle.show({
-                  type: 'modal',
-                  width: 'sm',
-                  title: 'Upload',
-                  actions: [],
-                  content: <MediaUploadForm />,
-                })
-              }
-            >
+            <Button.Secondary leading={<MdAdd />} onClick={addURLItemDialog}>
               {formatString(
-                getGlobalMessage('media.manage.upload'),
+                getGlobalMessage('media.manage.add'),
                 getGlobalMessage(`media.filter.type.${type}`)
               )}
             </Button.Secondary>
-            {type !== 'AUDIO' && (
-              <Button.Secondary leading={<MdAdd />} onClick={addURLItemDialog}>
-                {formatString(
-                  getGlobalMessage('media.manage.add'),
-                  getGlobalMessage(`media.filter.type.${type}`)
-                )}
-              </Button.Secondary>
-            )}
           </Stack>
         )}
         {group.typeItemCount ? (
@@ -174,16 +153,22 @@ export default function MediaGroup(props: MediaGroupProps) {
                 key={x.id}
                 item={x}
                 group={group}
-                onEdit={function (item: InfiniteItem<any>) {
-                  throw new Error('Function not implemented.');
-                }}
                 onDelete={deleteItemDialog}
               />
             ))}
           </Stack>
         ) : null}
         {hasNextPage && (
-          <Button.Text tight onClick={() => fetchNextPage()}>
+          <Button.Text
+            tight
+            onClick={() => fetchNextPage()}
+            disabled={isLoading || isFetching}
+            icon={
+              (isLoading || isFetching) && (
+                <Spinner size={2 + theme.sys.typescale.body.md.fontSize} />
+              )
+            }
+          >
             {getGlobalMessage('general.load_more')}
           </Button.Text>
         )}
@@ -209,120 +194,74 @@ function SkeletonGroup({ group }: MediaGroupProps) {
 }
 
 function MediaURLItemForm<TType extends UseMutateType>(
-  props: UseMutateFormInput<TType, typeof $mediaUrlItemContent> & {
+  props: UseMutateFormInput<TType, typeof $mediaUrlItemContentMultiples> & {
     group: MediaGroupModel;
     mediaType: MediaItemType;
   }
 ) {
-  const form = useRawForm<MediaItemContentData>();
-  form.methods.setValue('groupId', props.group.id);
-  form.methods.setValue('type', props.mediaType);
+  const form = useRawForm<MediaUrlItemContentMultiples>();
+  const { control } = form.methods;
+
   const item = props.type === 'edit' ? props.item : undefined;
-  return (
-    <Stack>
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'items',
+    rules: { minLength: 1, required: true },
+  });
+
+  const appendItem = () =>
+    append({
+      type: props.mediaType,
+      groupId: props.group.id,
+      url: null,
+      name: null,
+    });
+
+  useEffect(() => {
+    if (fields.length == 0) appendItem();
+  }, []);
+
+  const content = fields.map((field, index) => (
+    <Stack key={field.id} direction={'row'}>
       <TextField
-        placeholder={`${props.mediaType} URL`}
-        name={'url'}
+        placeholder={`Ressourcen-URL (${props.mediaType})`}
+        field={{ defaultValue: item?.[index]?.url ?? undefined }}
+        name={`items.${index}.url`}
         hookform={form}
-        field={{ defaultValue: item?.url ?? undefined }}
+        style={{ width: '80%' }}
         required
+        tight
       />
       <TextField
-        placeholder={'Name'}
-        name={'name'}
+        placeholder={'Beschreibung'}
+        field={{ defaultValue: item?.[index]?.name ?? undefined }}
+        name={`items.${index}.name`}
         hookform={form}
-        field={{ defaultValue: item?.name ?? undefined }}
+        tight
+      />
+      <Button.Surface
+        size={'md'}
+        icon={<MdDelete />}
+        tight
+        disabled={fields.length === 1}
+        onClick={() => remove(index)}
       />
     </Stack>
-  );
-}
+  ));
 
-// <==========================================>
-//         MEDIA UPLOAD DIALOG CONTENT
-// <==========================================>
-
-function MediaUploadForm() {
-  const [fileList, setFileList] = useState<FileList | null>(null);
-
-  const dialogHandle = useDialogHandle();
-
-  const itemList: ReactNode[] = [];
-  if (fileList)
-    for (let i = 0; i < fileList.length; ++i) {
-      const item = fileList.item(i);
-      if (!item) continue;
-      // prettier-ignore
-      itemList.push(<li><MediaUploadItem item={item} index={i} /></li>)
-    }
   return (
-    <Stack
-      as={'form'}
-      onSubmit={(e) => {
-        for (let i of new FormData(e.target as HTMLFormElement).values()) {
-          console.log(i);
-        }
-        e.preventDefault();
-      }}
-    >
-      <FileUploadArea
-        name={'files'}
-        onFileSelect={(set) => setFileList(set)}
-        multiple
-      />
-      {itemList.length !== 0 && (
-        <Stack
-          as={'ul'}
-          spacing={'sm'}
-          sd={{ maxHeight: '40dvh', overflowY: 'auto' }}
-        >
-          {itemList as any}
-        </Stack>
-      )}
-      <Stack as={'footer'} direction={'row'}>
-        <Button.Primary type={'submit'}>Submit</Button.Primary>
-        <Button.Secondary onClick={dialogHandle.close}>Cancel</Button.Secondary>
-      </Stack>
-    </Stack>
-  );
-}
+    <Stack spacing={'xxl'}>
+      <Text.Label size={'lg'}>
+        Füge neue Elemente ein. Diese sind, wenn sie keine ganze URL darstellen,
+        automatisch relativ zu der öffentlichen S3 storage URL.
+      </Text.Label>
 
-/**
- * Item that represents an already uploaded file.
- */
-function MediaUploadItem(props: { item: File; index: number }) {
-  const theme = useTheme();
-  return (
-    <Stack
-      vAlign
-      direction={'row'}
-      sd={{
-        paddingV: 'md',
-        paddingH: 'lg',
-        background: (t) => t.sys.color.surface[4],
-        color: (t) => t.sys.color.scheme.onSurface,
-        roundness: 'sm',
-        overflow: 'hidden',
-      }}
-    >
-      <MdAttachFile />
-      <Text.Body size={'md'} style={{ flexGrow: 1 }}>
-        <input
-          name={`${props.index}`}
-          type={'text'}
-          placeholder={props.item.name}
-          css={{
-            background: 'transparent',
-            fontFamily: 'inherit',
-            letterSpacing: 'inherit',
-            border: 'none',
-            width: '100%',
-            color: theme.sys.color.scheme.primary,
-            '&::placeholder': {
-              color: theme.sys.color.scheme.onSurface,
-            },
-          }}
-        />
-      </Text.Body>
+      <Stack style={{ maxHeight: '50dvh', overflowY: 'auto' }}>{content}</Stack>
+
+      <Button.Secondary onClick={() => appendItem()} icon={<MdAdd />}>
+        Weitere Ressource hinzufügen
+      </Button.Secondary>
     </Stack>
   );
 }

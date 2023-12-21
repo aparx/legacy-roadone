@@ -28,6 +28,17 @@ export const createAddBlogProcedure = ({
             data: { ...input, authorId: session.user.id },
             include: processInclude,
           })
+          .then(async (blogPost) => {
+            await prisma.event.create({
+              data: {
+                type: 'BLOG',
+                title: input.title,
+                content: `${blogPost.content.split('\n')[0]}`,
+                refId: blogPost.id,
+              },
+            });
+            return blogPost;
+          })
           .then(pipePathRevalidate(revalidatePath, res))
       );
     });

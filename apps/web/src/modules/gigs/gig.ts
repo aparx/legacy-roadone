@@ -4,7 +4,7 @@ import { z } from 'zod';
 /** The gig schema used to create a new schema client-side */
 export const $gigContent = z.object({
   title: z.string().min(3).max(128) /* @unique */,
-  country: z.string().max(32).optional().nullish(),
+  country: z.string().max(32),
   description: z.string().max(256).optional().nullish(),
   city: z.string().max(32),
   postcode: z.string().max(32),

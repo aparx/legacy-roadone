@@ -2,8 +2,8 @@ import { Permission } from '@/modules/auth/utils/permission';
 import {
   $mediaGroupContent,
   $mediaGroupEdit,
-  $mediaItemContent,
   $mediaItemType,
+  $mediaUrlItemContentMultiples,
   MediaGroupModel,
   ProcessedMediaGroupModel,
   ProcessedMediaItemModel,
@@ -119,14 +119,15 @@ export const mediaRouter = router({
         skip: input.cursor,
         take: 1 + input.limit,
       });
-
       return createInfiniteQueryResult(input, {
         infiniteData: items.map((x): ProcessedMediaItemModel => {
           const { url, ...item } = x;
-          return {
-            ...item,
-            publicURL: x.url || `https://s3.roadone30.de/${x.id}` /* TODO */,
-          };
+          let publicURL = url;
+          if (url && url?.startsWith('/'))
+            publicURL = `${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}${url}`;
+          else if (!url)
+            publicURL = `${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}/${x.id}`;
+          return { ...item, publicURL };
         }),
       });
     }),
@@ -142,12 +143,13 @@ export const mediaRouter = router({
   addURLItem: procedure
     .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('media.upload'))
-    .input($mediaItemContent.required({ url: true }))
+    .input($mediaUrlItemContentMultiples)
     .mutation(({ input }) => {
-      const { groupId, ...data } = input;
-      // Any YouTube-URL is replaced with an embed link on client-side
-      return prisma.mediaItem.create({
-        data: { group: { connect: { id: input.groupId } }, ...data },
+      const { items } = input;
+      return items.map(async ({ groupId, ...data }) => {
+        return await prisma.mediaItem.create({
+          data: { group: { connect: { id: groupId } }, ...data },
+        });
       });
     }),
 });

@@ -59,13 +59,13 @@ model User {
 
 /// Members are people that are members to the music group, not normal users!
 model Member {
-  id        String  @id @default(cuid())
+  id        Int     @id @default(autoincrement())
   firstName String
   lastName  String
   /// Role of the member within the music-group
   role      String
   image     String? // URL to the image in the S3 storage
-  biography String? @db.Text
+  // biography String? @db.Text
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
@@ -78,7 +78,7 @@ model Gig {
   id          String   @id @default(cuid())
   title       String
   description String?
-  country     String?
+  country     String
   city        String
   postcode    String
   street      String
@@ -134,7 +134,7 @@ model MediaItem {
   /// Optional URL that leads to the item using a public link and is optional.
   /// It is strongly advised *against* putting the S3 URL here, since the bucket or
   /// URL reference may change during the lifespan of a media-item.
-  url String?
+  url String? @unique
 
   /// The type of the media item that ensures its mimetype as well
   type MediaItemType
@@ -153,6 +153,29 @@ enum MediaItemType {
   AUDIO
   IMAGE
   VIDEO
+}
+
+enum EventType {
+  SONG
+  BLOG
+  GIG
+}
+
+/// An event is a sort of log of the most current content posted.
+/// This type of event is (...for example...) shown on the front-page.
+model Event {
+  id String @id @default(cuid())
+
+  updatedAt DateTime @default(now()) @updatedAt
+
+  /// The referenced item identifier (if it has an identifier, otherwise random)
+  refId   String    @default(cuid())
+  type    EventType
+  title   String
+  content String
+
+  @@unique([refId, type])
+  @@index(updatedAt(sort: Desc))
 }
 
 // <=====================================>

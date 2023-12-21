@@ -24,6 +24,7 @@ import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { ReactNode, useMemo } from 'react';
+import { IoMdGlobe } from 'react-icons/io';
 import { MdAdd, MdLocationCity, MdLocationPin, MdTitle } from 'react-icons/md';
 import superjson from 'superjson';
 import { BreakpointName } from 'theme-core';
@@ -226,6 +227,15 @@ function GigForm<TType extends UseMutateType>(
         required
         disabled={isLoading}
         hookform={{ ...form, options: { valueAsDate: true } }}
+      />
+      <TextField
+        name={'country'}
+        placeholder={getGlobalMessage('translation.country')}
+        field={{ defaultValue: item?.country || 'Deutschland' }}
+        leading={<IoMdGlobe />}
+        required
+        disabled={isLoading}
+        hookform={form}
       />
       <TextField
         name={'city'}

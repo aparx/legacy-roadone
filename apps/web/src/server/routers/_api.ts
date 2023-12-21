@@ -1,4 +1,5 @@
 import { blogRouter } from '@/server/routers/blog';
+import { eventRouter } from '@/server/routers/event';
 import { gigRouter } from '@/server/routers/gig';
 import { mediaRouter } from '@/server/routers/media';
 import { memberRouter } from '@/server/routers/member';
@@ -14,6 +15,7 @@ export const apiRouter = router({
   media: mediaRouter,
   blog: blogRouter,
   member: memberRouter,
+  event: eventRouter,
 });
 
 export type ApiRouter = typeof apiRouter;
