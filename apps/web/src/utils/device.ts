@@ -1,4 +1,4 @@
-import { NavbarConfig } from '@/components/Navbar/Navbar.config';
+import { NavbarConfig } from '@/layout/components/Navbar/Navbar.config';
 import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
 import { Theme } from '@emotion/react';
 

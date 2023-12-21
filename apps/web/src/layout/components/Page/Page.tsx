@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { Footer } from '@/layout/components/Footer';
 import { Globals } from '@/utils/global/globals';
 import { useTheme } from '@emotion/react';
 import { NextSeo } from 'next-seo';
@@ -52,20 +53,25 @@ export default function Page({
           locale: Globals.siteLocale,
         }}
       />
-      <PageAlign
-        as={as}
-        {...propMerge(
-          {
-            style: {
-              marginTop: theme.rt.multipliers.spacing(CONTENT_TOP_MARGIN),
+      <div style={{ minHeight: '100dvh' }}>
+        <PageAlign
+          as={as}
+          {...propMerge(
+            {
+              style: {
+                marginTop: theme.rt.multipliers.spacing(CONTENT_TOP_MARGIN),
+              },
             },
-          },
-          usePinpointTextProps({ role: 'body', size: 'md' }),
-          useStyleableMerge(restProps)
-        )}
-      >
-        {children}
-      </PageAlign>
+            usePinpointTextProps({ role: 'body', size: 'md' }),
+            useStyleableMerge(restProps)
+          )}
+        >
+          {children}
+        </PageAlign>
+      </div>
+      <div style={{ marginTop: theme.rt.multipliers.spacing('xxl') }}>
+        <Footer />
+      </div>
     </>
   );
 }

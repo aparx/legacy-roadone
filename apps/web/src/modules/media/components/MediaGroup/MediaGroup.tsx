@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { LoadMoreButton } from '@/components/LoadMoreButton';
 import { Permission } from '@/modules/auth/utils/permission';
 import { MediaItem } from '@/modules/media/components/MediaItem';
 import type {
@@ -23,19 +24,10 @@ import {
 } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
-import {
-  Button,
-  Card,
-  Icon,
-  Skeleton,
-  Spinner,
-  Stack,
-  Text,
-  TextField,
-} from 'next-ui';
+import { Button, Card, Icon, Stack, Text, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { createStackProps } from 'next-ui/src/components/Stack/Stack';
-import { ReactElement, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { BsPinFill } from 'react-icons/bs';
 import { MdAdd, MdDelete, MdDeleteForever, MdEdit } from 'react-icons/md';
@@ -159,38 +151,15 @@ export default function MediaGroup(props: MediaGroupProps) {
           </Stack>
         ) : null}
         {hasNextPage && (
-          <Button.Text
-            tight
-            onClick={() => fetchNextPage()}
-            disabled={isLoading || isFetching}
-            icon={
-              (isLoading || isFetching) && (
-                <Spinner size={2 + theme.sys.typescale.body.md.fontSize} />
-              )
-            }
-          >
-            {getGlobalMessage('general.load_more')}
-          </Button.Text>
+          <LoadMoreButton
+            updating={isLoading || isFetching}
+            fetchNextPage={fetchNextPage}
+            name={getGlobalMessage('general.load_more')}
+          />
         )}
       </Card.Content>
     </Card>
   ) : null;
-}
-
-function SkeletonGroup({ group }: MediaGroupProps) {
-  const maxDisplay = Infinity; // TODO
-  let missing = Math.min(group.typeItemCount, maxDisplay);
-  const skeletonArray: ReactElement[] = new Array(missing);
-  while (--missing >= 0)
-    skeletonArray[missing] = (
-      <Skeleton
-        sd={{ flexGrow: 1, maxWidth: '400px' }}
-        key={missing}
-        width={200}
-        height={250}
-      />
-    );
-  return <>{skeletonArray}</>;
 }
 
 function MediaURLItemForm<TType extends UseMutateType>(

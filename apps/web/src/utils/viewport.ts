@@ -1,4 +1,4 @@
-import { NavbarConfig } from '@/components';
+import { NavbarConfig } from '@/layout/components';
 import { Theme } from '@emotion/react';
 
 function getPageViewportOffsetY(theme: Theme) {
