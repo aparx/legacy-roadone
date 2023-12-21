@@ -86,7 +86,8 @@ export default function BlogPage() {
         {canMutate && <AddBlogPostItem onAdd={addDialog} />}
         {posts?.map((post, index) => (
           <BlogPostCard
-            id={post.id}
+            // TODO fix: when used, the blog post title will be hidden behind navbar
+            //id={post.id}
             key={post.id}
             blogPost={post}
             autoShowReply={index === 0}

@@ -39,7 +39,7 @@ export default function MediaPage() {
   const filter = useFilterMediaType();
   // prettier-ignore
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
-    api.media.getGroups.useInfiniteQuery({ type: filter.state, limit: 1 }, {
+    api.media.getGroups.useInfiniteQuery({ type: filter.state }, {
       getNextPageParam: (lastPage) => lastPage?.nextCursor,
     });
   const canManageGroup = useGlobalPermission('media.group.manage');
