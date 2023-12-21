@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm run theme & next dev",
-    "build": "pnpm run theme & npx prisma db push && npx prisma generate && next build",
+    "build": "npx prisma db push && npx prisma generate && next build",
     "test": "pnpm exec jest",
     "start": "next start",
     "lint": "next lint",
