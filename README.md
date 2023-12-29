@@ -1,6 +1,8 @@
 # roadone30
-Roadone is a german music group for which I created this page.<br/>
-The website features a custom Blog, gigs (being performances by the group), user authentication and authorization to edit specific parts of the website or post comments and replies under blog posts.<br>ISR is the primary tool of caching entire pages without obstructing the users experience.
+The group of roadone is a german music group that covers different artists. The website was wished to be monolingual, which is why there is no native translations.<br/><br/>
+Vercel hosting public URL: https://roadone-web.vercel.app/<br/>
+
+The website features a custom blog, gigs (being performances by the group), setlist, user authentication and authorization to edit specific parts of the website or post comments and replies under blog posts. ISR is the primary tool of caching entire pages without obstructing the users experience.
 
 ### Techstack
 This project uses the _**NTVP**_ techstack. NextJS, Typescript, Vercel hosting and Prisma. It is made with a completely custom component library, to fit the style and animations required by my own Figma designs.<br/>
