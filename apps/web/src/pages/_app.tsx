@@ -1,5 +1,5 @@
-import { Navbar, NavbarConfig } from '@/components';
 import { DialogHandleRenderer, ToastHandleRenderer } from '@/handles';
+import { Navbar, NavbarConfig } from '@/layout/components';
 import * as style from '@/styles/app';
 import '@/styles/reset.css';
 import { theme } from '@/styles/theme';

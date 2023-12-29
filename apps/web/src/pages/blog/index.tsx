@@ -1,4 +1,4 @@
-import { Page } from '@/components';
+import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { $blogPostContent, BlogPostContentData } from '@/modules/blog/blog';
 import { BlogPostCard } from '@/modules/blog/components/BlogPostCard';
@@ -81,12 +81,13 @@ export default function BlogPage() {
   );
 
   return (
-    <Page name={'blogs'} page={'blogs'}>
+    <Page name={'Blog'} page={'blog'}>
       <Stack as={'main'} hAlign sd={{ childLength: 'md' }}>
         {canMutate && <AddBlogPostItem onAdd={addDialog} />}
         {posts?.map((post, index) => (
           <BlogPostCard
-            id={post.id}
+            // TODO fix: when used, the blog post title will be hidden behind navbar
+            //id={post.id}
             key={post.id}
             blogPost={post}
             autoShowReply={index === 0}

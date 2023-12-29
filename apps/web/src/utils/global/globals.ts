@@ -78,7 +78,7 @@ export module Globals {
     blogs: ON_DEMAND_EVAL_INTERVAL,
     setlist: ON_DEMAND_EVAL_INTERVAL,
     mediaGroups: ON_DEMAND_EVAL_INTERVAL,
-    home: ON_DEMAND_EVAL_INTERVAL,
+    home: 60 * 30 /* 30 min */,
   } as const satisfies Record<string, number>;
 
   /** Stale times (in milliseconds) for Tanstack-Query caching purposes */

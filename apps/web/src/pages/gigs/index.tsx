@@ -1,4 +1,5 @@
-import { Page } from '@/components';
+import { LoadMoreButton } from '@/components/LoadMoreButton';
+import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import type {
   GigRequiringMutationMap,
@@ -50,7 +51,7 @@ export async function getStaticProps() {
 
 export default function GigsPage() {
   // prettier-ignore
-  const { data, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
+  const { data, refetch, fetchNextPage, isLoading, isFetching, hasNextPage } =
     api.gig.getGigs.useInfiniteQuery({}, {
       trpc: { abortOnUnmount: true },
       staleTime: Infinity,
@@ -97,12 +98,11 @@ export default function GigsPage() {
           })}
         </>
         {hasNextPage && (
-          <Button.Text
-            disabled={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
-          >
-            {getGlobalMessage('general.load_more')}
-          </Button.Text>
+          <LoadMoreButton
+            updating={isLoading || isFetching}
+            fetchNextPage={fetchNextPage}
+            name={getGlobalMessage('general.load_more')}
+          />
         )}
       </Stack>
     </Page>

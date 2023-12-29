@@ -52,5 +52,4 @@ export const api = createTRPCNext<ApiRouter>({
       ],
     };
   },
-  ssr: true,
 });

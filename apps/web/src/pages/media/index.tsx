@@ -1,4 +1,5 @@
-import { Page } from '@/components';
+import { LoadMoreButton } from '@/components/LoadMoreButton';
+import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { MediaGroup } from '@/modules/media/components/MediaGroup';
 import { MediaSwitch } from '@/modules/media/components/MediaSwitch';
@@ -20,6 +21,7 @@ import {
   UseMutateFormInput,
   UseMutateType,
 } from '@/utils/pages/infinite/infiniteDialog';
+import { useTheme } from '@emotion/react';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { useId, useMemo } from 'react';
@@ -35,8 +37,11 @@ export const useFilterMediaType = create<LocalState<MediaItemType>>((set) => ({
 
 export default function MediaPage() {
   const filter = useFilterMediaType();
+  // prettier-ignore
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
-    api.media.getGroups.useInfiniteQuery({ type: filter.state });
+    api.media.getGroups.useInfiniteQuery({ type: filter.state }, {
+      getNextPageParam: (lastPage) => lastPage?.nextCursor,
+    });
   const canManageGroup = useGlobalPermission('media.group.manage');
   const groups: ProcessedMediaGroupModel[] = useMemo(() => {
     const groupArray = data?.pages?.flatMap((page) => page.data) as
@@ -76,6 +81,8 @@ export default function MediaPage() {
     endpoint: api.media.deleteGroup.useMutation(),
   });
 
+  const theme = useTheme();
+
   return (
     <Page name={'Medien'} page={'media'}>
       <Stack hAlign sd={{ childLength: 'xl' }}>
@@ -102,6 +109,14 @@ export default function MediaPage() {
               onEdit={editGroupDialog}
             />
           ))}
+          {hasNextPage && (
+            <LoadMoreButton
+              updating={isLoading || isFetching}
+              name={getGlobalMessage('general.load_more')}
+              fetchNextPage={fetchNextPage}
+              take={{ vPaddingMode: 'flow' }}
+            />
+          )}
         </Stack>
       </Stack>
     </Page>

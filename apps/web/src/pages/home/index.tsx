@@ -1,7 +1,8 @@
 import { MemberItem } from '../../modules/home/components/MemberItem';
 import imageBackground from '../../public/images/background.png';
-import { Logo, NavbarConfig, Page } from '@/components';
-import { CONTENT_TOP_MARGIN } from '@/components/Page/Page';
+import { Logo, Repeat } from '@/components';
+import { NavbarConfig, Page } from '@/layout/components';
+import { CONTENT_TOP_MARGIN } from '@/layout/components/Page/Page';
 import { EventModel } from '@/modules/event/event';
 import LatestContentCard from '@/modules/home/components/LatestContentCard/LatestContentCard';
 import { MemberModel } from '@/modules/home/member';
@@ -12,11 +13,14 @@ import { getGlobalMessage } from '@/utils/message';
 import { css, keyframes, useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { signIn, signOut } from 'next-auth/react';
-import { Button, Card, Stack } from 'next-ui';
+import { Button, Card, Skeleton, Stack } from 'next-ui';
 import Image from 'next/image';
 import { useMemo } from 'react';
 import { MdArrowForward } from 'react-icons/md';
 import superjson from 'superjson';
+
+/** The limit of number of event cards displayed and fetched */
+const eventCardLimit = 2;
 
 export async function getStaticProps() {
   const helpers = createServerSideHelpers({
@@ -26,7 +30,7 @@ export async function getStaticProps() {
     transformer: superjson,
   });
   await helpers.member.get.prefetch();
-  await helpers.event.get.prefetchInfinite({ limit: 2 });
+  await helpers.event.get.prefetchInfinite({});
   return {
     props: { trpcState: helpers.dehydrate() },
     revalidate: Globals.isrIntervals.home,
@@ -35,7 +39,7 @@ export async function getStaticProps() {
 
 export default function HomePage() {
   const { data: memberData } = api.member.get.useQuery();
-  const { data: eventData } = api.event.get.useInfiniteQuery({ limit: 2 });
+  const { data: eventData } = api.event.get.useInfiniteQuery({});
   const events: EventModel[] | undefined = useMemo(
     () => eventData?.pages?.flatMap((p) => p.data),
     [eventData?.pages]
@@ -95,9 +99,15 @@ export default function HomePage() {
                   '> *': { height: '100%' },
                 }}
               >
-                {events?.map((event) => (
-                  <LatestContentCard key={event.id} {...event} />
-                ))}
+                {events ? (
+                  events?.map((event) => (
+                    <LatestContentCard key={event.id} {...event} />
+                  ))
+                ) : (
+                  <Repeat amount={eventCardLimit}>
+                    <Skeleton style={{ width: '100%', height: '100%' }} />
+                  </Repeat>
+                )}
               </Stack>
             </Card.Content>
           </Card>

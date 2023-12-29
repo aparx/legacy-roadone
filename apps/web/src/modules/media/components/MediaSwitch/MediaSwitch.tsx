@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { NavbarConfig } from '@/components';
+import { NavbarConfig } from '@/layout/components';
 import { MediaItemType, mediaItemTypeArray } from '@/modules/media/media';
 import { LocalState } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';

@@ -1,4 +1,5 @@
-import { Page } from '@/components';
+import { LoadMoreButton } from '@/components/LoadMoreButton';
+import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { SongCard } from '@/modules/setlist/components/SongCard';
 import { $songContent, SongContentData } from '@/modules/setlist/song';
@@ -131,9 +132,11 @@ export default function SetlistPage() {
             ))}
           </Stack>
           {hasNextPage && (
-            <Button.Text onClick={() => fetchNextPage()}>
-              {getGlobalMessage('general.load_more')}
-            </Button.Text>
+            <LoadMoreButton
+              updating={isFetching || isLoading}
+              fetchNextPage={fetchNextPage}
+              name={getGlobalMessage('general.load_more')}
+            />
           )}
         </Card.Content>
       </Card>

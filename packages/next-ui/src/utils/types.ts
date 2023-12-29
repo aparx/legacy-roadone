@@ -9,6 +9,12 @@ export type InferRtMultiplierNameMap =
 export type MultiplierValueInput<TType extends MultiplierName> =
   MultiplierOperationInput<TType, InferRtMultiplierNameMap>;
 
+export type OptionalChildren =
+  | ReactNode
+  | (ReactNode | undefined | null)[]
+  | undefined
+  | null;
+
 export type RequiredChildren =
   | NonNullable<ReactNode>
   | NonNullable<ReactNode>[];

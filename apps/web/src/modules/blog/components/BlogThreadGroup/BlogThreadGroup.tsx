@@ -1,4 +1,5 @@
 import * as style from './BlogThreadGroup.style';
+import { LoadMoreButton } from '@/components/LoadMoreButton';
 import { useToastHandle } from '@/handles';
 import { logIn } from '@/modules/auth/utils/logInOut';
 import {
@@ -59,7 +60,9 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
   const queryParamsRef = useRef(queryParams);
   const ensuredFieldRef = useRef<TextFieldRef>(null);
   // prettier-ignore
-  useEffect(() => { queryParamsRef.current = queryParams });
+  useEffect(() => {
+    queryParamsRef.current = queryParams;
+  });
   const session = useSession();
   const {
     data,
@@ -92,7 +95,7 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
       if (targetPage) targetPage.data.unshift(item);
       else return {
         pages: [{ data: [item], thisCursor: 0, nextCursor: 1 }],
-        pageParams: [],
+        pageParams: []
       };
       return state;
     });
@@ -112,7 +115,7 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
           // prettier-ignore
           pages: state?.pages?.map((page) => ({
             ...page,
-            data: page.data.filter((c) => c.id !== item.id),
+            data: page.data.filter((c) => c.id !== item.id)
           })) ?? [],
           pageParams: state?.pageParams ?? [],
         })
@@ -202,15 +205,14 @@ export default function BlogThreadGroup(props: InternalBlogThreadGroupProps) {
         </Stack>
       )}
       {hasNextPage && (
-        <Button.Text
-          take={{ vPaddingMode: 'oof' }}
-          onClick={() => fetchNextPage()}
-        >
-          {formatString(
+        <LoadMoreButton
+          updating={isLoading || isFetching}
+          fetchNextPage={fetchNextPage}
+          name={formatString(
             getGlobalMessage('general.load_more'),
             getGlobalMessage('blog.comment.reply')
           )}
-        </Button.Text>
+        />
       )}
     </Stack>
   );
@@ -403,7 +405,12 @@ function InnerReplyFieldForm(props: Omit<ReplyFieldProps, 'lockMode'>) {
         props.loading ? (
           <Spinner size={20} />
         ) : (
-          <Button.Text tight icon={<MdSend />} take={{ vPaddingMode: 'oof' }} />
+          <Button.Text
+            type={'submit'}
+            tight
+            icon={<MdSend />}
+            take={{ vPaddingMode: 'oof' }}
+          />
         )
       }
       required
