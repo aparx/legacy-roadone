@@ -4,6 +4,8 @@ Vercel hosting public URL: https://roadone-web.vercel.app/<br/>
 
 The website features a custom blog, gigs (being performances by the group), setlist, user authentication and authorization to edit specific parts of the website or post comments and replies under blog posts. ISR is the primary tool of caching entire pages without obstructing the users experience.
 
+Note: due to timing issues integration tests were not implemented.
+
 ### Techstack
 This project uses the _**NTVP**_ techstack. NextJS, Typescript, Vercel hosting and Prisma. It is made with a completely custom component library, to fit the style and animations required by my own Figma designs.<br/>
 
