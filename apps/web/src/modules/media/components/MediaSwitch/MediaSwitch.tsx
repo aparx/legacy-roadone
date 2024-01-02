@@ -49,7 +49,7 @@ export const MediaSwitch = forwardRef<HTMLOListElement, MediaSwitchProps>(
               </Button.Primary>
             </li>
           ) : (
-            <li>
+            <li key={x}>
               <Button.Surface
                 aria-controls={rest['aria-controls']}
                 onClick={() => state.set(x)}

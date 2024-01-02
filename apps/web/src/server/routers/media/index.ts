@@ -14,6 +14,7 @@ import {
   sharedRateLimitingMiddleware,
 } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
+import { S3 } from '@/server/s3/s3client';
 import { procedure, router } from '@/server/trpc';
 import {
   createInfiniteQueryInput,
@@ -22,6 +23,8 @@ import {
 } from '@/utils/schemas/infiniteQuery';
 import { $cuidField } from '@/utils/schemas/shared';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
+import { DeleteObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { ObjectIdentifier } from '@aws-sdk/client-s3/dist-types/models/models_0';
 import { z } from 'zod';
 
 import hasGlobalPermission = Permission.hasGlobalPermission;
@@ -104,9 +107,25 @@ export const mediaRouter = router({
     .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('media.group.manage'))
     .input($cuidField)
-    .mutation(({ input, ctx: { res } }) => {
-      return prisma.mediaGroup
-        .delete({ where: { id: input.id } })
+    .mutation(async ({ input, ctx: { res } }) => {
+      // prettier-ignore
+      const objectsToBeDeleted = (await prisma.mediaItem.findMany({
+        where: { groupId: input.id, url: { startsWith: '/' } },
+        select: { id: true, url: true }
+      })).map(({ url }) => ({
+        Key: url!.substring(1)
+      } satisfies ObjectIdentifier));
+      await S3.send(
+        new DeleteObjectsCommand({
+          Bucket: process.env.S3_BUCKET_NAME,
+          Delete: { Objects: objectsToBeDeleted },
+        })
+      );
+      return prisma
+        .$transaction([
+          prisma.mediaGroup.delete({ where: { id: input.id } }),
+          prisma.mediaItem.deleteMany({ where: { groupId: input.id } }),
+        ])
         .then(pipePathRevalidate(path, res));
     }),
 
@@ -141,8 +160,16 @@ export const mediaRouter = router({
     .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('media.upload'))
     .input($cuidField)
-    .mutation(({ input: { id } }) => {
-      return prisma.mediaItem.delete({ where: { id } });
+    .mutation(async ({ input: { id } }) => {
+      const itemDeleted = await prisma.mediaItem.delete({ where: { id } });
+      if (itemDeleted?.url?.startsWith('/'))
+        await S3.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: itemDeleted.url.substring(1),
+          })
+        );
+      return itemDeleted;
     }),
 
   addURLItem: procedure
