@@ -50,12 +50,13 @@ export default function MediaGroup(props: MediaGroupProps) {
   const { group, type, onDelete, onEdit } = props;
   const theme = useTheme();
   const isMobile = useIsMobile();
+  const queryLimit = isMobile ? 2 : 4;
   // prettier-ignore
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
     api.media.getItems.useInfiniteQuery({
       group: group.id,
       type,
-      limit: isMobile ? 2 : 4
+      limit: queryLimit
     }, { getNextPageParam: (lastPage) => lastPage?.nextCursor });
 
   const canManage = useGlobalPermission('media.group.manage');
@@ -154,7 +155,7 @@ export default function MediaGroup(props: MediaGroupProps) {
               />
             ))}
             {!items?.length && (
-              <Repeat amount={group.typeItemCount}>
+              <Repeat amount={Math.min(group.typeItemCount, queryLimit)}>
                 <MediaItemContainer>
                   <Skeleton
                     width={'100%'}
