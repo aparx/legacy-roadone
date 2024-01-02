@@ -2,6 +2,7 @@ import { BlogThreadItemType } from '@/modules/blog/blog';
 import { UnionExtract } from 'shared-utils';
 import { z } from 'zod';
 
+
 /** A thread is *a* group of comments or replies to a comment.
  * The `type` field determines the type of all items within the thread. */
 export type BlogThread = (

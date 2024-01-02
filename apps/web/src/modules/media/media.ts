@@ -1,6 +1,7 @@
 import { $cuidField, $updatedCreatedAtFields } from '@/utils/schemas/shared';
 import { z } from 'zod';
 
+
 // <====> Media Group <====>
 
 export type MediaGroupContentData = z.infer<typeof $mediaGroupContent>;

@@ -20,6 +20,7 @@ const rootAttribMap = {
 
 const rootAttribKeys = Object.keys(rootAttribMap);
 
+// @ts-ignore
 export const Scrim = forwardRef<HTMLDivElement, ScrimProps>(
   function ScrimRenderer({ hidden, ...restProps }: ScrimProps, ref) {
     const root = useScrimRoot()?.current;
@@ -28,12 +29,10 @@ export const Scrim = forwardRef<HTMLDivElement, ScrimProps>(
       rootAttribKeys.forEach((k) => root.setAttribute(k, rootAttribMap[k]));
       return () => rootAttribKeys.forEach((a) => root.removeAttribute(a));
     });
-    return (
-      !hidden && (
-        <Portal>
-          <div css={style.scrim} {...restProps} ref={ref} />
-        </Portal>
-      )
+    return hidden ? null : (
+      <Portal>
+        <div css={style.scrim} {...restProps} ref={ref} />
+      </Portal>
     );
   }
 );

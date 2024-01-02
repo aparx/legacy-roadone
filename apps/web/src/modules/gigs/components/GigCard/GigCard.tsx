@@ -9,19 +9,12 @@ import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
-import {
-  Button,
-  propMerge,
-  PropsWithoutChildren,
-  PropsWithStyleable,
-  Stack,
-  Text,
-  UI,
-} from 'next-ui';
+import { Button, propMerge, PropsWithoutChildren, PropsWithStyleable, Stack, Text, UI } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import { usePinpointTextProps } from 'next-ui/src/components/Text/Text';
 import { forwardRef, HTMLAttributes, useMemo } from 'react';
 import { MdDeleteForever, MdEdit } from 'react-icons/md';
+
 
 /** Events that handle mutation ('edit' and 'delete') on Gigs. */
 export type GigRequiringMutationMap = InfiniteItemEvents<RenderableGig>;

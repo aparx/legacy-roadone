@@ -189,6 +189,7 @@ function MediaURLItemForm<TType extends UseMutateType>(
 
   useEffect(() => {
     if (fields.length == 0) appendItem();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const content = fields.map((field, index) => (

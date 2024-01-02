@@ -1,6 +1,7 @@
 import { $cuidField } from '@/utils/schemas/shared';
 import { z } from 'zod';
 
+
 /** The gig schema used to create a new schema client-side */
 export const $gigContent = z.object({
   title: z.string().min(3).max(128) /* @unique */,

@@ -2,6 +2,7 @@ import json from './generated.json';
 import type { Theme } from 'theme-core';
 import { createRuntimeTheme } from 'theme-core';
 
+
 // since `json` is automatically generated using index-cli & index-generator,
 // it is safe to assume that `json` meets the `Theme` type declaration.
 export const theme = createRuntimeTheme(json as Theme, {

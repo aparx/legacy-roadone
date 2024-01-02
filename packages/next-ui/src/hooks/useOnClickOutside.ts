@@ -12,11 +12,11 @@ export function useOnClickOutside(
   // prettier-ignore
   useEffect(() => { callback.current = listener });
   function onClick(event: MouseEvent) {
-    if (!target.current) return;
+    if (!target?.current) return;
     if (target.current === event.target) return;
     if (!event.target || nodeContains(target.current, event.target)) return;
     const index = include?.findIndex?.((t: _EventTarget) =>
-      nodeContains(t?.current, event.target)
+      nodeContains(t?.current ?? undefined, event.target ?? undefined)
     );
     if (index === -1 || index === undefined) callback.current(event);
   }
@@ -28,5 +28,5 @@ function nodeContains(a: EventTarget | undefined, b: EventTarget | undefined) {
 }
 
 function isNode(target: EventTarget | undefined | null): target is Node {
-  return target && 'contains' in target;
+  return !!target && 'contains' in target;
 }

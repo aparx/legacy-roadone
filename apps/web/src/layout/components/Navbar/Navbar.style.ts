@@ -3,6 +3,7 @@ import { mobileMediaQuery } from '@/utils/device';
 import { css, Theme } from '@emotion/react';
 import { UI } from 'next-ui';
 
+
 /** Style for the main navbar container, containing all the navbar items */
 export const navbar = (theme: Theme) =>
   css({

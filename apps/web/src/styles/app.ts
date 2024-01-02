@@ -2,6 +2,7 @@ import { css, Theme } from '@emotion/react';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+
 /** The app root style, generally used to alter its contents. */
 export const appRoot = css({});
 

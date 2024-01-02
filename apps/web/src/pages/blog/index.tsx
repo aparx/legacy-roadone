@@ -7,12 +7,7 @@ import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { getGlobalMessage } from '@/utils/message';
-import {
-  useDeleteDialog,
-  useMutateDialog,
-  UseMutateFormInput,
-  UseMutateType,
-} from '@/utils/pages/infinite/infiniteDialog';
+import { useDeleteDialog, useMutateDialog, UseMutateFormInput, UseMutateType } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
@@ -21,6 +16,7 @@ import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContex
 import { useMemo } from 'react';
 import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
+
 
 import useGlobalPermission = Permission.useGlobalPermission;
 

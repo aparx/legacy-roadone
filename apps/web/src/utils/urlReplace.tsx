@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import { ReactElement, useMemo } from 'react';
 import { regrepl, RegreplConfig } from 'shared-utils';
 
+
 /** Array of hostnames that are whitelisted and don't need permission to forward. */
 const hostnameWhitelist: readonly string[] = [selfURL.hostname] as const;
 

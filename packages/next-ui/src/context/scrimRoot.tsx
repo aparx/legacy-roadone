@@ -8,7 +8,7 @@ import {
 } from 'react';
 
 export const scrimRootContext =
-  createContext<RefObject<HTMLDivElement | null>>(null);
+  createContext<RefObject<HTMLDivElement | null> | null>(null);
 
 export const ScrimRootProvider = scrimRootContext.Provider;
 

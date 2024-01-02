@@ -71,11 +71,10 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
     },
     ref
   ) {
-    duration =
-      typeof duration === 'string' ? toastDurationMap[duration] : duration;
+    const durationNumber = toastDurationMap[duration];
     useAwareTimeout(() => {
       onFinish();
-    }, duration * 1000);
+    }, durationNumber * 1000);
     const t = useTheme();
     const base = toastColorMap[type];
     return (
@@ -86,7 +85,7 @@ export const Toast = forwardRef<HTMLOutputElement, ToastProps>(
         {...propMerge(
           {
             css: style.toast(t, {
-              duration,
+              duration: durationNumber,
               background: t.sys.color.scheme[`${base}Container`],
               foreground: t.sys.color.scheme[`on${capitalize(base)}Container`],
             }),

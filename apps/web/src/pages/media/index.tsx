@@ -3,13 +3,7 @@ import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { MediaGroup } from '@/modules/media/components/MediaGroup';
 import { MediaSwitch } from '@/modules/media/components/MediaSwitch';
-import {
-  $mediaGroupContent,
-  MediaGroupContentData,
-  MediaItemType,
-  mediaItemTypeArray,
-  ProcessedMediaGroupModel,
-} from '@/modules/media/media';
+import { $mediaGroupContent, MediaGroupContentData, MediaItemType, mediaItemTypeArray, ProcessedMediaGroupModel } from '@/modules/media/media';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { formatString } from '@/utils/format';
@@ -17,12 +11,7 @@ import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { LocalState } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
-import {
-  useDeleteDialog,
-  useMutateDialog,
-  UseMutateFormInput,
-  UseMutateType,
-} from '@/utils/pages/infinite/infiniteDialog';
+import { useDeleteDialog, useMutateDialog, UseMutateFormInput, UseMutateType } from '@/utils/pages/infinite/infiniteDialog';
 import { useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack, TextField } from 'next-ui';
@@ -31,6 +20,7 @@ import { useId, useMemo } from 'react';
 import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
 import { create } from 'zustand';
+
 
 import useGlobalPermission = Permission.useGlobalPermission;
 

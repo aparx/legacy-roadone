@@ -19,6 +19,7 @@ import { useMemo } from 'react';
 import { MdArrowForward } from 'react-icons/md';
 import superjson from 'superjson';
 
+
 /** The limit of number of event cards displayed and fetched */
 const eventCardLimit = 2;
 

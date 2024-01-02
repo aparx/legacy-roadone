@@ -1,12 +1,10 @@
 import { $blogPostEdit, $blogPostProcessed } from '@/modules/blog/blog';
-import {
-  createPermissiveMiddleware,
-  shallowSanitizationMiddleware,
-} from '@/server/middleware';
+import { createPermissiveMiddleware, shallowSanitizationMiddleware } from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { BlogPostProcedureData } from '@/server/routers/blog/index';
 import { procedure } from '@/server/trpc';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
+
 
 /** Creates a new procedure that allows for blog post mutation (edit). */
 export const createEditBlogProcedure = ({

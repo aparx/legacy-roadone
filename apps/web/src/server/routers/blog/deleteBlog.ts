@@ -5,6 +5,7 @@ import { procedure } from '@/server/trpc';
 import { $cuidField } from '@/utils/schemas/shared';
 import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
 
+
 /** Creates a new procedure that allows for blog post mutation (delete). */
 export const createDeleteBlogProcedure = ({
   revalidatePath,

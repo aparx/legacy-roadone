@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { zodI18nMap } from 'zod-i18n-map';
 import german from 'zod-i18n-map/locales/de/zod.json';
 
+
+// noinspection JSIgnoredPromiseFromCall
 i18next.init({
   lng: 'de',
   resources: {

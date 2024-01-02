@@ -1,10 +1,7 @@
-import {
-  $authorFields,
-  $cuidField,
-  $updatedCreatedAtFields,
-} from '@/utils/schemas/shared';
+import { $authorFields, $cuidField, $updatedCreatedAtFields } from '@/utils/schemas/shared';
 import { UnionExtract } from 'shared-utils';
 import { z } from 'zod';
+
 
 // <================================================>
 //                  BLOG POST SCHEMAS

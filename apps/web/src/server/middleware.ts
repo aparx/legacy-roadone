@@ -9,6 +9,7 @@ import { TRPCError } from '@trpc/server';
 import requestIp from 'request-ip';
 import * as sanitizeHtml from 'sanitize-html';
 
+
 /**
  * Allocates a new middleware that throws an error if the user has a role less
  * equivalent to `gte`.
