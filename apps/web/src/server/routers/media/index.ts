@@ -1,19 +1,37 @@
 import { Permission } from '@/modules/auth/utils/permission';
-import { $mediaGroupContent, $mediaGroupEdit, $mediaItemType, $mediaUrlItemContentMultiples, MediaGroupModel, ProcessedMediaGroupModel, ProcessedMediaItemModel } from '@/modules/media/media';
-import { createPermissiveMiddleware, shallowSanitizationMiddleware, sharedRateLimitingMiddleware } from '@/server/middleware';
+import {
+  $mediaGroupContent,
+  $mediaGroupEdit,
+  $mediaItemType,
+  $mediaUrlItemContentMultiples,
+  MediaGroupModel,
+  ProcessedMediaGroupModel,
+  ProcessedMediaItemModel,
+} from '@/modules/media/media';
+import {
+  createPermissiveMiddleware,
+  shallowSanitizationMiddleware,
+  sharedRateLimitingMiddleware,
+} from '@/server/middleware';
 import { prisma } from '@/server/prisma';
 import { procedure, router } from '@/server/trpc';
-import { createInfiniteQueryInput, createInfiniteQueryResult, infiniteQueryInput } from '@/utils/schemas/infiniteQuery';
+import {
+  createInfiniteQueryInput,
+  createInfiniteQueryResult,
+  infiniteQueryInput,
+} from '@/utils/schemas/infiniteQuery';
 import { $cuidField } from '@/utils/schemas/shared';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-
 import hasGlobalPermission = Permission.hasGlobalPermission;
+
+const path = '/media';
 
 export const mediaRouter = router({
   getGroups: procedure
     .input(
-      createInfiniteQueryInput(3, 3).extend({
+      createInfiniteQueryInput(5, 5).extend({
         type: $mediaItemType.optional(),
       })
     )
@@ -87,7 +105,10 @@ export const mediaRouter = router({
     .use(createPermissiveMiddleware('media.group.manage'))
     .input($cuidField)
     .mutation(({ input }) => {
-      return prisma.mediaGroup.delete({ where: { id: input.id } });
+      return prisma.mediaGroup.delete({ where: { id: input.id } }).then((x) => {
+        revalidatePath(path);
+        return x;
+      });
     }),
 
   getItems: procedure
@@ -131,10 +152,12 @@ export const mediaRouter = router({
     .input($mediaUrlItemContentMultiples)
     .mutation(({ input }) => {
       const { items } = input;
-      return items.map(async ({ groupId, ...data }) => {
+      const response = items.map(async ({ groupId, ...data }) => {
         return await prisma.mediaItem.create({
           data: { group: { connect: { id: groupId } }, ...data },
         });
       });
+      revalidatePath(path);
+      return response;
     }),
 });

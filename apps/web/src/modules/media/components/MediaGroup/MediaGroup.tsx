@@ -192,7 +192,7 @@ function MediaURLItemForm<TType extends UseMutateType>(
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'items',
-    rules: { minLength: 1, required: true },
+    rules: { minLength: 1, required: true, maxLength: 60 },
   });
 
   const appendItem = () =>
