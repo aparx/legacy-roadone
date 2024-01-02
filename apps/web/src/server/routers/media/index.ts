@@ -39,7 +39,7 @@ export const mediaRouter = router({
 
       // @ts-ignore
       const pinned = (await prisma.mediaGroup.findMany({
-        orderBy: { createdAt: 'desc' /* TODO as index */ },
+        orderBy: { createdAt: 'desc' },
         where: {
           pinned: true,
           items: (!canManage && type && { some: { type } }) || undefined,

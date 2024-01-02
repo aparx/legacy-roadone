@@ -148,7 +148,7 @@ export default function SetlistPage() {
         {...usePinpointTextProps({ role: 'label', size: 'lg' })}
       >
         Du hast einen Vorschlag?
-        <Button.Primary tabIndex={-1} leading={<MdEmail />}>
+        <Button.Primary tabIndex={-1} link={'kontakt'} leading={<MdEmail />}>
           Kontakt
         </Button.Primary>
       </Stack>

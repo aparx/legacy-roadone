@@ -70,14 +70,14 @@ export module Globals {
     'media.group.manage': 'ADMIN',
   } as const satisfies Record<string, Role>;
 
-  const ON_DEMAND_EVAL_INTERVAL = 60 * 60 * 6; /* 6h */
+  const ON_DEMAND_EVAL_INTERVAL = 60 * 60 * 3; /* 3h */
 
   /** Intervals (in seconds) for incremental static regeneration per page. */
   export const isrIntervals = {
     gigs: ON_DEMAND_EVAL_INTERVAL,
     blogs: ON_DEMAND_EVAL_INTERVAL,
     setlist: ON_DEMAND_EVAL_INTERVAL,
-    mediaGroups: ON_DEMAND_EVAL_INTERVAL,
+    media: ON_DEMAND_EVAL_INTERVAL,
     home: 60 * 30 /* 30 min */,
   } as const satisfies Record<string, number>;
 

@@ -1,3 +1,4 @@
+import { imprintDetails } from '@/utils/imprintDetails';
 import { useTheme } from '@emotion/react';
 import { Button, Stack, Text } from 'next-ui';
 import { usePageAlignProps } from 'next-ui/src/components/PageAlign/PageAlign';
@@ -21,20 +22,24 @@ export default function Footer() {
           spacing={0}
           {...usePinpointTextProps({ role: 'body', size: 'md' })}
         >
-          <li>Alexander Zeband</li>
-          <li>41569 Rommerskirchen</li>
-          <li>Hellenbergstraße 130</li>
+          <li>{imprintDetails.owner}</li>
+          <li>{imprintDetails.city}</li>
+          <li>{imprintDetails.street}</li>
           <li>
             E-Mail:{' '}
-            <Link href={'mailto:alexanderzeband@yahoo.de'}>
-              alexanderzeband@yahoo.de
+            <Link href={`mailto:${imprintDetails.email}`}>
+              {imprintDetails.email}
             </Link>
           </li>
         </Stack>
         <Stack>
           <Stack direction={'row'} as={'ol'} spacer={'•'} vAlign>
-            <FooterLink name={'Pressetext'} link={'/kontakt'} />
-            <FooterLink name={'Datenschutzerklärung'} link={'/datenschutz'} />
+            <li>
+              <FooterLink name={'Kontakt'} link={'/kontakt'} />
+            </li>
+            <li>
+              <FooterLink name={'Datenschutzerklärung'} link={'/datenschutz'} />
+            </li>
           </Stack>
         </Stack>
       </Stack>
@@ -44,10 +49,8 @@ export default function Footer() {
 
 function FooterLink({ name, link }: { name: string; link: string }) {
   return (
-    <ol>
-      <Link href={link} css={{ textDecoration: 'none' }}>
-        <Button.Text take={{ hPaddingMode: 'oof' }}>{name}</Button.Text>
-      </Link>
-    </ol>
+    <Link href={link} css={{ textDecoration: 'none' }}>
+      <Button.Text take={{ hPaddingMode: 'oof' }}>{name}</Button.Text>
+    </Link>
   );
 }

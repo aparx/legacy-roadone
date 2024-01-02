@@ -74,7 +74,7 @@ export default function MemberItem(props: MemberCardProps) {
           <Image
             src={`${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}/${member.image}`}
             onLoad={() => setImageLoaded(true)}
-            alt={'Alt'}
+            alt={'Image'}
             aria-hidden
             fill
             style={{

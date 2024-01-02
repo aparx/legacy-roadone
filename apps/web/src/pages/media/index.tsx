@@ -10,8 +10,10 @@ import {
   mediaItemTypeArray,
   ProcessedMediaGroupModel,
 } from '@/modules/media/media';
-import { api } from '@/utils/api';
+import { apiRouter } from '@/server/routers/_api';
+import { api, queryClient } from '@/utils/api';
 import { formatString } from '@/utils/format';
+import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { LocalState } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
@@ -22,10 +24,12 @@ import {
   UseMutateType,
 } from '@/utils/pages/infinite/infiniteDialog';
 import { useTheme } from '@emotion/react';
+import { createServerSideHelpers } from '@trpc/react-query/server';
 import { Button, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { useId, useMemo } from 'react';
 import { MdAdd } from 'react-icons/md';
+import superjson from 'superjson';
 import { create } from 'zustand';
 
 import useGlobalPermission = Permission.useGlobalPermission;
@@ -34,6 +38,22 @@ export const useFilterMediaType = create<LocalState<MediaItemType>>((set) => ({
   state: mediaItemTypeArray[0],
   set: (type: MediaItemType) => set({ state: type }),
 }));
+
+export async function getStaticProps() {
+  const helpers = createServerSideHelpers({
+    queryClient,
+    router: apiRouter,
+    ctx: { session: null },
+    transformer: superjson,
+  });
+  await helpers.media.getGroups.prefetchInfinite({
+    type: mediaItemTypeArray[0],
+  });
+  return {
+    props: { trpcState: helpers.dehydrate() },
+    revalidate: Globals.isrIntervals.media,
+  };
+}
 
 export default function MediaPage() {
   const filter = useFilterMediaType();
