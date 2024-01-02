@@ -1,7 +1,11 @@
 /** @jsxImportSource @emotion/react */
+import { Repeat } from '@/components';
 import { LoadMoreButton } from '@/components/LoadMoreButton';
 import { Permission } from '@/modules/auth/utils/permission';
-import { MediaItem } from '@/modules/media/components/MediaItem';
+import {
+  MediaItem,
+  MediaItemContainer,
+} from '@/modules/media/components/MediaItem';
 import type {
   MediaGroupModel,
   MediaItemType,
@@ -24,7 +28,7 @@ import {
 } from '@/utils/pages/infinite/infiniteDialog';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { useTheme } from '@emotion/react';
-import { Button, Card, Icon, Stack, Text, TextField } from 'next-ui';
+import { Button, Card, Icon, Skeleton, Stack, Text, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { createStackProps } from 'next-ui/src/components/Stack/Stack';
 import { useEffect } from 'react';
@@ -148,6 +152,13 @@ export default function MediaGroup(props: MediaGroupProps) {
                 onDelete={deleteItemDialog}
               />
             ))}
+            {items?.length === 0 && (
+              <Repeat amount={group.typeItemCount}>
+                <MediaItemContainer>
+                  <Skeleton width={'100%'} height={'100%'} />
+                </MediaItemContainer>
+              </Repeat>
+            )}
           </Stack>
         ) : null}
         {hasNextPage && (

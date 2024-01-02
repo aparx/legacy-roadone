@@ -3,7 +3,13 @@ import { Page } from '@/layout/components';
 import { Permission } from '@/modules/auth/utils/permission';
 import { MediaGroup } from '@/modules/media/components/MediaGroup';
 import { MediaSwitch } from '@/modules/media/components/MediaSwitch';
-import { $mediaGroupContent, MediaGroupContentData, MediaItemType, mediaItemTypeArray, ProcessedMediaGroupModel } from '@/modules/media/media';
+import {
+  $mediaGroupContent,
+  MediaGroupContentData,
+  MediaItemType,
+  mediaItemTypeArray,
+  ProcessedMediaGroupModel,
+} from '@/modules/media/media';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { formatString } from '@/utils/format';
@@ -11,16 +17,19 @@ import { Globals } from '@/utils/global/globals';
 import { useMessage } from '@/utils/hooks/useMessage';
 import { LocalState } from '@/utils/localState';
 import { getGlobalMessage } from '@/utils/message';
-import { useDeleteDialog, useMutateDialog, UseMutateFormInput, UseMutateType } from '@/utils/pages/infinite/infiniteDialog';
-import { useTheme } from '@emotion/react';
+import {
+  useDeleteDialog,
+  useMutateDialog,
+  UseMutateFormInput,
+  UseMutateType,
+} from '@/utils/pages/infinite/infiniteDialog';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { Button, Stack, TextField } from 'next-ui';
+import { Button, Spinner, Stack, TextField } from 'next-ui';
 import { useRawForm } from 'next-ui/src/components/RawForm/context/rawFormContext';
 import { useId, useMemo } from 'react';
 import { MdAdd } from 'react-icons/md';
 import superjson from 'superjson';
 import { create } from 'zustand';
-
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
@@ -50,7 +59,7 @@ export default function MediaPage() {
   // prettier-ignore
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } =
     api.media.getGroups.useInfiniteQuery({ type: filter.state }, {
-      getNextPageParam: (lastPage) => lastPage?.nextCursor,
+      getNextPageParam: (lastPage) => lastPage?.nextCursor
     });
   const canManageGroup = useGlobalPermission('media.group.manage');
   const groups: ProcessedMediaGroupModel[] = useMemo(() => {
@@ -91,8 +100,6 @@ export default function MediaPage() {
     endpoint: api.media.deleteGroup.useMutation(),
   });
 
-  const theme = useTheme();
-
   return (
     <Page name={'Medien'} page={'media'}>
       <Stack hAlign sd={{ childLength: 'xl' }}>
@@ -101,6 +108,7 @@ export default function MediaPage() {
           // disabled={isLoading || isFetching}
           aria-controls={controls}
         />
+        {isLoading && <Spinner size={48} />}
         <Stack as={'main'} sd={{ marginTop: 'md' }} id={controls}>
           {canManageGroup && (
             <Button.Primary leading={<MdAdd />} onClick={addGroupDialog}>

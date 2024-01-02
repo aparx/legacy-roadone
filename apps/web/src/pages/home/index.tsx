@@ -12,13 +12,11 @@ import { Globals } from '@/utils/global/globals';
 import { getGlobalMessage } from '@/utils/message';
 import { css, keyframes, useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { signIn, signOut } from 'next-auth/react';
 import { Button, Card, Skeleton, Stack } from 'next-ui';
 import Image from 'next/image';
 import { useMemo } from 'react';
 import { MdArrowForward } from 'react-icons/md';
 import superjson from 'superjson';
-
 
 /** The limit of number of event cards displayed and fetched */
 const eventCardLimit = 2;
@@ -58,7 +56,15 @@ export default function HomePage() {
   });
 
   return (
-    <Page name={'Startseite'} page={'home'} sd={{ marginTop: 0 }}>
+    <Page
+      name={'Startseite'}
+      page={'home'}
+      meta={{
+        description:
+          'Die Startseite von roadone30.de - eine deutsche Mowtown Musikgruppe.',
+      }}
+      sd={{ marginTop: 0 }}
+    >
       <HomeHeader height={375} />
       <Stack
         as={'main'}
@@ -263,14 +269,4 @@ function HeroCallToAction() {
       Auftritte ansehen
     </Button.Primary>
   );
-}
-
-function SignIn() {
-  return (
-    <Button.Primary onClick={() => signIn('google')}>Sign in</Button.Primary>
-  );
-}
-
-function SignOut() {
-  return <Button.Tertiary onClick={() => signOut()}>Sign out</Button.Tertiary>;
 }

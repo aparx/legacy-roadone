@@ -1,13 +1,22 @@
 import { Permission } from '@/modules/auth/utils/permission';
-import { MediaGroupModel, MediaItemType, ProcessedMediaItemModel } from '@/modules/media/media';
+import {
+  MediaGroupModel,
+  MediaItemType,
+  ProcessedMediaItemModel,
+} from '@/modules/media/media';
 import { desktopMediaQuery, useIsMobile } from '@/utils/device';
 import { InfiniteItemEvents } from '@/utils/pages/infinite/infiniteItem';
 import { CSSObject, useTheme } from '@emotion/react';
-import { Button, propMerge, Skeleton, UI } from 'next-ui';
+import { Button, propMerge, RequiredChildren, Skeleton, UI } from 'next-ui';
 import Image from 'next/image';
-import { CSSProperties, HTMLAttributes, ReactElement, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  HTMLAttributes,
+  ReactElement,
+  useMemo,
+  useState,
+} from 'react';
 import { MdDeleteForever } from 'react-icons/md';
-
 
 import useGlobalPermission = Permission.useGlobalPermission;
 
@@ -24,8 +33,11 @@ const typeElementMap = {
   IMAGE: (props) => <MediaImage {...props} />,
 } as const satisfies Record<MediaItemType, (x: MediaItemProps) => ReactElement>;
 
-export default function MediaItem(props: MediaItemProps) {
-  const { onDelete } = props;
+export function MediaItemContainer({
+  children,
+}: {
+  children: RequiredChildren;
+}) {
   const isMobile = useIsMobile();
   let theme = useTheme();
   return (
@@ -41,6 +53,15 @@ export default function MediaItem(props: MediaItemProps) {
         },
       }}
     >
+      {children}
+    </div>
+  );
+}
+
+export default function MediaItem(props: MediaItemProps) {
+  const { onDelete } = props;
+  return (
+    <MediaItemContainer>
       {typeElementMap[props.item.type](props)}
       {useGlobalPermission('media.upload') && (
         <Button.Surface
@@ -55,7 +76,7 @@ export default function MediaItem(props: MediaItemProps) {
           tight
         />
       )}
-    </div>
+    </MediaItemContainer>
   );
 }
 
@@ -100,8 +121,6 @@ function MediaImage(props: MediaItemProps) {
     </a>
   );
 }
-
-const videoDim = { width: 378, height: 212 } as const;
 
 function MediaVideo(props: MediaItemProps) {
   const { item } = props;
