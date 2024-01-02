@@ -1,3 +1,4 @@
+import { MediaItemConfig as config } from './MediaItem.config';
 import { Permission } from '@/modules/auth/utils/permission';
 import {
   MediaGroupModel,
@@ -97,7 +98,7 @@ function MediaImage(props: MediaItemProps) {
             overflow: 'hidden',
             position: 'relative',
             width: '100%',
-            height: 400,
+            height: config.heightPerItem['IMAGE'],
             cursor: imageLoaded ? 'pointer' : undefined,
           } satisfies CSSObject,
         },
@@ -131,7 +132,7 @@ function MediaVideo(props: MediaItemProps) {
     position: 'relative',
     maxWidth: 400,
     minWidth: 300,
-    height: 225,
+    height: config.heightPerItem['VIDEO'],
     flex: '1 1 auto',
   } satisfies CSSProperties;
 

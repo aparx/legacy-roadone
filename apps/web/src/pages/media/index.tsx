@@ -108,7 +108,6 @@ export default function MediaPage() {
           // disabled={isLoading || isFetching}
           aria-controls={controls}
         />
-        {isLoading && <Spinner size={48} />}
         <Stack as={'main'} sd={{ marginTop: 'md' }} id={controls}>
           {canManageGroup && (
             <Button.Primary leading={<MdAdd />} onClick={addGroupDialog}>
@@ -117,6 +116,11 @@ export default function MediaPage() {
                 getGlobalMessage('media.group_name')
               )}
             </Button.Primary>
+          )}
+          {isLoading && (
+            <Stack hAlign>
+              <Spinner size={48} />
+            </Stack>
           )}
           {groups.map((group: ProcessedMediaGroupModel) => (
             <MediaGroup

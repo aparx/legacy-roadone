@@ -6,6 +6,7 @@ import {
   MediaItem,
   MediaItemContainer,
 } from '@/modules/media/components/MediaItem';
+import { MediaItemConfig } from '@/modules/media/components/MediaItem/MediaItem.config';
 import type {
   MediaGroupModel,
   MediaItemType,
@@ -143,7 +144,7 @@ export default function MediaGroup(props: MediaGroupProps) {
         )}
         {group.typeItemCount ? (
           <Stack direction={'row'} wrap style={{ flexGrow: 1, flexShrink: 1 }}>
-            {/* prettier-ignore */}
+            {/*/!* prettier-ignore *!/*/}
             {items?.map((x) => (
               <MediaItem
                 key={x.id}
@@ -152,10 +153,13 @@ export default function MediaGroup(props: MediaGroupProps) {
                 onDelete={deleteItemDialog}
               />
             ))}
-            {items?.length === 0 && (
+            {!items?.length && (
               <Repeat amount={group.typeItemCount}>
                 <MediaItemContainer>
-                  <Skeleton width={'100%'} height={'100%'} />
+                  <Skeleton
+                    width={'100%'}
+                    height={MediaItemConfig.heightPerItem[type]}
+                  />
                 </MediaItemContainer>
               </Repeat>
             )}
