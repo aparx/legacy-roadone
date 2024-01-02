@@ -21,7 +21,7 @@ import {
   infiniteQueryInput,
 } from '@/utils/schemas/infiniteQuery';
 import { $cuidField } from '@/utils/schemas/shared';
-import { revalidatePath } from 'next/cache';
+import { pipePathRevalidate } from '@/utils/server/pipePathRevalidate';
 import { z } from 'zod';
 
 import hasGlobalPermission = Permission.hasGlobalPermission;
@@ -104,11 +104,10 @@ export const mediaRouter = router({
     .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('media.group.manage'))
     .input($cuidField)
-    .mutation(({ input }) => {
-      return prisma.mediaGroup.delete({ where: { id: input.id } }).then((x) => {
-        revalidatePath(path);
-        return x;
-      });
+    .mutation(({ input, ctx: { res } }) => {
+      return prisma.mediaGroup
+        .delete({ where: { id: input.id } })
+        .then(pipePathRevalidate(path, res));
     }),
 
   getItems: procedure
@@ -150,14 +149,14 @@ export const mediaRouter = router({
     .use(sharedRateLimitingMiddleware)
     .use(createPermissiveMiddleware('media.upload'))
     .input($mediaUrlItemContentMultiples)
-    .mutation(({ input }) => {
+    .mutation(async ({ input, ctx: { res } }) => {
       const { items } = input;
       const response = items.map(async ({ groupId, ...data }) => {
         return await prisma.mediaItem.create({
           data: { group: { connect: { id: groupId } }, ...data },
         });
       });
-      revalidatePath(path);
+      await pipePathRevalidate(path, res);
       return response;
     }),
 });
