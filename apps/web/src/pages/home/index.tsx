@@ -1,11 +1,11 @@
+import imageBackground from '../../../public/background.png';
 import { MemberItem } from '../../modules/home/components/MemberItem';
-import imageBackground from '../../public/images/background.png';
 import { Logo, Repeat } from '@/components';
 import { NavbarConfig, Page } from '@/layout/components';
 import { CONTENT_TOP_MARGIN } from '@/layout/components/Page/Page';
 import { EventModel } from '@/modules/event/event';
 import LatestContentCard from '@/modules/home/components/LatestContentCard/LatestContentCard';
-import { MemberModel } from '@/modules/home/member';
+import { members, MemberType } from '@/modules/members/members';
 import { apiRouter } from '@/server/routers/_api';
 import { api, queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
@@ -28,7 +28,6 @@ export async function getStaticProps() {
     ctx: { session: null },
     transformer: superjson,
   });
-  await helpers.member.get.prefetch();
   await helpers.event.get.prefetchInfinite({});
   return {
     props: { trpcState: helpers.dehydrate() },
@@ -37,7 +36,6 @@ export async function getStaticProps() {
 }
 
 export default function HomePage() {
-  const { data: memberData } = api.member.get.useQuery();
   const { data: eventData } = api.event.get.useInfiniteQuery({});
   const events: EventModel[] | undefined = useMemo(
     () => eventData?.pages?.flatMap((p) => p.data),
@@ -71,6 +69,7 @@ export default function HomePage() {
         spacing={'xxl'}
         aria-flowto={'info members updates'}
         css={{
+          alignItems: 'center',
           marginTop: t.rt.multipliers.spacing(CONTENT_TOP_MARGIN),
           [t.rt.breakpoints.lte('lg')]: {
             flexDirection: 'column-reverse',
@@ -78,7 +77,9 @@ export default function HomePage() {
           },
         }}
       >
-        <MemberList members={memberData} />
+        <div style={{ maxWidth: t.rt.breakpoints.point('lg') }}>
+          <MemberList members={members} />
+        </div>
         <Stack direction={'row'} hAlign sd={{ width: '100%' }} wrap>
           <Card id={'info'} tight css={dynamicCardProps} keepPadding>
             <Card.Header>
@@ -127,7 +128,7 @@ export default function HomePage() {
 /**
  * Visual list of members of the band.
  */
-function MemberList(props: { members: MemberModel[] | undefined }) {
+function MemberList(props: { members: Readonly<MemberType[]> | undefined }) {
   const { members } = props;
   return (
     <Stack
@@ -140,7 +141,11 @@ function MemberList(props: { members: MemberModel[] | undefined }) {
       aria-label={getGlobalMessage('aria.home.memberList')}
     >
       {members?.map((x, index) => (
-        <MemberItem key={x.id} index={index} member={x} />
+        <MemberItem
+          key={`${x.firstName} ${x.lastName}`}
+          index={index}
+          member={x}
+        />
       ))}
     </Stack>
   );

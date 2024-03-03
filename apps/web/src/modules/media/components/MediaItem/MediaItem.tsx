@@ -173,6 +173,6 @@ function YoutubeVideo({ item, ...props }: MediaItemProps) {
   );
 }
 
-function MediaAudio({ group, item }: MediaItemProps) {
+function MediaAudio({}: MediaItemProps) {
   return null;
 }

@@ -37,7 +37,7 @@ export const MediaSwitch = forwardRef<HTMLOListElement, MediaSwitchProps>(
           background: (t) => t.sys.color.surface[3],
         }}
       >
-        {mediaItemTypeArray.map((x) => {
+        {mediaItemTypeArray.map((x, i) => {
           return state.state === x ? (
             <li key={x}>
               <Button.Primary
@@ -53,11 +53,11 @@ export const MediaSwitch = forwardRef<HTMLOListElement, MediaSwitchProps>(
               <Button.Surface
                 aria-controls={rest['aria-controls']}
                 onClick={() => state.set(x)}
-                disabled={disabled}
+                disabled={disabled || i !== 0}
                 sd={{
                   background: (t) => t.sys.color.surface[3],
                   color: (t) => t.sys.color.scheme.onSurface,
-                  emphasis: 'medium',
+                  emphasis: disabled || i !== 0 ? 'disabled' : 'medium',
                 }}
               >
                 {getGlobalMessage(`media.filter.type.${x}`)}

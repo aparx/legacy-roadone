@@ -34,7 +34,7 @@ const path = '/media';
 export const mediaRouter = router({
   getGroups: procedure
     .input(
-      createInfiniteQueryInput(5, 5).extend({
+      createInfiniteQueryInput(20, 15).extend({
         type: $mediaItemType.optional(),
       })
     )
@@ -162,13 +162,16 @@ export const mediaRouter = router({
     .input($cuidField)
     .mutation(async ({ input: { id } }) => {
       const itemDeleted = await prisma.mediaItem.delete({ where: { id } });
+      console.log(itemDeleted.url);
       if (itemDeleted?.url?.startsWith('/'))
         await S3.send(
           new DeleteObjectCommand({
             Bucket: process.env.S3_BUCKET_NAME,
             Key: itemDeleted.url.substring(1),
           })
-        );
+        ).catch((error) => {
+          console.error(`Could not delete item ${itemDeleted.url}`, error);
+        });
       return itemDeleted;
     }),
 

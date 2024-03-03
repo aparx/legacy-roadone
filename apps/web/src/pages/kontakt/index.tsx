@@ -1,21 +1,18 @@
 import { Page } from '@/layout/components';
 import { ContactDownloadLink } from '@/modules/contact/components';
-import { MemberModel } from '@/modules/home/member';
+import { members, MemberType } from '@/modules/members/members';
 import { apiRouter } from '@/server/routers/_api';
-import { api, queryClient } from '@/utils/api';
+import { queryClient } from '@/utils/api';
 import { Globals } from '@/utils/global/globals';
 import { imprintDetails } from '@/utils/imprintDetails';
 import { useTheme } from '@emotion/react';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import { Card, Icon, Skeleton, Stack, Text } from 'next-ui';
+import { Card, Skeleton, Stack, Text } from 'next-ui';
 import { useStackProps } from 'next-ui/src/components/Stack/Stack';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { MdDownload } from 'react-icons/md';
 import superjson from 'superjson';
-
-export type ContactPageProps = {};
 
 export async function getStaticProps() {
   const helpers = createServerSideHelpers({
@@ -24,7 +21,6 @@ export async function getStaticProps() {
     ctx: { session: null },
     transformer: superjson,
   });
-  await helpers.member.get.prefetch();
   return {
     props: { trpcState: helpers.dehydrate() },
     revalidate: Globals.isrIntervals.home,
@@ -41,7 +37,7 @@ export default function ContactPage() {
       page={'kontakt'}
       {...useStackProps({ hAlign: true })}
     >
-      <Stack hAlign style={{ width: 'fit-content' }} spacing={'xxl'}>
+      <Stack hAlign spacing={'xxl'}>
         <Text.Display as={'h1'} size={'md'}>
           Kontakt
         </Text.Display>
@@ -58,10 +54,7 @@ export default function ContactPage() {
                 flex: '1 1 0',
               }}
             >
-              <Card.Header
-                title={'Für Veranstalter'}
-                subtitle={'Informationen für Veranstalter'}
-              />
+              <Card.Header title={'Für Veranstalter'} />
               <Card.Content {...useStackProps({})}>
                 <ContactDownloadLink
                   title={'Stageplan'}
@@ -80,10 +73,7 @@ export default function ContactPage() {
                 flex: '1 1 0',
               }}
             >
-              <Card.Header
-                title={'Für die Presse'}
-                subtitle={'Informationen für die Presse'}
-              />
+              <Card.Header title={'Für die Presse'} />
               <Card.Content {...useStackProps({})}>
                 <ContactDownloadLink
                   title={'Pressetext'}
@@ -117,65 +107,57 @@ export default function ContactPage() {
 }
 
 function MemberSection() {
-  const { data: memberData } = api.member.get.useQuery();
   return (
     <Stack hAlign direction={'row'} style={{ width: '100%' }} wrap>
-      {memberData?.map((member) => (
-        <MemberPicture key={member.id} member={member} />
+      {members?.map((member: MemberType) => (
+        <MemberPicture
+          key={`${member.firstName} ${member.lastName}`}
+          member={member}
+        />
       ))}
     </Stack>
   );
 }
 
-function MemberPicture({ member }: { member: MemberModel }) {
-  const fileSuffix = member.image?.substring(
-    member.image.lastIndexOf('.'),
-    member.image.length
-  );
+function MemberPicture({ member }: { member: MemberType }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const theme = useTheme();
   return (
-    <Link
-      aria-label={`Bild von ${member.firstName} ${member.lastName} herunterladen`}
-      href={`${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}/${member.image}`}
-      download={`${member.firstName} ${member.lastName}.${fileSuffix}`}
+    <div
+      style={{
+        position: 'relative',
+        width: 150,
+        height: 200,
+        overflow: 'hidden',
+        borderRadius: theme.rt.multipliers.roundness('md'),
+      }}
     >
-      <div
+      {!imageLoaded && <Skeleton style={{ width: '100%', height: '100%' }} />}
+      <Image
+        aria-hidden={true}
+        src={member.photo}
+        alt={`Bild von ${member.firstName} ${member.lastName}`}
+        fill
+        onLoad={() => setImageLoaded(true)}
         style={{
-          position: 'relative',
-          width: 150,
-          height: 200,
-          overflow: 'hidden',
+          filter: 'saturate(0)',
+          objectFit: 'cover',
+          objectPosition: 'center',
+        }}
+      />
+      {/*<div
+        style={{
+          position: 'absolute',
+          bottom: theme.rt.multipliers.spacing('md'),
+          right: theme.rt.multipliers.spacing('md'),
+          padding: theme.rt.multipliers.spacing('sm'),
+          background: theme.sys.color.scheme.secondaryContainer,
+          color: theme.sys.color.scheme.primary,
           borderRadius: theme.rt.multipliers.roundness('md'),
         }}
       >
-        {!imageLoaded && <Skeleton style={{ width: '100%', height: '100%' }} />}
-        <Image
-          aria-hidden={true}
-          src={`${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}/${member.image}`}
-          alt={`Bild von ${member.firstName} ${member.lastName}`}
-          fill
-          onLoad={() => setImageLoaded(true)}
-          style={{
-            filter: 'saturate(0)',
-            objectFit: 'cover',
-            objectPosition: 'center',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: theme.rt.multipliers.spacing('md'),
-            right: theme.rt.multipliers.spacing('md'),
-            padding: theme.rt.multipliers.spacing('sm'),
-            background: theme.sys.color.scheme.secondaryContainer,
-            color: theme.sys.color.scheme.primary,
-            borderRadius: theme.rt.multipliers.roundness('md'),
-          }}
-        >
-          <Icon icon={<MdDownload size={24} />} />
-        </div>
-      </div>
-    </Link>
+        <Icon icon={<MdDownload size={24} />} />
+      </div>*/}
+    </div>
   );
 }

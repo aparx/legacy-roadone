@@ -57,23 +57,6 @@ model User {
   @@map("user")
 }
 
-/// Members are people that are members to the music group, not normal users!
-model Member {
-  id        Int     @id @default(autoincrement())
-  firstName String
-  lastName  String
-  /// Role of the member within the music-group
-  role      String
-  image     String? // URL to the image in the S3 storage
-  // biography String? @db.Text
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  @@unique([firstName, lastName])
-  @@map("member")
-}
-
 model Gig {
   id          String   @id @default(cuid())
   title       String

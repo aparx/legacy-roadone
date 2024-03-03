@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { MemberItemConfig as config } from './MemberItem.config';
-import { MemberModel } from '@/modules/home/member';
-import { useWindowBreakpoint } from '@/utils/context/windowBreakpoint';
+import { MemberType } from '@/modules/members/members';
 import { keyframes, useTheme } from '@emotion/react';
 import { Skeleton, Stack, Text, useStyleableProps } from 'next-ui';
 import Image from 'next/image';
@@ -9,7 +8,7 @@ import { useMemo, useState } from 'react';
 
 export type MemberCardProps = {
   index: number;
-  member: MemberModel;
+  member: MemberType;
 };
 
 /**
@@ -19,7 +18,6 @@ export default function MemberItem(props: MemberCardProps) {
   const { member, index } = props;
   const [imageLoaded, setImageLoaded] = useState(false);
   const theme = useTheme();
-  const breakpoint = useWindowBreakpoint();
 
   // prettier-ignore
   const memberAnimation = useMemo(() => keyframes({
@@ -72,7 +70,7 @@ export default function MemberItem(props: MemberCardProps) {
             <Skeleton style={{ width: '100%', height: '100%' }} />
           )}
           <Image
-            src={`${process.env.NEXT_PUBLIC_S3_PUBLIC_URL}/${member.image}`}
+            src={member.photo}
             onLoad={() => setImageLoaded(true)}
             alt={'Image'}
             aria-hidden
@@ -116,9 +114,6 @@ export default function MemberItem(props: MemberCardProps) {
               aria-roledescription={'Full name'}
             >
               {member.firstName}
-              {breakpoint?.to?.gte('lg') &&
-                member.lastName &&
-                ` ${member.lastName}`}
             </Text.Label>
           </div>
 

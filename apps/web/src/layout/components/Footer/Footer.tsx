@@ -16,7 +16,9 @@ export default function Footer() {
       }}
     >
       <Stack spacing={'lg'} {...usePageAlignProps()}>
-        <Text.Title size={'md'}>{process.env.NEXT_PUBLIC_SELF_URL}</Text.Title>
+        <Text.Title size={'md'} color={(t) => t.sys.color.scheme.primary}>
+          {process.env.NEXT_PUBLIC_SELF_URL}
+        </Text.Title>
         <Stack
           as={'ul'}
           spacing={0}
