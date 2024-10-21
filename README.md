@@ -4,8 +4,6 @@
 This project is archived, since it does not fit modern standards anymore and has been unnecessarily hard to maintain. A new version, more approprately fitting roadone's needs, is to be made. Tho, it still represents that I have gathered experience building responsive and complex websites and thus the repository has been made public.
 
 ## About
-**This website is still under construction.**
-
 The group of roadone is a german music group that covers different artists. The website was wished to be monolingual, which is why there is no native translations.<br/><br/>
 Vercel hosting public URL: https://roadone-web.vercel.app/<br/>
 
